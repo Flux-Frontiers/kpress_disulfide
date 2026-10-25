@@ -59,7 +59,7 @@ const TIP_RADIUS = 0.03;
 
 /** A line tree's rise per tier, as a multiple of TIER_UP: its depth is fixed, so its height is too. */
 const LINE_TIER_STRETCH = 1.5;
-/** The database tree's scale: the orchard's biggest tree, whatever its population. */
+/** The database tree's reach: the orchard's widest tree, whatever its population, though no taller than the rest. */
 export const HUB_SCALE = 3.0;
 /**
  * The database tree's tiers hold hundreds of classes, too many for a ring at
@@ -346,6 +346,7 @@ export function hubTree(index: ClassIndex): ClassTree {
     members: () => [],
     flow: flowOf(index),
   };
-  const f: Frame = { scale: HUB_SCALE, trunkHeight: TRUNK_HEIGHT * HUB_SCALE, tierUp: TIER_UP * HUB_SCALE, ring: HUB_RING, arc: 0, spread: HUB_SPREAD };
+  // As wide as its scale, but as tall as a line tree's tiers: it reads as one of the orchard's trees, not a tower over it.
+  const f: Frame = { scale: HUB_SCALE, trunkHeight: TRUNK_HEIGHT, tierUp: TIER_UP * LINE_TIER_STRETCH, ring: HUB_RING, arc: 0, spread: HUB_SPREAD };
   return grow(shape, HUB_ROOT, "hub", f, TIP_RADIUS);
 }
