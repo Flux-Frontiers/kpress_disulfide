@@ -6,7 +6,7 @@ import {
 import { redwoodBark } from "./CorpusRedwood";
 import { pickBead, type BeadShape, type Schematic, type SchematicBead, type SchematicSegment } from "./schematic";
 
-/** Bead size, m: a sphere's radius; a cube and an octahedron match it. */
+/** Bead size, m: a class's cube and the trunk's octahedron match a sphere this wide; a member's sphere is half. */
 const BEAD_R = 0.36;
 const LIMB_R = 0.07;
 const TRUNK_R = 0.16;
@@ -57,7 +57,8 @@ export function SegmentMesh({ segments, radius, material, sides }: {
 }
 
 const SHAPES: Record<BeadShape, () => SphereGeometry | BoxGeometry | OctahedronGeometry> = {
-  round: () => new SphereGeometry(BEAD_R, 16, 12),
+  // A member's bead is half a class's: they cluster on a dome over their class.
+  round: () => new SphereGeometry(BEAD_R * 0.5, 16, 12),
   square: () => new BoxGeometry(BEAD_R * 1.6, BEAD_R * 1.6, BEAD_R * 1.6),
   diamond: () => new OctahedronGeometry(BEAD_R * 1.25),
 };

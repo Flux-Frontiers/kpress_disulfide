@@ -33,11 +33,16 @@ export const TIER_UP = 2.0;
 const RING = 1.0;
 /** Least arc between two classes on one ring; a crowded tier widens. */
 const MIN_LEAF_ARC = 0.9;
-/** How far a member's twig reaches from its octant class, and how much it rises. */
-const MEMBER_REACH = 0.55;
-const MEMBER_RISE = 0.3;
-/** The widest fan of member twigs round their class's bearing, radians. */
-const MEMBER_FAN = 1.4;
+/**
+ * An octant class's members hang on a dome above it, this far from the class
+ * node, m, whatever the tree's scale: a fan of twigs at the class's height
+ * crowded into its neighbours on the ring.
+ */
+const MEMBER_DOME = 1.0;
+/** The dome's rim, radians from straight up: the members fill the cap within it. */
+const MEMBER_CAP = 1.2;
+/** Turn between successive members round the dome: the golden angle, so none line up. */
+const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
 /** Curve points inserted per edge. */
 export const EDGE_SUBDIVISIONS = 3;
 /** Sideways jitter on those points, as a fraction of the edge. */
@@ -167,7 +172,7 @@ function ringRadius(tier: number, count: number, f: Frame): number {
   return Math.max(tier * f.ring * f.scale, (count * f.arc * f.scale) / (2 * Math.PI));
 }
 
-/** The crown above `node`: a radial tidy tree, wedges by weight, member twigs at the octant classes. */
+/** The crown above `node`: a radial tidy tree, wedges by weight, members on a dome over each octant class. */
 function placeCanopy(
   shape: Shape, b: Builder, f: Frame, counts: Map<number, number>, weights: Map<string, number>,
   id: string, node: number, gen: number, start: number, span: number,
@@ -176,11 +181,11 @@ function placeCanopy(
   const members = shape.members(id);
   if (members.length) {
     const mid = start + span / 2;
-    const fan = Math.min(MEMBER_FAN, Math.max(span, 0.6));
+    // Equal areas of the cap, lowest energy at the top, spiralling down and out.
+    const rim = 1 - Math.cos(MEMBER_CAP);
     members.forEach((key, j) => {
-      const a = mid + ((j + 0.5) / members.length - 0.5) * fan;
-      const rise = MEMBER_RISE * f.scale * (0.6 + 0.2 * (j % 5));
-      const t = polar(MEMBER_REACH * f.scale, a, rise);
+      const tilt = Math.acos(1 - ((j + 0.5) / members.length) * rim);
+      const t = polar(MEMBER_DOME * Math.sin(tilt), mid + j * GOLDEN_ANGLE, MEMBER_DOME * Math.cos(tilt));
       b.add([here[0] + t[0], here[1] + t[1], here[2] + t[2]], node, key, gen + 1, 0, true);
     });
   }
