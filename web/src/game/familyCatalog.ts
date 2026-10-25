@@ -1,14 +1,9 @@
-// The family as `genkg export-web` writes it: catalog.json, people/<id>.json
-// and species.json. Loaded at runtime, never compiled in -- a GEDCOM is
-// personal data about living people, and this repo publishes nothing built
-// from one. See genealogy_kg/docs/USAGE.md, "Exports for The Knowledge Press:
-// The Family".
+// The Family's export types, kept only for the record reader (FamilyReader.tsx)
+// until it is rewritten for class and bond cards. The orchard reads the
+// disulfide database (classCatalog.ts).
 
 /** The export format this build reads. genealogy_kg bumps it on a breaking change. */
 export const FAMILY_FORMAT = 1;
-
-/** The line no surname or parent places anyone in; no tree grows for it. */
-export const UNKNOWN_LINE = "unknown";
 
 export type FamilyPerson = {
   id: string;
@@ -74,74 +69,6 @@ export type PersonPage = {
   record: { file: string; start: number; end: number; lines: string[] } | null;
 };
 
-/** The catalog's kinship, indexed for walking. */
-export type FamilyIndex = {
-  catalog: FamilyCatalog;
-  person: Map<string, FamilyPerson>;
-  family: Map<string, FamilyUnit>;
-  line: Map<string, FamilyLine>;
-  /** Person -> families they are a spouse in, earliest marriage first. */
-  familiesOf: Map<string, string[]>;
-  /** Person -> families they are a child in. */
-  birthFamilies: Map<string, string[]>;
-};
-
-const byYear = (a: string | null, b: string | null) => (a ?? "9999").localeCompare(b ?? "9999");
-
-/**
- * Index a catalog for the tree walks.
- *
- * :param catalog: As loaded.
- * :returns: Lookups by id and the family edges both ways.
- */
-export function indexCatalog(catalog: FamilyCatalog): FamilyIndex {
-  const person = new Map(catalog.people.map((p) => [p.id, p]));
-  const family = new Map(catalog.families.map((f) => [f.id, f]));
-  const line = new Map(catalog.lines.map((l) => [l.id, l]));
-  const familiesOf = new Map<string, string[]>();
-  const birthFamilies = new Map<string, string[]>();
-  const push = (m: Map<string, string[]>, k: string, v: string) => {
-    const list = m.get(k);
-    if (list) list.push(v);
-    else m.set(k, [v]);
-  };
-  for (const f of catalog.families) {
-    for (const s of f.spouses) push(familiesOf, s, f.id);
-    for (const c of f.children) push(birthFamilies, c, f.id);
-  }
-  for (const list of familiesOf.values()) {
-    list.sort((a, b) => byYear(family.get(a)!.married, family.get(b)!.married) || a.localeCompare(b));
-  }
-  return { catalog, person, family, line, familiesOf, birthFamilies };
-}
-
-/** A person's parents: the spouses of every family they were born into. */
-export function parentsOf(index: FamilyIndex, id: string): string[] {
-  const out: string[] = [];
-  for (const f of index.birthFamilies.get(id) ?? []) {
-    for (const s of index.family.get(f)!.spouses) if (!out.includes(s)) out.push(s);
-  }
-  return out;
-}
-
-/** A family's children, eldest first, undated last. */
-export function childrenOf(index: FamilyIndex, familyId: string): string[] {
-  return [...index.family.get(familyId)!.children].sort(
-    (a, b) => byYear(index.person.get(a)?.born ?? null, index.person.get(b)?.born ?? null) || a.localeCompare(b),
-  );
-}
-
-/**
- * The focal person the app opens on, since the export names none: the founder
- * of the line with the most members.
- */
-export function defaultFocal(catalog: FamilyCatalog): string {
-  const lines = catalog.lines.filter((l) => l.id !== UNKNOWN_LINE && l.members.length);
-  if (!lines.length) return catalog.people[0]?.id ?? "";
-  const biggest = lines.reduce((a, b) => (b.members.length > a.members.length ? b : a));
-  return biggest.members[0]!;
-}
-
 /**
  * Fetch a family exported by `genkg export-web`.
  *
@@ -185,33 +112,4 @@ export async function loadPersonPage(base: string, id: string): Promise<PersonPa
   const page = (await res.json()) as PersonPage;
   page.name = tidyName(page.name);
   return page;
-}
-
-/** One family the app can show: a folder under public/families (scripts/families.mjs). */
-export type FamilyEntry = {
-  slug: string;
-  title: string;
-  people: number;
-  lines: number;
-  /** The person its home tree opens on (`make family FAMILY_FOCAL=`), if one was named. */
-  focal?: string;
-};
-
-/**
- * Fetch the list of exported families.
- *
- * :param root: The app's base URL, with a trailing slash.
- * :returns: The families, or null when there is no index (an export from
- *     before families, in public/family/ alone).
- */
-export async function loadFamilyIndex(root: string): Promise<FamilyEntry[] | null> {
-  const res = await fetch(`${root}families/index.json`);
-  if (!res.ok) return null;
-  const index = (await res.json()) as { families?: FamilyEntry[] };
-  return Array.isArray(index.families) && index.families.length ? index.families : null;
-}
-
-/** The family to show: the one asked for in the URL, else the last one chosen, else the first. */
-export function chooseFamily(families: readonly FamilyEntry[], asked: string | null, saved: string | null): FamilyEntry {
-  return families.find((f) => f.slug === asked) ?? families.find((f) => f.slug === saved) ?? families[0]!;
 }

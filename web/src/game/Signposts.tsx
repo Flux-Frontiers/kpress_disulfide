@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { AdditiveBlending, CanvasTexture, Color, DoubleSide, LinearFilter, SRGBColorSpace } from "three";
 import type { Exhibit } from "./exhibits";
 import { groveByGenre, type Forest, type Grove } from "./forest";
-import { SPECIES, speciesFor } from "./species";
+import { percent } from "./classForest";
 import { useNear } from "./near";
 import { useGame } from "./store";
 import { useNightLamps } from "./Uplights";
@@ -89,12 +89,12 @@ function useLitFace(draw: () => HTMLCanvasElement, lamps: number[], deps: unknow
 }
 
 /**
- * Species plates, one pair of textures per species rather than per sign:
- * there are a handful of species and a sign per surname. Kept for the page's
+ * Function plates, one pair of textures per function rather than per sign:
+ * there are two functions and a sign per class family. Kept for the page's
  * life, since every grove may need them again.
  */
 const plates = new Map<string, LitFace>();
-function speciesPlate(common: string, latin: string): LitFace {
+function functionPlate(common: string, latin: string): LitFace {
   const key = `${common}|${latin}`;
   let plate = plates.get(key);
   if (!plate) {
@@ -214,7 +214,7 @@ function drawSign(label: string, meta: string, accent: string): HTMLCanvasElemen
   return canvas;
 }
 
-/** The grove's tree, on a small plate under the sign: common name, then the scientific name in italics. */
+/** A small plate under the sign: a label, then a word in italics ("Function · Allosteric"). */
 function drawSpeciesPlate(common: string, latin: string): HTMLCanvasElement {
   const w = 1024;
   const h = 164;
@@ -267,14 +267,15 @@ function Signpost({
   selected: boolean;
   /** Within SIGN_TEXTURE_REACH of the cart: the board carries its face. */
   near: boolean;
-  /** The grove holds the home person's own line. */
+  /** The grove holds the home disulfide's own class. */
   home: boolean;
 }) {
   const night = useNightLamps();
-  const face = useLitFace(() => drawSign(grove.label, `${grove.bookCount} trees${home ? " · the home line" : ""}`, grove.color), [0.27, 0.73],
-    [grove.label, grove.bookCount, grove.color, home], near);
-  const species = SPECIES[speciesFor(grove.genre)]!;
-  const plate = speciesPlate(species.common, species.latin);
+  const meta = `${grove.count.toLocaleString("en-US")} bonds · ${percent(grove.percentage)}${home ? " · the home class" : ""}`;
+  const face = useLitFace(() => drawSign(grove.label, meta, grove.color), [0.27, 0.73],
+    [grove.label, meta, grove.color], near);
+  // A function plate only where the class definitions name a function.
+  const plate = grove.function ? functionPlate("Function", grove.function) : null;
   const glow = night * 0.95 + (selected ? 0.25 : 0);
 
   const { x, z, yaw } = sign;
@@ -315,24 +316,26 @@ function Signpost({
           <meshStandardMaterial key="paper" color="#efe8dc" roughness={0.72} metalness={0} emissive={LAMP_GLOW} emissiveIntensity={glow * 0.5} side={DoubleSide} />
         )}
       </mesh>
-      {/* The species plate hangs from the board on two short rods. */}
-      {[-0.8, 0.8].map((px) => (
-        <mesh key={px} position={[px, 1.745, 0.07]}>
-          <cylinderGeometry args={[0.012, 0.012, 0.15, 4]} />
-          <meshStandardMaterial color="#2b2d30" metalness={0.5} roughness={0.5} />
+      {/* The function plate hangs from the board on two short rods. */}
+      {plate ? (<>
+        {[-0.8, 0.8].map((px) => (
+          <mesh key={px} position={[px, 1.745, 0.07]}>
+            <cylinderGeometry args={[0.012, 0.012, 0.15, 4]} />
+            <meshStandardMaterial color="#2b2d30" metalness={0.5} roughness={0.5} />
+          </mesh>
+        ))}
+        <mesh position={[0, 1.5, 0.07]}>
+          <boxGeometry args={[2.2, 0.352, 0.04]} />
+          <meshStandardMaterial
+            map={plate.map}
+            roughness={0.72}
+            emissive={LAMP_GLOW}
+            emissiveMap={plate.glow}
+            emissiveIntensity={glow * 0.6}
+            side={DoubleSide}
+          />
         </mesh>
-      ))}
-      <mesh position={[0, 1.5, 0.07]}>
-        <boxGeometry args={[2.2, 0.352, 0.04]} />
-        <meshStandardMaterial
-          map={plate.map}
-          roughness={0.72}
-          emissive={LAMP_GLOW}
-          emissiveMap={plate.glow}
-          emissiveIntensity={glow * 0.6}
-          side={DoubleSide}
-        />
-      </mesh>
+      </>) : null}
       {[-0.8, 0.8].map((px) => <SignLamp key={px} position={[px, 2.96, 0.11]} />)}
       <LampSpill z={1.1} width={1.9} />
       <mesh position={[0, 2.92, 0.07]}>

@@ -1,4 +1,4 @@
-// Portraits of the family's line trees, rendered from the orchard itself with
+// Portraits of the database's class trees, rendered from the orchard itself with
 // its `?shot=` mode (src/game/portrait.ts): each tree alone at midday in
 // summer, every leaf drawn, framed to fit it.
 //
@@ -6,12 +6,11 @@
 //   npm i --no-save puppeteer-core           # drives the Chrome you have
 //   node scripts/gallery.mjs [line id ...]   # or: make gallery
 //
-// With no line ids, every line of the family that grows a tree. Env: FAMILY
-// (a folder under public/families; default the first in its index),
-// FOREST_URL (default http://localhost:5173), CHROME (default the macOS
-// Google Chrome), OUT (default ../renders/lines/<family>, which git ignores:
-// the portraits show a family). Each tree gets its own browser: a long-lived
-// headless tab has crashed on the larger orchards.
+// With no line ids, every binary class. Env: FOREST (a folder under
+// public/forests; default the first in its index), FOREST_URL (default
+// http://localhost:5173), CHROME (default the macOS Google Chrome), OUT
+// (default ../renders/lines/<forest>, which git ignores). Each tree gets its
+// own browser: a long-lived headless tab has crashed on the larger orchards.
 
 import { mkdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -19,13 +18,13 @@ import puppeteer from "puppeteer-core";
 
 const base = process.env.FOREST_URL ?? "http://localhost:5173";
 const chrome = process.env.CHROME ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-const family = process.env.FAMILY ?? JSON.parse(readFileSync("public/families/index.json", "utf8")).families[0].slug;
-const out = resolve(process.env.OUT ?? `../renders/lines/${family}`);
+const forest = process.env.FOREST ?? JSON.parse(readFileSync("public/forests/index.json", "utf8")).forests[0].slug;
+const out = resolve(process.env.OUT ?? `../renders/lines/${forest}`);
 const only = process.argv.slice(2);
 mkdirSync(out, { recursive: true });
 
-const catalog = JSON.parse(readFileSync(`public/families/${family}/catalog.json`, "utf8"));
-const lines = catalog.lines.filter((l) => l.id !== "unknown" && l.members.length).map((l) => l.id);
+const catalog = JSON.parse(readFileSync(`public/forests/${forest}/catalog.json`, "utf8"));
+const lines = catalog.lines.map((l) => l.id);
 
 for (const slug of only.length ? only : lines) {
   const started = Date.now();
@@ -39,7 +38,7 @@ for (const slug of only.length ? only : lines) {
   try {
     const page = await browser.newPage();
     page.on("pageerror", (e) => console.error(`${slug}: ${e.message}`));
-    await page.goto(`${base}/?family=${family}&shot=${slug}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${base}/?forest=${forest}&shot=${slug}`, { waitUntil: "domcontentloaded" });
     // Installed once the orchard has regrown with every leaf.
     await page.waitForFunction("typeof window.__shotFrame === 'function'", { timeout: 600000, polling: 500 });
     const ok = await page.evaluate((s) => window.__shot(s, window.__shotFrame([s])), slug);

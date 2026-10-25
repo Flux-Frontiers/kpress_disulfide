@@ -1,4 +1,4 @@
-import type { LineCard } from "./familyForest";
+import type { LineCard } from "./classForest";
 
 /**
  * What the guided tour says at each grove: a short summary generated from the

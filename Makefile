@@ -5,9 +5,9 @@
 # Copyright (c) 2026 Eric G. Suchanek, PhD. Elastic License 2.0; see LICENSE.
 #
 # Started as a copy of kpress_family; see PROVENANCE.md. Nothing here
-# publishes, uploads or deploys. Until the disulfide export lands, the copy
-# still reads GenealogyKG families; genealogy_kg writes them and `make demos`
-# only drives it.
+# publishes, uploads or deploys. proteusPy writes the databases
+# (proteusPy.export_web, from the sibling checkout); `make forest` only
+# drives it.
 #
 # The web orchard (web/):
 #   make web-install   -- npm install
@@ -16,31 +16,28 @@
 #   make web-build     -- typecheck and production build
 #   make web-preview   -- production build, served like web-dev
 #   make web-kill      -- stop every running Vite dev or preview server
-#   make gallery       -- a portrait of each line tree into renders/lines
+#   make gallery       -- a portrait of each class tree into renders/lines
 #                         (needs make web-dev running and puppeteer-core)
 #
-# Families (web/public/families/<slug>, never committed):
-#   make family FAMILY=<slug> FAMILY_REPO=<dir> [FAMILY_TITLE="..."] [FAMILY_FOCAL=<id>]
-#                      -- genkg export-web from a genealogy_kg store built with
-#                         the living-person filter on, then refresh the index
-#   make demos         -- build the public demo families from genealogy_kg's
-#                         corpus into .demo/<slug> (filter on) and export them:
-#                         Kennedy, the Tudors and George Washington's family
+# Databases (web/public/forests/<slug>, never committed):
+#   make forest FOREST=subset|full [FOREST_TITLE="..."] [FOREST_HOME=<key>]
+#                      -- proteusPy.export_web from $(PROTEUSPY_DIR), then
+#                         refresh the index. The subset is the 5,000 bonds
+#                         that ship with proteusPy; full is the whole loader
+#                         (about 11 s and 57 MB)
+#   make demos         -- the subset
 
-GENEALOGY_KG_DIR ?= ../genealogy_kg
-FAMILY ?=
-FAMILY_REPO ?=
-FAMILY_TITLE ?= $(FAMILY)
-# The person the home tree opens on; empty lets the app pick the fullest hourglass.
-FAMILY_FOCAL ?=
-FAMILY_CUTOFF ?= 100
-# People with no birth date and no death record: "redact" treats them as
-# living. "keep" is for wholly historical files, where a missing date means
-# an old record, not a living person.
-FAMILY_UNKNOWN_BIRTH ?= redact
-CORPORA := $(GENEALOGY_KG_DIR)/corpora
+PROTEUSPY_DIR ?= ../proteusPy
+FOREST ?= subset
+FOREST_TITLE ?= $(if $(filter full,$(FOREST)),The full database,The 5000-bond subset)
+# The disulfide the monument opens on; empty lets the export pick the lowest-energy bond.
+FOREST_HOME ?=
+# Members sampled per octant class, and the least members an octant class
+# needs for its own tip (empty: the export's default, 2 on the subset, 20 on the full database).
+FOREST_MEMBERS ?= 12
+FOREST_MIN_MEMBERS ?=
 
-.PHONY: web-install web-dev web-test web-build web-preview web-kill family demos gallery
+.PHONY: web-install web-dev web-test web-build web-preview web-kill forest demos gallery
 
 web-install:
 	cd web && npm install
@@ -65,33 +62,16 @@ web-kill:
 	ps -o pid=,command= -p "$$(echo $$pids | tr ' ' ',')"; \
 	kill $$pids && echo "stopped: $$(echo $$pids)"
 
-# The export refuses a store that was not built with at least this cutoff.
-family:
-	@test -n "$(FAMILY)" || { echo "set FAMILY to a short name for the family, such as kennedy"; exit 1; }
-	@test -n "$(FAMILY_REPO)" || { echo "set FAMILY_REPO to a genkg store directory"; exit 1; }
-	cd $(GENEALOGY_KG_DIR) && env -u VIRTUAL_ENV -u POETRY_ACTIVE poetry run genkg export-web \
-		--repo $(abspath $(FAMILY_REPO)) --out $(abspath web/public/families/$(FAMILY)) \
-		--living-cutoff $(FAMILY_CUTOFF) --unknown-birth $(FAMILY_UNKNOWN_BIRTH) --force
-	printf '{"title": "%s", "focal": "%s"}\n' "$(FAMILY_TITLE)" "$(FAMILY_FOCAL)" > web/public/families/$(FAMILY)/about.json
-	cd web && node scripts/families.mjs
-
-# One demo family: build its store from a corpus GEDCOM, then export it.
-# $(call demo,slug,title,gedcom,unknown-birth policy,home person)
-define demo
-	mkdir -p .demo/$(1)
-	cp "$(3)" .demo/$(1)/family.ged
-	printf '[tool.genealogykg]\nliving_cutoff_years = $(FAMILY_CUTOFF)\nunknown_birth_policy = "$(4)"\n' > .demo/$(1)/pyproject.toml
-	cd $(GENEALOGY_KG_DIR) && env -u VIRTUAL_ENV -u POETRY_ACTIVE poetry run genkg build \
-		--repo $(abspath .demo/$(1)) --source $(abspath .demo/$(1))/family.ged
-	$(MAKE) family FAMILY=$(1) FAMILY_REPO=.demo/$(1) FAMILY_TITLE="$(2)" FAMILY_UNKNOWN_BIRTH=$(4) FAMILY_FOCAL=$(5)
-endef
+forest:
+	@case "$(FOREST)" in subset|full) ;; *) echo "set FOREST to subset or full"; exit 1 ;; esac
+	cd $(PROTEUSPY_DIR) && env -u VIRTUAL_ENV -u POETRY_ACTIVE poetry run proteusPy.export_web \
+		--database $(FOREST) --out $(abspath web/public/forests/$(FOREST)) --members-per-class $(FOREST_MEMBERS) \
+		$(if $(FOREST_MIN_MEMBERS),--min-members $(FOREST_MIN_MEMBERS)) $(if $(FOREST_HOME),--home $(FOREST_HOME)) --force
+	printf '{"title": "%s", "home": "%s"}\n' "$(FOREST_TITLE)" "$(FOREST_HOME)" > web/public/forests/$(FOREST)/about.json
+	cd web && node scripts/forests.mjs
 
 demos:
-	$(call demo,kennedy,The Kennedys,$(CORPORA)/gedcom-samples/sample-kennedy/kennedy.ged,redact,I104)
-	$(call demo,tudors,The Tudors,$(CORPORA)/entries/royalty/english-tudor-royal-family/English+Tudor+Royal+Family.ged,keep,I14)
-	$(call demo,washington,George Washington's Family,$(CORPORA)/entries/us-presidents/george-washington-family-big/George+Washington+Family+Big.ged,keep,I1)
-	$(call demo,lotr,The Lord of the Rings,$(CORPORA)/entries/fictional-characters/lord-of-the-rings-family-tree/Lord+of+the+Rings+Family+Tree.ged,keep,I0001)
-	$(call demo,simpsons,The Simpsons,$(CORPORA)/entries/fictional-characters/simpsons-cartoon-family-tree/Simpsons+Cartoon+Family+Tree.ged,keep,Bart_Simpson)
+	$(MAKE) forest FOREST=subset
 
 gallery:
 	cd web && node scripts/gallery.mjs

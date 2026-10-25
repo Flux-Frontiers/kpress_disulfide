@@ -1,16 +1,17 @@
-// The orchard the forest tests build: the Kennedy family as `genkg
-// export-web` writes it (a public corpus, built with living_cutoff_years =
-// 100 and unknown births redacted), focused as the app focuses it.
+// The orchard the forest tests build: the 5,000-bond subset that ships with
+// proteusPy, as its web export writes it, trimmed to keep the fixture small:
+//
+//   proteusPy.export_web --database subset --members-per-class 3 --min-members 5 --out <dir>
+//
+// then catalog.json, atoms.json and the home bond's card (bonds/<home>.json)
+// copied into fixtures/subset/. The PDB is public; nothing here is private.
 import { readFileSync } from "node:fs";
-import { createRequire } from "node:module";
-const require = createRequire(import.meta.url);
 
-export const KENNEDY = JSON.parse(readFileSync(new URL("./fixtures/kennedy/catalog.json", import.meta.url)));
+export const SUBSET = JSON.parse(readFileSync(new URL("./fixtures/subset/catalog.json", import.meta.url)));
+export const ATOMS = JSON.parse(readFileSync(new URL("./fixtures/subset/atoms.json", import.meta.url)));
+export const HOME_BOND = JSON.parse(readFileSync(new URL(`./fixtures/subset/bonds/${SUBSET.home}.json`, import.meta.url)));
 
-/** getForest's arguments: the family and its default focal person. */
+/** getForest's arguments: the database and its default home disulfide. */
 export function orchardArgs() {
-  const build = process.env.FOREST_TEST_BUILD;
-  const { indexCatalog } = require(`${build}/familyCatalog.js`);
-  const { richestFocal } = require(`${build}/familyTree.js`);
-  return [KENNEDY, richestFocal(indexCatalog(KENNEDY))];
+  return [SUBSET, SUBSET.home];
 }

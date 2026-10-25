@@ -8,9 +8,9 @@ import { clearTourHeard } from "./tourScript";
 import type { Portrait } from "./portrait";
 import type { GroundCamera } from "./godEye";
 
-const SAVE_KEY = "kpf-library-v1";
+const SAVE_KEY = "kpd-library-v1";
 /** Each family's album, groves visited and home person, under this prefix and its slug. */
-const FAMILY_SAVE_PREFIX = "kpf-family-v1:";
+const FAMILY_SAVE_PREFIX = "kpd-forest-v1:";
 const SAVE_VERSION = 1;
 
 type SaveBlob = {
@@ -173,7 +173,7 @@ export type GameStore = {
   collect: (slug: string, title: string) => void;
   /** Take every book out of the press. */
   emptyPress: () => void;
-  /** The family shown, by its folder under public/families; null until chosen (ForestApp). */
+  /** The database shown, by its folder under public/forests; null until chosen (ForestApp). */
   familySlug: string | null;
   /** Where that family's export is served from, with a trailing slash. */
   familyBase: string;

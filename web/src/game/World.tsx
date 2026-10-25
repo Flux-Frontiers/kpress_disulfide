@@ -10,11 +10,10 @@ import { FOG_SCALE } from "./preferences";
 const GOD_EYE_FOG = 0.1;
 import type { Exhibit } from "./exhibits";
 import { lineMatchesQuery, groveApproach, groveByGenre, type Forest } from "./forest";
-import { annulus, disc, fillets, ribbon, RING_W, SPOKE_W, SPUR_W, type FlatMesh } from "./roads";
+import { disc, fillets, ribbon, RING_W, SPOKE_W, SPUR_W, type FlatMesh } from "./roads";
 import { CorpusRedwood } from "./CorpusRedwood";
-import { GlassPit, MarriageArcs } from "./GlassPit";
 import { Cart } from "./Cart";
-import { GroveMarks } from "./GroveMarks";
+import { Molecules, Monument } from "./Molecules";
 import { Mysterium } from "./Mysterium";
 import { Signposts } from "./Signposts";
 import { Sundial } from "./Sundial";
@@ -97,8 +96,7 @@ export function World({ forest, season }: { forest: Forest; season: SeasonName }
       <directionalLight position={[-30, 20, -40]} intensity={0.2} color="#8aa0b8" />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-        {/* A hole at the hub for the glass pit (GlassPit.tsx). */}
-        <ringGeometry args={[forest.corpusTree.pitRadius, forest.worldRadius + 30, 96, 1]} />
+        <circleGeometry args={[forest.worldRadius + 30, 96]} />
         <meshStandardMaterial color={season === "winter" ? "#c8d1ce" : groundColor} map={groundTexture} bumpMap={groundTexture} bumpScale={0.09} roughness={0.96} metalness={0} />
       </mesh>
 
@@ -114,8 +112,8 @@ export function World({ forest, season }: { forest: Forest; season: SeasonName }
       {portrait ? null : (<>
         <LanternTrail forest={forest} selectedGrove={selectedGrove} query={query} searchPick={searchPick} />
         <Signposts forest={forest} />
-        {/* No compass rose: the glass pit fills the hub plaza where it was inlaid. */}
-        <GroveMarks forest={forest} />
+        {/* The representatives on the stop plazas and the foot plates at the trees. */}
+        <Molecules forest={forest} />
 
         {forest.groves.map((g) => {
           const on = selectedGrove === g.genre;
@@ -130,8 +128,7 @@ export function World({ forest, season }: { forest: Forest; season: SeasonName }
         })}
 
         <CorpusRedwood forest={forest} season={season} wood={!schematic} />
-        <GlassPit forest={forest} />
-        <MarriageArcs forest={forest} />
+        <Monument forest={forest} />
         {forest.exhibits.map((e) => {
           const View = EXHIBIT_VIEWS[e.id];
           return View ? <View key={e.id} exhibit={e} /> : null;
@@ -181,11 +178,7 @@ function Roads({ forest, circuit }: { forest: Forest; circuit: boolean }) {
     }
     // Curbs rounded where a spoke meets a ring, at the ring's level: they touch neither road's strip.
     for (const j of forest.junctions) fillets(j, 0.045, ring);
-    // The hub plaza is paved round the glass pit, not over it.
-    for (const p of forest.plazas) {
-      if (p.x === 0 && p.z === 0) annulus(0, 0, forest.corpusTree.pitRadius + 0.1, p.r, 0.055, ring);
-      else disc(p.x, p.z, p.r, 0.055, ring);
-    }
+    for (const p of forest.plazas) disc(p.x, p.z, p.r, 0.055, ring);
     return { spokes: flatGeometry(spokes), ring: flatGeometry(ring) };
   }, [forest]);
   const materials = useMemo(() => {

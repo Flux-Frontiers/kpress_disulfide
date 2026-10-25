@@ -1,9 +1,9 @@
-// The home person's place on their own line's tree: the chain of wood from
-// the ground up to them, which HomeMarks gilds, and where their lantern hangs.
+// The home disulfide's place on its own class's tree: the chain of wood from
+// the ground up to its twig, which HomeMarks gilds, and where its lantern hangs.
 // Pure, so the tests can run it.
 
 import type { Skeleton } from "./growTree";
-import type { FamilyTree } from "./familyTree";
+import type { ClassTree } from "./classTree";
 import type { Schematic, SchematicSegment } from "./schematic";
 
 /** The skeleton nodes from `node` down to the root, `node` first. */
@@ -21,7 +21,7 @@ export type GildedSegment = SchematicSegment & { r: number };
  * segments a little thicker than the bark, so a sleeve over them gilds the
  * limbs. Null when `id` is not on the tree.
  */
-export function gildedDescent(tree: FamilyTree, id: string, ox: number, oz: number): { segments: GildedSegment[]; at: { x: number; y: number; z: number } } | null {
+export function gildedDescent(tree: ClassTree, id: string, ox: number, oz: number): { segments: GildedSegment[]; at: { x: number; y: number; z: number } } | null {
   const person = tree.people.find((p) => p.id === id && !p.marriedIn);
   if (!person) return null;
   const { nodes, radii } = tree.skeleton;
@@ -41,7 +41,7 @@ export function gildedDescent(tree: FamilyTree, id: string, ox: number, oz: numb
  * parents' bar, the half bar back to the parent on the chain. Radii to sleeve
  * the schematic's limbs (0.07 m) and trunk (0.16 m).
  */
-export function gildedSchematic(schematic: Schematic, tree: FamilyTree, id: string, ox: number, oz: number): GildedSegment[] {
+export function gildedSchematic(schematic: Schematic, tree: ClassTree, id: string, ox: number, oz: number): GildedSegment[] {
   const person = tree.people.find((p) => p.id === id && !p.marriedIn);
   if (!person) return [];
   const byNode = new Map(tree.people.map((p) => [p.node, p]));

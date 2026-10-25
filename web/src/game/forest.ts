@@ -1,7 +1,7 @@
 import { EXHIBITS, placeExhibits, type Exhibit } from "./exhibits";
-import { indexCatalog, UNKNOWN_LINE, type FamilyCatalog, type FamilyLine } from "./familyCatalog";
-import { foundingYear, homeTree, lineCard, lineGrown, speciesForSurname, type HomeTree, type LineCard } from "./familyForest";
-import { hourglassTree, lineTree, pedigreeTree } from "./familyTree";
+import { indexCatalog, type ClassCatalog, type Molecule } from "./classCatalog";
+import { homeTree, lineCard, lineGrown, speciesForGrove, type HomeTree, type LineCard } from "./classForest";
+import { hubTree, lineTree } from "./classTree";
 import { GROW_VERSION, cellKey3, emitBark, emitLeaves, type BarkBuffers, type GrownTree } from "./growTree";
 import { sunflower, wheelLayout } from "./math";
 import type { Junction } from "./roads";
@@ -29,8 +29,33 @@ export type Grove = {
   radius: number;
   color: string;
   bookCount: number;
+  /** Bonds in the class family, and its share of the database. */
+  count: number;
+  percentage: number;
+  /** "Allosteric", "Catalytic", or "": the signpost's function plate. */
+  function: string;
   /** What the guided tour says here: a summary of the grove's books. */
   narration: string;
+};
+
+/**
+ * A model disulfide standing in the orchard, ball-and-stick (molecule.ts):
+ * a grove's representative on its stop plaza, or a tree's foot plate.
+ */
+export type MoleculeSite = {
+  kind: "representative" | "plate";
+  /** The grove (representative) or the line (plate) it stands for. */
+  of: string;
+  /** The molecule's center, m. */
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
+  /** Metres per angstrom. */
+  scale: number;
+  /** The plinth's top, m: it stands from the ground to here. */
+  plinth: number;
+  model: Molecule;
 };
 
 export type TreeSite = {
@@ -97,15 +122,42 @@ const TOUR_TURN_R = 3.5;
 const SIGN_JUNCTION_CLEAR = 5;
 /** Exhibit spurs keep this far from a junction (the old junction plaza, plus a verge). */
 const JUNCTION_CLEAR = 12;
-/** Bearing of the redwood's plaque from the hub; home looks back along it. */
+/** Bearing of the hub's monument and plaque from the hub; home looks back along it. */
 export const HUB_PLAQUE_DIR = Math.atan2(4.6, -4.2);
-export const HUB_PLAQUE_DIST = 7.2;
-// Home: 11.5 m out along the plaque's bearing, so the plaque stands between the
-// cart and the redwood; facing the hub (yaw convention of sim.yawToward). At 15 m
-// the chase camera sat beside the Ancient & Classical signpost, which filled the view.
+/**
+ * The home disulfide's monument stands beside the plaque's bearing, turned
+ * this far from it, so the tour spoke that runs out behind home passes it;
+ * the plaque stands on the bearing, between home and the hub tree.
+ */
+export const HUB_MONUMENT_DIST = 6.5;
+const HUB_MONUMENT_TURN = 0.55;
+export const HUB_PLAQUE_DIST = 9.6;
+/** The monument: metres per angstrom, its plinth's height and the radius the cart keeps from it. */
+export const MONUMENT_SCALE = 0.35;
+export const MONUMENT_PLINTH = 0.8;
+const MONUMENT_CLEAR = 1.6;
+/** A grove's representative: metres per angstrom (about 2 m across), and its plinth. */
+const REPRESENTATIVE_SCALE = 0.22;
+const REPRESENTATIVE_PLINTH = 0.7;
+/**
+ * The representative stands at the hub side of its stop plaza, on a paved
+ * pad of its own that overlaps the plaza's rim: this far from the stop, so
+ * the cart on the ring keeps its 2.75 m from it, and away from the signpost,
+ * which stands on the grove side.
+ */
+const REPRESENTATIVE_OFFSET = 3.7;
+const REPRESENTATIVE_CLEAR = 0.9;
+const REPRESENTATIVE_PAD = 1.2;
+/** A tree's foot plate: its consensus model, small, beside the trunk on the stop's side. */
+const PLATE_SCALE = 0.08;
+const PLATE_PLINTH = 0.55;
+const PLATE_GAP = 0.9;
+// Home: 13 m out along the plaque's bearing, so the plaque and the monument
+// stand between the cart and the hub tree; facing the hub (yaw convention of
+// sim.yawToward).
 const HOME = {
-  x: Math.cos(HUB_PLAQUE_DIR) * 11.5,
-  z: Math.sin(HUB_PLAQUE_DIR) * 11.5,
+  x: Math.cos(HUB_PLAQUE_DIR) * 13,
+  z: Math.sin(HUB_PLAQUE_DIR) * 13,
   yaw: Math.atan2(Math.cos(HUB_PLAQUE_DIR), Math.sin(HUB_PLAQUE_DIR)),
 };
 
@@ -128,12 +180,12 @@ export type Chunk = {
  */
 export type RoadLine = { kind: "spoke" | "ring" | "spur"; pts: [number, number][]; closed: boolean };
 
-/** A marriage between two lines: an arc between their trees. */
+/** Two binary classes one sign flip apart: an arc between their trees (none drawn yet). */
 export type ForestLink = { family: string; a: number; b: number; married: string | null };
 
 export type Forest = {
   trees: TreeSite[];
-  /** Marriages between lines, by index into trees. */
+  /** Arcs between lines, by index into trees; empty until neighbor arcs are drawn. */
   links: ForestLink[];
   groves: Grove[];
   /** Straight pieces of every road line, for clearance tests. */
@@ -173,14 +225,17 @@ export type Forest = {
   /** On the hub plaza behind the redwood's plaque, facing the redwood. */
   home: { x: number; z: number; yaw: number };
   worldRadius: number;
-  /** The home hourglass at the hub: the focal person's ancestors and descendants, over the glass pit. */
+  /** The database tree at the hub. */
   corpusTree: HomeTree;
   /**
-   * The home person's own line out on the rings: its tree (an index into
-   * `trees`) and grove. Null when their line is not planted (no surname line,
-   * or a living person's).
+   * The home disulfide's own line out on the rings: its tree (an index into
+   * `trees`) and grove. Null when it is not a sampled member of a tree.
    */
   homeLine: { tree: number; genre: string } | null;
+  /** The representatives on the stop plazas and the foot plates at the trees. */
+  molecules: MoleculeSite[];
+  /** Where the home disulfide's monument stands on the hub plaza. */
+  monument: { x: number; z: number; yaw: number };
   /** Set pieces in roadside glades. */
   exhibits: Exhibit[];
   /** Discs the cart cannot drive into besides trunks: the redwood and each exhibit's plinth. */
@@ -197,15 +252,15 @@ function cellKey(cx: number, cz: number): string {
 }
 
 /**
- * The orchard for a family, focused on one person; cached per family and focal.
+ * The orchard for a database, with one home disulfide; cached per database and home.
  *
- * :param family: As `genkg export-web` wrote it.
- * :param focal: The home tree's trunk person.
+ * :param catalog: As `proteusPy.export_web` wrote it.
+ * :param home: The home disulfide's key.
  */
-export function getForest(family: FamilyCatalog, focal: string, ancestors = false): Forest {
-  const key = `${GROW_VERSION}:${family.meta.generated}:${family.meta.counts.people}:${focal}:${ancestors}`;
+export function getForest(catalog: ClassCatalog, home: string): Forest {
+  const key = `${GROW_VERSION}:${catalog.meta.generated}:${catalog.meta.database.bonds}:${home}`;
   if (cached && cachedVersion === key) return cached;
-  cached = buildForest(family, focal, ancestors);
+  cached = buildForest(catalog, home);
   cachedVersion = key;
   return cached;
 }
@@ -374,41 +429,31 @@ function roundTurns(path: [number, number][], r: number): [number, number][] {
   return out.filter((p, k) => k === 0 || Math.hypot(p[0] - out[k - 1]![0], p[1] - out[k - 1]![1]) > 1e-6);
 }
 
-function buildForest(family: FamilyCatalog, focal: string, ancestors: boolean): Forest {
-  const index = indexCatalog(family);
-  // One grove per surname, holding each of its lines (a surname can found
-  // several unconnected lines). The unknown line grows no tree.
-  const byGenre = new Map<string, FamilyLine[]>();
-  for (const line of family.lines) {
-    if (line.id === UNKNOWN_LINE || !line.members.length) continue;
-    const list = byGenre.get(line.grove) ?? [];
-    list.push(line);
-    byGenre.set(line.grove, list);
-  }
-  // Groves in the order their families began, for the tour: by the earliest
-  // founding year among their lines, undated groves last, ties by name.
-  const groveYear = new Map([...byGenre].map(([g, lines]) => {
-    const years = lines.map((l) => foundingYear(index, l)).filter((y): y is number => y !== null);
-    return [g, years.length ? Math.min(...years) : Infinity];
-  }));
-  const genres = [...byGenre.keys()].sort((a, b) => groveYear.get(a)! - groveYear.get(b)! || a.localeCompare(b));
-  const nGenres = genres.length;
-  const booksBy = new Map(genres.map((g) => [g, byGenre.get(g)!.map((line) => lineCard(index, line))]));
+function buildForest(catalog: ClassCatalog, homeKey: string): Forest {
+  const index = indexCatalog(catalog);
+  // One grove per class family, holding each of its binary classes. Groves
+  // are seated in order of occupancy, so the tour meets the most populous
+  // first: the named families, then the unnamed classes, each by bond count.
+  const byGenre = new Map(catalog.groves.filter((g) => g.lines.length).map((g) => [g.id, g]));
+  const genres = [...byGenre.values()]
+    .sort((a, b) => Number(b.named) - Number(a.named) || b.count - a.count || a.id.localeCompare(b.id))
+    .map((g) => g.id);
+  const booksBy = new Map(genres.map((g) => [g, byGenre.get(g)!.lines.map((id) => lineCard(index, index.line.get(id)!))]));
   // Trees packed as tight as their crowns allow (shyLayout); groves on a
-  // hub-and-spoke wheel around the home tree (wheelLayout), seated in date
-  // order so the tour loop meets them oldest first.
+  // hub-and-spoke wheel around the database tree (wheelLayout), seated in
+  // occupancy order so the tour loop meets them most populous first.
   const bookInner = 6.5;
-  const grownBy = genres.map((g) => byGenre.get(g)!.map((line) => lineGrown(lineTree(index, line.id), line.id)));
+  const energy = (key: string) => index.energy.get(key);
+  const grownBy = genres.map((g) => byGenre.get(g)!.lines.map((id) => lineGrown(lineTree(index, id), id, energy)));
   const layouts = grownBy.map((g) => shyLayout(g, bookInner));
   const groveRadius = (extent: number) => Math.max(GROVE_MIN_R, extent + GROVE_MARGIN);
 
-  // The home hourglass, and a hub wide enough for its glass pit and its crown.
-  // The hourglass, or with `ancestors` the focal person's ancestors rising as the crown.
-  const home = ancestors ? pedigreeTree(index, focal) : hourglassTree(index, focal);
-  const corpusTree = homeTree(home, focal, family.lines.length, index.person.get(focal)?.name, ancestors);
+  // The database tree, and a hub wide enough for its crown.
+  const home = hubTree(index);
+  const corpusTree = homeTree(home, homeKey, catalog.lines.length, `The ${catalog.meta.database.name} database`);
   let crownReach = 0;
   for (const person of home.people) if (person.y > 0) crownReach = Math.max(crownReach, Math.hypot(person.x, person.z));
-  const hubPlazaR = Math.max(HUB_PLAZA_R, corpusTree.pitRadius + 2);
+  const hubPlazaR = HUB_PLAZA_R;
   const hubClear = Math.max(HUB_CLEAR, hubPlazaR + 8, crownReach + 6);
   const wheel = wheelLayout(layouts.map((l) => groveRadius(l.extent)), {
     hub: hubClear, setback: GROVE_SETBACK, gap: GROVE_GAP, lane: SPOKE_LANE, spokes: SPOKES,
@@ -435,17 +480,21 @@ function buildForest(family: FamilyCatalog, focal: string, ancestors: boolean): 
     const radius = groveRadius(layouts[gi]!.extent);
     const spots = layouts[gi]!.pts;
     const color = GENRE_PALETTE[gi % GENRE_PALETTE.length]!;
+    const family = byGenre.get(genre)!;
     groves.push({
       genre,
-      label: books[0]?.surname ?? genre,
+      label: family.name,
       x: c.x,
       z: c.z,
       radius,
       color,
       bookCount: books.length,
-      narration: groveNarration(books[0]?.surname ?? genre, books),
+      count: family.count,
+      percentage: family.percentage,
+      function: family.function,
+      narration: groveNarration(family.name, books),
     });
-    const species = speciesForSurname(books[0]?.surname ?? genre);
+    const species = speciesForGrove(genre);
     const bark: BarkBuffers = { pos: [], normal: [], uv: [], index: [] };
     const chunkLeafStart = leafPos.length / 3;
 
@@ -563,7 +612,7 @@ function buildForest(family: FamilyCatalog, focal: string, ancestors: boolean): 
   }
   const circuit = [...stopIndex.entries()].sort((a, b) => a[1] - b[1]).map(([wp]) => wp);
 
-  // A stop's plaza: the monogram (GroveMarks, 2.2 m) and a rim of brick.
+  // A stop's plaza: the representative on its hub side (Molecules.tsx) and a rim of brick.
   const STOP_R = 3.2;
   // Each exhibit at the end of a spur off a ring, clear of the stops' signposts and the junctions.
   const exhibits = placeExhibits({
@@ -588,6 +637,11 @@ function buildForest(family: FamilyCatalog, focal: string, ancestors: boolean): 
   const plazas = [
     { x: 0, z: 0, r: hubPlazaR },
     ...circuit.map((wp) => ({ x: wp.x, z: wp.z, r: STOP_R })),
+    ...circuit.map((wp) => {
+      const g = groves.find((gr) => gr.genre === wp.genre)!;
+      const a = Math.atan2(g.z - wp.z, g.x - wp.x);
+      return { x: wp.x - Math.cos(a) * REPRESENTATIVE_OFFSET, z: wp.z - Math.sin(a) * REPRESENTATIVE_OFFSET, r: REPRESENTATIVE_PAD };
+    }),
     ...exhibits.map((e) => ({ x: e.x, z: e.z, r: e.plazaR })),
   ];
   const junctions: Junction[] = wheel.spokes.flatMap((a) => wheel.rings.map((R, t) => (
@@ -630,11 +684,37 @@ function buildForest(family: FamilyCatalog, focal: string, ancestors: boolean): 
     return { x, z, yaw: Math.atan2(-(nx - x), -(nz - z)), genre: nextGenre[i]!, label: labelOf.get(nextGenre[i]!)! };
   });
 
-  const treeOfLine = new Map(trees.map((t, i) => [t.line.slug, i]));
-  const links: ForestLink[] = family.links.flatMap((l) => {
-    const [a, b] = l.lines.map((id) => treeOfLine.get(id));
-    return a === undefined || b === undefined ? [] : [{ family: l.family, a, b, married: l.married }];
-  });
+  const links: ForestLink[] = [];
+
+  // The grove's representative, on the hub side of its stop plaza: the
+  // consensus model of its most populous binary class. And at each tree's
+  // foot, toward its stop, the tree's own consensus model as its name plate.
+  const molecules: MoleculeSite[] = [];
+  for (const wp of circuit) {
+    const g = groves.find((gr) => gr.genre === wp.genre)!;
+    const toward = Math.atan2(g.z - wp.z, g.x - wp.x);
+    const model = index.line.get(byGenre.get(g.genre)!.lines[0]!)!.model;
+    const lift = REPRESENTATIVE_PLINTH + moleculeExtent(model) * REPRESENTATIVE_SCALE;
+    molecules.push({
+      kind: "representative", of: g.genre, model, scale: REPRESENTATIVE_SCALE, plinth: REPRESENTATIVE_PLINTH,
+      x: wp.x - Math.cos(toward) * REPRESENTATIVE_OFFSET, y: lift, z: wp.z - Math.sin(toward) * REPRESENTATIVE_OFFSET, yaw: toward,
+    });
+  }
+  for (const t of trees) {
+    const stop = circuit.find((wp) => wp.genre === groves[t.chunk]!.genre)!;
+    const a = Math.atan2(stop.z - t.z, stop.x - t.x);
+    const model = index.line.get(t.line.slug)!.model;
+    const d = t.trunkRadius + PLATE_GAP;
+    molecules.push({
+      kind: "plate", of: t.line.slug, model, scale: PLATE_SCALE, plinth: PLATE_PLINTH,
+      x: t.x + Math.cos(a) * d, y: PLATE_PLINTH + moleculeExtent(model) * PLATE_SCALE, z: t.z + Math.sin(a) * d, yaw: a,
+    });
+  }
+  const monument = {
+    x: Math.cos(HUB_PLAQUE_DIR + HUB_MONUMENT_TURN) * HUB_MONUMENT_DIST,
+    z: Math.sin(HUB_PLAQUE_DIR + HUB_MONUMENT_TURN) * HUB_MONUMENT_DIST,
+    yaw: HUB_PLAQUE_DIR,
+  };
 
   return {
     trees,
@@ -662,12 +742,19 @@ function buildForest(family: FamilyCatalog, focal: string, ancestors: boolean): 
     worldRadius: worldRadius + 18,
     corpusTree,
     homeLine: (() => {
-      const own = index.person.get(focal)?.line;
+      const own = index.memberOf.has(homeKey) ? index.lineOf.get(homeKey) : undefined;
       const tree = own ? trees.findIndex((t) => t.line.slug === own) : -1;
       return tree < 0 ? null : { tree, genre: groves[trees[tree]!.chunk]!.genre };
     })(),
+    molecules,
+    monument,
     exhibits,
-    obstacles: [{ x: 0, z: 0, r: corpusTree.baseRadius }, ...exhibits.map((e) => ({ x: e.x, z: e.z, r: e.obstacle }))],
+    obstacles: [
+      { x: 0, z: 0, r: corpusTree.baseRadius },
+      { x: monument.x, z: monument.z, r: MONUMENT_CLEAR },
+      ...molecules.filter((m) => m.kind === "representative").map((m) => ({ x: m.x, z: m.z, r: REPRESENTATIVE_CLEAR })),
+      ...exhibits.map((e) => ({ x: e.x, z: e.z, r: e.obstacle })),
+    ],
     grid,
     cell,
   };
@@ -752,6 +839,11 @@ export function searchTrees(forest: Pick<Forest, "trees">, q: string, x: number,
   return forest.trees
     .filter((t) => lineMatchesQuery(t.line, q))
     .sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z));
+}
+
+/** Half a molecule's widest reach from its center, angstroms: how high above its plinth its center sits. */
+export function moleculeExtent(model: Molecule): number {
+  return Math.max(1, ...model.atoms.map((a) => Math.hypot(a.x, a.y, a.z)));
 }
 
 /** A pose a few metres from the tree on the side facing (fromX, fromZ), looking at the trunk. */

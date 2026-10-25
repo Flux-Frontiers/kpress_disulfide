@@ -1,17 +1,17 @@
-import { KENNEDY, orchardArgs } from "./orchard.mjs";
+import { SUBSET, orchardArgs } from "./orchard.mjs";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 
-/** Every line tree of the Kennedy orchard, as the forest grows it, with its id. */
+/** Every class tree of the subset orchard, as the forest grows it, with its id. */
 function lineTrees(limit = Infinity) {
-  const { indexCatalog } = require(`${process.env.FOREST_TEST_BUILD}/familyCatalog.js`);
-  const { lineTree } = require(`${process.env.FOREST_TEST_BUILD}/familyTree.js`);
-  const { lineGrown } = require(`${process.env.FOREST_TEST_BUILD}/familyForest.js`);
-  const index = indexCatalog(KENNEDY);
-  return KENNEDY.lines.filter((l) => l.id !== "unknown" && l.members.length).slice(0, limit)
-    .map((l) => ({ slug: l.id, g: lineGrown(lineTree(index, l.id), l.id) }));
+  const { indexCatalog } = require(`${process.env.FOREST_TEST_BUILD}/classCatalog.js`);
+  const { lineTree } = require(`${process.env.FOREST_TEST_BUILD}/classTree.js`);
+  const { lineGrown } = require(`${process.env.FOREST_TEST_BUILD}/classForest.js`);
+  const index = indexCatalog(SUBSET);
+  return SUBSET.lines.slice(0, limit)
+    .map((l) => ({ slug: l.id, g: lineGrown(lineTree(index, l.id), l.id, (k) => index.energy.get(k)) }));
 }
 
 test("trunks scale with height while twigs stay fine", () => {
@@ -77,12 +77,12 @@ test("bark is one watertight sweep per chain, facing outward, with wrapping UVs"
 test("no tree's wood passes through another's, within or across groves", () => {
   globalThis.window ??= { localStorage: { getItem: () => null, setItem() {} } };
   const { getForest } = require(`${process.env.FOREST_TEST_BUILD}/forest.js`);
-  const { indexCatalog } = require(`${process.env.FOREST_TEST_BUILD}/familyCatalog.js`);
-  const { lineTree } = require(`${process.env.FOREST_TEST_BUILD}/familyTree.js`);
-  const [family, focal] = orchardArgs();
-  const f = getForest(family, focal);
-  const index = indexCatalog(family);
-  // The wood the orchard draws: each line's hourglass layout, as forest.ts placed it.
+  const { indexCatalog } = require(`${process.env.FOREST_TEST_BUILD}/classCatalog.js`);
+  const { lineTree } = require(`${process.env.FOREST_TEST_BUILD}/classTree.js`);
+  const [catalog, home] = orchardArgs();
+  const f = getForest(catalog, home);
+  const index = indexCatalog(catalog);
+  // The wood the orchard draws: each class's layout, as forest.ts placed it.
   const wood = f.trees.map((t) => {
     const g = lineTree(index, t.line.slug);
     const { nodes, radii, n } = g.skeleton;

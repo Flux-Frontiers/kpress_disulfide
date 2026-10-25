@@ -39,7 +39,14 @@ rewritten for the disulfide orchard.
 
 ## Still the Family's
 
-Everything in `web/` as of the first commit: the copy still reads
-GenealogyKG families from `web/public/families/`, and `make family` and
-`make demos` still drive genealogy_kg. The disulfide catalog, written by
-proteusPy's web export, replaces them in later changes.
+The orchard reads the disulfide database (`web/src/game/classCatalog.ts`,
+written by proteusPy's `proteusPy.export_web`; `make forest`). Still the
+Family's, to be rewritten for classes and bonds:
+
+- the record reader (`FamilyReader.tsx`) and the export types it reads
+  (`familyCatalog.ts`); it opens on a tree's sampled members but finds no
+  person pages;
+- the wording of the HUD, the tour's narration and script, the album ranks
+  and About, and the "Show ancestors" button on the hub card, which does
+  nothing here;
+- `web/README.md`.

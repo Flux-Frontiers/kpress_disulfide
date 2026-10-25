@@ -8,14 +8,14 @@ const require = createRequire(import.meta.url);
 test("each grove is one render chunk: one species, its trees' bark, a contiguous leaf range", () => {
   globalThis.window ??= { localStorage: { getItem: () => null, setItem() {} } };
   const { getForest } = require(`${process.env.FOREST_TEST_BUILD}/forest.js`);
-  const { speciesForSurname } = require(`${process.env.FOREST_TEST_BUILD}/familyForest.js`);
+  const { speciesForGrove } = require(`${process.env.FOREST_TEST_BUILD}/classForest.js`);
   const forest = getForest(...orchardArgs());
   assert.equal(forest.chunks.length, forest.groves.length);
   const used = forest.chunks.map(() => 0);
   for (const t of forest.trees) {
     const chunk = forest.chunks[t.chunk];
-    // A grove is a surname; its species is fixed by the name.
-    assert.equal(t.species, speciesForSurname(t.line.surname));
+    // A grove is a class family; its species is fixed by the family.
+    assert.equal(t.species, speciesForGrove(t.line.grove));
     assert.equal(chunk.species, t.species, `${t.line.slug}: grove species differs`);
     assert.equal(chunk.genre, t.line.grove);
     assert.ok(t.woodStart + t.woodCount <= chunk.bark.count);
@@ -29,6 +29,12 @@ test("each grove is one render chunk: one species, its trees' bark, a contiguous
   for (let i = 0; i < forest.leaves.count; i++) {
     assert.equal(forest.leaves.species[i], forest.trees[forest.leaves.treeIndex[i]].species);
   }
+  // Six named families, six species; the unnamed classes share a seventh.
+  const named = new Set(forest.groves.filter((g) => !g.genre.startsWith("b-")).map((g) => forest.chunks[forest.groves.indexOf(g)].species));
+  const unnamed = new Set(forest.groves.filter((g) => g.genre.startsWith("b-")).map((g) => forest.chunks[forest.groves.indexOf(g)].species));
+  assert.equal(named.size, 6);
+  assert.equal(unnamed.size, 1);
+  assert.ok(![...unnamed].some((s) => named.has(s)));
 });
 
 

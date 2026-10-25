@@ -29,8 +29,8 @@ export type GrownTree = {
 /** Bump when the geometry changes so the forest cache rebuilds. */
 export const GROW_VERSION = 17;
 
-// The orchard's trees are laid out, not grown: familyTree.ts places every
-// person and uses the kinship graph as the wood. This file keeps what turns
+// The orchard's trees are laid out, not grown: classTree.ts places every
+// class and member and uses the class hierarchy as the wood. This file keeps what turns
 // that wood into a mesh: pipe-model radii, the bark sweep and the leaves.
 
 /** treegeom.LEAF_REFERENCE_COUNT: leaves shrink as (600 / people) ** (1/3) beyond it. */
@@ -45,9 +45,12 @@ export const cellKey3 = (i: number, j: number, k: number) => ((i + 32768) * 6553
 
 /**
  * Pipe-model radii, parent^e = sum child^e (e = 2 is Leonardo's rule), then
- * thickened toward the height floor. Radii depend only on topology.
+ * thickened toward the height floor. Radii depend only on topology, unless
+ * `flow` is given: a node with flow f > 0 is tipRadius * f^(1/e) thick, as
+ * if f tips met there, whatever is drawn beyond it, so the wood carries an
+ * occupancy its drawn tips do not show.
  */
-export function pipeRadii(parents: Int32Array, n: number, tipRadius: number, pipeExp: number, trunkHeight: number): Float32Array {
+export function pipeRadii(parents: Int32Array, n: number, tipRadius: number, pipeExp: number, trunkHeight: number, flow?: Float32Array): Float32Array {
   const radii = new Float32Array(n);
   radii.fill(tipRadius);
   // Walk children -> parent. Children have higher indices, so each node's own
@@ -55,6 +58,7 @@ export function pipeRadii(parents: Int32Array, n: number, tipRadius: number, pip
   const childSum = new Float32Array(n);
   for (let i = n - 1; i >= 1; i--) {
     if (childSum[i]! > 0) radii[i] = childSum[i]! ** (1 / pipeExp);
+    if (flow && flow[i]! > 0) radii[i] = tipRadius * flow[i]! ** (1 / pipeExp);
     const p = parents[i]!;
     if (p >= 0) childSum[p] += radii[i]! ** pipeExp;
   }

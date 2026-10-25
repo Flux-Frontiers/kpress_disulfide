@@ -58,6 +58,8 @@ web/public/family/
 web/public/families/
 # make demos' genealogy_kg stores (public corpus files).
 .demo/
+# The disulfide orchards written by proteusPy's web export (make forest).
+web/public/forests/
 
 # Local stills for review; not committed
 renders/

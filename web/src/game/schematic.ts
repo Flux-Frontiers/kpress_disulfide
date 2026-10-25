@@ -1,30 +1,30 @@
-// Schematic mode: the orchard drawn as a family diagram you can read while
-// driving. Every person is a bead where the layout (familyTree.ts) puts them,
-// its color the generation and its shape the recorded sex; the wood is
-// straight barked limbs from parent to child, and a marriage is a brass bar
-// between the spouses, the children's limbs leaving from its middle. The
-// layout is the same as the organic trees', so switching modes moves no one.
+// Schematic mode: the orchard drawn as a class diagram you can read while
+// driving. Every class and sampled member is a bead where the layout
+// (classTree.ts) puts it, its color the tier; the wood is straight barked
+// limbs from each class to the classes and members one tier up. The layout
+// is the same as the organic trees', so switching modes moves nothing.
 //
 // Pure, no React or three, so the tests can run it.
 
-import { parentsOf, type FamilyIndex } from "./familyCatalog";
-import { hourglassTree, lineTree, pedigreeTree, type FamilyTree } from "./familyTree";
+import type { ClassIndex } from "./classCatalog";
+import { HUB_ROOT, hubTree, lineTree, type ClassTree } from "./classTree";
 
 export type BeadShape = "round" | "square" | "diamond";
 
 export type SchematicBead = {
   id: string;
-  /** Shown on the name plate; "" for a living person, who gets none. */
+  /** Shown on the name plate: the class id with its suffix, or the member's key. */
   name: string;
   x: number;
   y: number;
   z: number;
-  /** Signed generations from the tree's trunk person: ancestors negative. */
+  /** Tiers from the tree's trunk node. */
   generation: number;
   shape: BeadShape;
   color: string;
+  /** Always false; kept for the Family's name plates. */
   living: boolean;
-  /** Drawn as a spouse who married in: their name plate hangs below, clear of their partner's. */
+  /** Always false; kept for the Family's name plates. */
   marriedIn: boolean;
   /** Index into the forest's trees, or -1 for the home tree. */
   tree: number;
@@ -36,14 +36,12 @@ export type Schematic = {
   beads: SchematicBead[];
   /** Parent to child, and each trunk from the ground to its first person. */
   limbs: SchematicSegment[];
-  /** Spouse to spouse. */
+  /** Always empty: the Family's marriage bars have no counterpart here. */
   bars: SchematicSegment[];
 };
 
-/** A bead per generation, outward from the trunk person; ancestors count down the same ramp. */
+/** A bead per tier, outward from the trunk node. */
 export const GENERATION_COLORS = ["#e8c547", "#e9883a", "#d6534f", "#b54d8f", "#6f5bc0", "#3f83c9", "#2fa7a0", "#5aa84a"];
-/** A living person's bead: no color, no name. */
-export const LIVING_BEAD = "#9a9a9a";
 
 /** The color of generation g; negative generations (ancestors) take the ramp from its far end. */
 export function generationColor(g: number): string {
@@ -51,19 +49,17 @@ export function generationColor(g: number): string {
   return GENERATION_COLORS[((g % n) + n) % n]!;
 }
 
-function shapeOf(sex: string | null): BeadShape {
-  return sex === "F" ? "round" : sex === "M" ? "square" : "diamond";
+/** A class is a cube, a member a sphere, the database tree's trunk a diamond. */
+function shapeOf(id: string, member: boolean): BeadShape {
+  return member ? "round" : id === HUB_ROOT ? "diamond" : "square";
 }
 
 /**
- * One tree's beads, limbs and bars, placed at (ox, oz).
- *
- * A person's limb runs to them from the nearest person below them in the
- * wood (their parent in the canopy, their child in the roots), or from the
- * ground point for the trunk. When both of a child's parents are on the tree,
- * the limb leaves from the middle of the parents' bar instead.
+ * One tree's beads and limbs, placed at (ox, oz). Each node's limb runs to
+ * it from the nearest node below it in the wood, or from the ground point
+ * for the trunk.
  */
-function addTree(index: FamilyIndex, t: FamilyTree, tree: number, ox: number, oz: number, out: Schematic): void {
+function addTree(t: ClassTree, tree: number, ox: number, oz: number, out: Schematic): void {
   const byNode = new Map(t.people.map((p) => [p.node, p]));
   const at = new Map(t.people.map((p) => [p.id, { x: ox + p.x, y: p.y, z: oz + p.z }]));
   const below = (node: number) => {
@@ -76,60 +72,33 @@ function addTree(index: FamilyIndex, t: FamilyTree, tree: number, ox: number, oz
   const seg = (a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }): SchematicSegment =>
     ({ ax: a.x, ay: a.y, az: a.z, bx: b.x, by: b.y, bz: b.z });
   for (const p of t.people) {
-    const person = index.person.get(p.id);
     const here = at.get(p.id)!;
-    const living = person?.living ?? false;
     out.beads.push({
       id: p.id,
-      name: living ? "" : person?.name ?? p.id,
+      name: p.id,
       ...here,
       generation: p.generation,
-      shape: shapeOf(person?.sex ?? null),
-      color: living ? LIVING_BEAD : generationColor(p.generation),
-      living,
-      marriedIn: p.marriedIn,
+      shape: shapeOf(p.id, p.member),
+      color: generationColor(p.generation),
+      living: false,
+      marriedIn: false,
       tree,
     });
     const from = below(p.node);
-    if (p.marriedIn) {
-      if (from) out.bars.push(seg(at.get(from.id)!, here));
-      continue;
-    }
-    if (!from) {
-      out.limbs.push(seg({ x: ox, y: 0, z: oz }, here));
-      continue;
-    }
-    // In the canopy, both parents on the tree: from the middle of their bar.
-    const other = p.generation > from.generation
-      ? parentsOf(index, p.id).find((q) => q !== from.id && at.has(q) && t.people.some((x) => x.id === q && x.marriedIn))
-      : undefined;
-    const start = at.get(from.id)!;
-    if (other) {
-      const o = at.get(other)!;
-      out.limbs.push(seg({ x: (start.x + o.x) / 2, y: (start.y + o.y) / 2, z: (start.z + o.z) / 2 }, here));
-    } else {
-      out.limbs.push(seg(start, here));
-    }
+    out.limbs.push(seg(from ? at.get(from.id)! : { x: ox, y: 0, z: oz }, here));
   }
 }
 
 /**
  * The whole orchard as a schematic: every line tree where the forest stands
- * it, and the home tree at the hub.
+ * it, and the database tree at the hub.
  *
  * :param trees: The forest's trees, in order: each line's slug and trunk position.
- * :param focal: The home tree's trunk person.
- * :param ancestors: The home tree is the ancestors' tree (pedigreeTree), not the hourglass.
  */
-export function buildSchematic(
-  index: FamilyIndex,
-  trees: readonly { line: { slug: string }; x: number; z: number }[],
-  focal: string,
-  ancestors = false,
-): Schematic {
+export function buildSchematic(index: ClassIndex, trees: readonly { line: { slug: string }; x: number; z: number }[]): Schematic {
   const out: Schematic = { beads: [], limbs: [], bars: [] };
-  trees.forEach((t, i) => addTree(index, lineTree(index, t.line.slug), i, t.x, t.z, out));
-  addTree(index, ancestors ? pedigreeTree(index, focal) : hourglassTree(index, focal), -1, 0, 0, out);
+  trees.forEach((t, i) => addTree(lineTree(index, t.line.slug), i, t.x, t.z, out));
+  addTree(hubTree(index), -1, 0, 0, out);
   return out;
 }
 

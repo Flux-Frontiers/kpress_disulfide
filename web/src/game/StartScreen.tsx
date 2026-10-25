@@ -1,8 +1,8 @@
 import { BookOpen, Info, Route } from "lucide-react";
 import { COARSE_POINTER } from "./Environment";
 import { SEASONS, type SeasonName } from "./seasons";
-import type { FamilyEntry } from "./familyCatalog";
-import { switchFamily } from "./familyChoice";
+import type { ForestEntry } from "./classCatalog";
+import { switchForest } from "./forestChoice";
 import { useGame } from "./store";
 
 /** The keys worth knowing before the first drive; About and the guide have the rest. */
@@ -23,17 +23,17 @@ const KEYS: [string[], string][] = [
  * today's season and sky (Player.tsx); after the Art Techno plaza's start.
  */
 export function StartScreen({
-  families,
-  family,
+  forests,
+  forest,
   ready,
   growing,
   opensAt,
   onEnter,
 }: {
-  /** Every exported family, for the choice of which to open; fewer than two shows no choice. */
-  families: FamilyEntry[];
-  /** The family shown. */
-  family: string | null;
+  /** Every exported database, for the choice of which to open; fewer than two shows no choice. */
+  forests: ForestEntry[];
+  /** The database shown. */
+  forest: string | null;
   ready: boolean;
   growing: boolean;
   /** The title of the tree a `?tree=` link opens beside, if any. */
@@ -48,13 +48,13 @@ export function StartScreen({
   return (
     <div className="start-screen absolute inset-0 z-20 flex flex-col overflow-y-auto overscroll-contain text-fg" style={{ touchAction: "pan-y" }}>
       <div className="mt-auto w-full max-w-2xl px-5 pt-24 pb-[max(2rem,env(safe-area-inset-bottom))] sm:px-10 sm:pb-12">
-        <p className="text-xs font-semibold tracking-[0.22em] text-fg/90 uppercase">GenealogyKG · Flux Frontiers</p>
+        <p className="text-xs font-semibold tracking-[0.22em] text-fg/90 uppercase">proteusPy · Flux Frontiers</p>
         <h1 className="font-display mt-3 text-5xl leading-none text-fg sm:text-7xl">The Knowledge Press</h1>
-        <p className="font-display mt-1 text-2xl italic text-primary sm:text-3xl">The Family</p>
+        <p className="font-display mt-1 text-2xl italic text-primary sm:text-3xl">The Disulfides</p>
         <p className="mt-4 max-w-xl text-base leading-relaxed text-fg/85">
-          A family, grown as an orchard. Every family line is a tree whose limbs run from parent to child,
-          the lines of a surname gather into a grove, and at the hub one person's ancestors spread as roots
-          under the glass.
+          The disulfide bonds of the Protein Data Bank, grown as an orchard. Every structural class is a tree
+          whose limbs run from class to finer class, the classes of a family gather into a grove, and at the
+          hub the whole database stands as one tree beside the lowest-energy bond.
         </p>
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -75,13 +75,13 @@ export function StartScreen({
           </button>
         </div>
 
-        {families.length > 1 ? (
+        {forests.length > 1 ? (
           <label className="mt-5 flex max-w-sm items-center gap-3 text-sm text-muted">
-            Family
-            <select value={family ?? ""} onChange={(e) => switchFamily(e.target.value)}
+            Database
+            <select value={forest ?? ""} onChange={(e) => switchForest(e.target.value)}
               className="min-w-0 flex-1 rounded-md border border-border bg-surface/80 p-2 text-base text-fg">
-              {families.map((f) => (
-                <option key={f.slug} value={f.slug}>{f.title} · {f.people.toLocaleString("en-US")} people</option>
+              {forests.map((f) => (
+                <option key={f.slug} value={f.slug}>{f.title} · {f.bonds.toLocaleString("en-US")} bonds</option>
               ))}
             </select>
           </label>

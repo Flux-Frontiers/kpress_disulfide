@@ -6,26 +6,27 @@ const require = createRequire(import.meta.url);
 globalThis.window ??= { localStorage: { getItem: () => null, setItem() {} } };
 const build = process.env.FOREST_TEST_BUILD;
 
-test("the forest knows the home person's own line, its tree and its grove", () => {
+test("the forest knows the home disulfide's own class, its tree and its grove", () => {
   const { getForest } = require(`${build}/forest.js`);
-  const [family, focal] = orchardArgs();
-  const f = getForest(family, focal);
-  const own = family.people.find((p) => p.id === focal).line;
+  const { indexCatalog } = require(`${build}/classCatalog.js`);
+  const [catalog, focal] = orchardArgs();
+  const f = getForest(catalog, focal);
+  const own = indexCatalog(catalog).lineOf.get(focal);
   assert.ok(f.homeLine, "no home line");
   assert.equal(f.trees[f.homeLine.tree].line.slug, own);
   assert.equal(f.groves[f.trees[f.homeLine.tree].chunk].genre, f.homeLine.genre);
 });
 
-test("the gilded wood runs from the ground up the skeleton to the home person, and the schematic's to their bead", () => {
+test("the gilded wood runs from the ground up the skeleton to the home disulfide, and the schematic's to its bead", () => {
   const { getForest } = require(`${build}/forest.js`);
-  const { indexCatalog } = require(`${build}/familyCatalog.js`);
-  const { lineTree } = require(`${build}/familyTree.js`);
+  const { indexCatalog } = require(`${build}/classCatalog.js`);
+  const { lineTree } = require(`${build}/classTree.js`);
   const { buildSchematic } = require(`${build}/schematic.js`);
   const { gildedDescent, gildedSchematic, descentNodes } = require(`${build}/homePath.js`);
-  const [family, focal] = orchardArgs();
-  const f = getForest(family, focal);
+  const [catalog, focal] = orchardArgs();
+  const f = getForest(catalog, focal);
   const site = f.trees[f.homeLine.tree];
-  const index = indexCatalog(family);
+  const index = indexCatalog(catalog);
   const tree = lineTree(index, site.line.slug);
   const person = tree.people.find((p) => p.id === focal && !p.marriedIn);
   const chain = descentNodes(tree.skeleton, person.node);
@@ -43,7 +44,7 @@ test("the gilded wood runs from the ground up the skeleton to the home person, a
   // Each sleeve is wider than the bark it covers.
   chain.slice(0, -1).forEach((node, k) => assert.ok(wood.segments[k].r > tree.skeleton.radii[node], "a sleeve over the bark"));
   // The schematic's gold ends at the home person's bead on that tree.
-  const sch = buildSchematic(index, f.trees, f.corpusTree.focal, f.corpusTree.ancestors);
+  const sch = buildSchematic(index, f.trees);
   const bead = sch.beads.find((b) => b.id === focal && b.tree === f.homeLine.tree);
   const lines = gildedSchematic(sch, tree, focal, site.x, site.z);
   assert.ok(lines.length >= 1);

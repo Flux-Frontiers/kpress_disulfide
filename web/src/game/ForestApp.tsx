@@ -8,10 +8,9 @@ import { TouchControls } from "./TouchControls";
 import { installControlsTest } from "./controlsTest";
 import { treeFromSearch } from "./deepLink";
 import { commonFrame, portraitPose, shotSlug, treeExtent, type Extent, type Frame } from "./portrait";
-import { chooseFamily, indexCatalog, loadFamilyCatalog, loadFamilyIndex, type FamilyCatalog, type FamilyEntry } from "./familyCatalog";
+import { chooseForest, indexCatalog, loadForestCatalog, loadForestIndex, type ClassCatalog, type ForestEntry } from "./classCatalog";
 import { ASSET_ROOT } from "./FamilyReader";
-import { savedFamily } from "./familyChoice";
-import { richestFocal } from "./familyTree";
+import { savedForest } from "./forestChoice";
 import { getForest, treeApproach, type Forest } from "./forest";
 import { GROW_VERSION } from "./growTree";
 import { bindInput, isInputTarget } from "./input";
@@ -24,22 +23,23 @@ import { useGame } from "./store";
 export function ForestApp() {
   const [mounted, setMounted] = useState(false);
   const [forest, setForest] = useState<Forest | null>(null);
-  const [family, setFamily] = useState<FamilyCatalog | null>(null);
-  const [families, setFamilies] = useState<FamilyEntry[]>([]);
-  const familySlug = useGame((s) => s.familySlug);
-  const ancestors = useGame((s) => s.ancestors);
-  const entry = families.find((f) => f.slug === familySlug);
-  // `?focal=<id>` opens on that person's hourglass; then the person chosen in
-  // the reader (setHome); then the family's own (FAMILY_FOCAL); otherwise
-  // whoever's shows the most family.
+  const [catalog, setCatalog] = useState<ClassCatalog | null>(null);
+  const [forests, setForests] = useState<ForestEntry[]>([]);
+  const forestSlug = useGame((s) => s.familySlug);
+  const entry = forests.find((f) => f.slug === forestSlug);
+  // `?home=<key>` opens on that disulfide's monument; then the one chosen in
+  // the reader (setHome); then the database's own (FOREST_HOME); otherwise
+  // the export's, its lowest-energy bond. A home must be a sampled member,
+  // whose bond card the export wrote, or the export's own.
   const home = useGame((s) => s.home);
   const focal = useMemo(() => {
-    if (!family) return "";
-    const has = (id: string | null) => id !== null && family.people.some((p) => p.id === id);
-    const asked = new URLSearchParams(window.location.search).get("focal");
-    const named = entry?.focal ?? null;
-    return has(asked) ? asked! : has(home) ? home! : has(named) ? named! : richestFocal(indexCatalog(family));
-  }, [family, home, entry?.focal]);
+    if (!catalog) return "";
+    const index = indexCatalog(catalog);
+    const has = (key: string | null) => key !== null && (index.memberOf.has(key) || key === catalog.home);
+    const asked = new URLSearchParams(window.location.search).get("home");
+    const named = entry?.home ?? null;
+    return has(asked) ? asked! : has(home) ? home! : has(named) ? named! : catalog.home;
+  }, [catalog, home, entry?.home]);
   const playing = useGame((s) => s.playing);
   const play = useGame((s) => s.play);
   const setToast = useGame((s) => s.setToast);
@@ -63,19 +63,16 @@ export function ForestApp() {
     return () => { unbind?.(); unlockSpeech(); };
   }, []);
 
-  // The family: `?family=<slug>`, else the one chosen last time, else the
-  // first in public/families/index.json; an export from before families is
-  // read from public/family/ alone.
+  // The database: `?forest=<slug>`, else the one chosen last time, else the
+  // first in public/forests/index.json.
   useEffect(() => {
-    const load = (slug: string, base: string) => {
-      useGame.getState().useFamily(slug, base);
-      return loadFamilyCatalog(base).then(setFamily);
-    };
-    loadFamilyIndex(ASSET_ROOT).catch(() => null).then((list) => {
-      if (!list) return load("family", `${ASSET_ROOT}family/`);
-      setFamilies(list);
-      const chosen = chooseFamily(list, new URLSearchParams(window.location.search).get("family"), savedFamily());
-      return load(chosen.slug, `${ASSET_ROOT}families/${chosen.slug}/`);
+    loadForestIndex(ASSET_ROOT).catch(() => null).then((list) => {
+      if (!list) throw new Error("no databases in forests/index.json; run make forest");
+      setForests(list);
+      const chosen = chooseForest(list, new URLSearchParams(window.location.search).get("forest"), savedForest());
+      const base = `${ASSET_ROOT}forests/${chosen.slug}/`;
+      useGame.getState().useFamily(chosen.slug, base);
+      return loadForestCatalog(base).then(setCatalog);
     }).catch((err: Error) => setToast(err.message));
   }, [setToast]);
 
@@ -93,11 +90,11 @@ export function ForestApp() {
     return () => worker.current?.terminate();
   }, []);
   useEffect(() => {
-    if (family) useGame.getState().keepLines(family.lines.map((l) => l.id));
-  }, [family]);
+    if (catalog) useGame.getState().keepLines(catalog.lines.map((l) => l.id));
+  }, [catalog]);
 
   useEffect(() => {
-    if (!family || !focal) return;
+    if (!catalog || !focal) return;
     const apply = (f: Forest) => {
       if (!placed.current) resetSim(f);
       else useGame.getState().setToast(null);
@@ -113,12 +110,12 @@ export function ForestApp() {
       w.onmessage = (e: MessageEvent<{ id: number; forest: Forest }>) => {
         if (e.data.id === request.current) apply(e.data.forest);
       };
-      w.postMessage({ id, family, focal, ancestors });
+      w.postMessage({ id, catalog, home: focal });
       return;
     }
-    const t = window.setTimeout(() => apply(getForest(family, focal, ancestors)), 0);
+    const t = window.setTimeout(() => apply(getForest(catalog, focal)), 0);
     return () => window.clearTimeout(t);
-  }, [family, focal, ancestors, GROW_VERSION]);
+  }, [catalog, focal, GROW_VERSION]);
 
   // `?tree=<slug>` opens the drive beside that book's tree instead of at home.
   const linked = useMemo(() => (forest ? treeFromSearch(window.location.search, forest.trees) : undefined), [forest]);
@@ -218,12 +215,12 @@ export function ForestApp() {
       const button = (e.target as HTMLElement).closest("button");
       if (button && !button.closest("dialog")) button.blur();
     }} className="relative h-dvh w-full overflow-hidden bg-bg text-fg" style={{ touchAction: "none" }}>
-      {/* While the orchard grows, the wash alone: a picture would show one family while another loads.
+      {/* While the orchard grows, the wash alone: a picture would show one database while another loads.
           The live orchard then fades in over it. */}
       <div className="absolute inset-0 start-wash" />
       {mounted && forest ? (
         <div className="forest-fade-in absolute inset-0">
-          <ForestCanvas forest={forest} family={family} />
+          <ForestCanvas forest={forest} catalog={catalog} />
         </div>
       ) : null}
       {playing && forest && !shot ? (
@@ -234,8 +231,8 @@ export function ForestApp() {
         </>
       ) : shot ? null : (
         <StartScreen
-          families={families}
-          family={familySlug}
+          forests={forests}
+          forest={forestSlug}
           ready={Boolean(forest)}
           growing={!forest}
           opensAt={linked?.line.title}

@@ -46,7 +46,7 @@ export function tourIntro(facts: TourFacts, heard: boolean): string[] {
   return lines.map((line) => fillScript(line, facts));
 }
 
-const HEARD_KEY = "kpf-tour-heard";
+const HEARD_KEY = "kpd-tour-heard";
 
 /** True once the full welcome has been given on this device. */
 export function tourHeard(): boolean {
