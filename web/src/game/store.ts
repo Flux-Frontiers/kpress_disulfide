@@ -183,9 +183,9 @@ export type GameStore = {
    * families), keeping the shared settings.
    */
   useFamily: (slug: string, base: string) => void;
-  /** The person the home tree is grown around, chosen in the reader; null for the app's own pick. */
+  /** The home disulfide the monument shows, chosen in the reader; null for the app's own pick. */
   home: string | null;
-  /** Grow the home tree around this person (FamilyReader), and remember it. */
+  /** Stand this disulfide on the monument (ClassReader), and remember it. */
   setHome: (id: string | null) => void;
   /** The home tree shows the focal person's ancestors as its crown (pedigreeTree), not the hourglass. */
   ancestors: boolean;

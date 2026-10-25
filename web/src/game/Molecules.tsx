@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Color, CylinderGeometry, InstancedMesh, MeshStandardMaterial, Object3D, Quaternion, SphereGeometry, Vector3 } from "three";
 import { loadAtoms, loadBond, type AtomsTable, type BondCard } from "./classCatalog";
 import { HUB_PLAQUE_DIR, HUB_PLAQUE_DIST, MONUMENT_PLINTH, MONUMENT_SCALE, moleculeExtent, type Forest, type MoleculeSite } from "./forest";
+import { bondName } from "./classCards";
 import { ballAndStick, type Ball, type Stick } from "./molecule";
 import { Lectern } from "./Signposts";
 import { useGame } from "./store";
@@ -14,7 +15,7 @@ const tint = new Color();
 
 /** atoms.json, fetched once per database. */
 let atomsCache: { base: string; loaded: Promise<AtomsTable> } | null = null;
-function useAtoms(base: string): AtomsTable | null {
+export function useAtoms(base: string): AtomsTable | null {
   const [atoms, setAtoms] = useState<AtomsTable | null>(null);
   useEffect(() => {
     let live = true;
@@ -38,7 +39,7 @@ function useBond(base: string, key: string): BondCard | null {
 }
 
 /** Balls and sticks as two instanced meshes, each instance in its atom's color. */
-function BallAndStickMesh({ balls, sticks }: { balls: Ball[]; sticks: Stick[] }) {
+export function BallAndStickMesh({ balls, sticks }: { balls: Ball[]; sticks: Stick[] }) {
   const ballRef = useRef<InstancedMesh>(null);
   const stickRef = useRef<InstancedMesh>(null);
   const geoms = useMemo(() => ({
@@ -152,7 +153,7 @@ export function Monument({ forest }: { forest: Forest }) {
   }, [atoms, bond, x, z, yaw]);
   const px = Math.cos(HUB_PLAQUE_DIR) * HUB_PLAQUE_DIST;
   const pz = Math.sin(HUB_PLAQUE_DIR) * HUB_PLAQUE_DIST;
-  const title = bond ? `${bond.pdb_id.toUpperCase()} ${bond.proximal}${bond.proximal_chain}-${bond.distal}${bond.distal_chain}` : forest.corpusTree.focal;
+  const title = bond ? bondName(bond) : forest.corpusTree.focal;
   const byline = bond
     ? `${bond.energy.toFixed(2)} kcal/mol · Ca ${bond.ca_distance.toFixed(2)} Å · ${bond.classes.octant} · ${forest.corpusTree.focalName}`
     : forest.corpusTree.focalName;

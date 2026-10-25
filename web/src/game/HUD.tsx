@@ -9,13 +9,14 @@ import { SPECIES, speciesFor } from "./species";
 import { saveScreenshot } from "./screenshot";
 import { SEASONS } from "./seasons";
 import { wrapAngle, yawToward } from "./sim";
-import { FamilyReader } from "./FamilyReader";
+import { ClassReader } from "./ClassReader";
+import type { ClassIndex } from "./classCatalog";
 import { READ_RANGE, useGame, type PlaqueText } from "./store";
 import type { TimeMode } from "./sky";
 
 const TIME_NAME = { dawn: "Dawn", day: "Day", dusk: "Dusk", night: "Night" } as const;
 
-export function HUD({ forest }: { forest: Forest }) {
+export function HUD({ forest, index }: { forest: Forest; index: ClassIndex | null }) {
   const season = useGame((s) => s.season);
   const timeMode = useGame((s) => s.timeMode);
   const sunEvent = useGame((s) => s.sunEvent);
@@ -471,7 +472,7 @@ export function HUD({ forest }: { forest: Forest }) {
 
       {browsing ? <BrowsePanel forest={forest} /> : null}
       {plaque ? <PlaquePanel plaque={plaque} /> : null}
-      {reading ? <FamilyReader key={reading.line.slug} line={reading.line} home={forest.corpusTree.focal} /> : null}
+      {reading && index ? <ClassReader key={reading.line.slug} index={index} line={reading.line.slug} home={forest.corpusTree.focal} /> : null}
     </div>
   );
 }
