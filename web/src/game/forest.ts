@@ -2,7 +2,7 @@ import { EXHIBITS, placeExhibits, type Exhibit } from "./exhibits";
 import { indexCatalog, type ClassCatalog, type Molecule } from "./classCatalog";
 import { homeTree, lineCard, lineGrown, speciesForGrove, type HomeTree, type LineCard } from "./classForest";
 import { hubTree, lineTree } from "./classTree";
-import { GROW_VERSION, cellKey3, emitBark, emitLeaves, type BarkBuffers, type GrownTree } from "./growTree";
+import { GROW_VERSION, emitBark, emitLeaves, type BarkBuffers, type GrownTree } from "./growTree";
 import { sunflower, wheelLayout } from "./math";
 import type { Junction } from "./roads";
 import { groveNarration } from "./narration";
@@ -297,18 +297,20 @@ export function atGroveStop(forest: Forest, genre: string, x: number, z: number,
 
 /** Trunks in a grove stand at least this far apart, for driving room. */
 const MIN_TRUNK_GAP = 7.5;
-/** Clear air kept between neighbouring trees' wood (crown shyness). */
-const CROWN_GAP = 0.6;
-const WOOD_CELL = 2;
+/**
+ * Clear ground between neighbouring crowns seen from above, m. A class tree's
+ * crown is a wide disc at one height, so crowns that interleave read as one
+ * tree; each stands apart.
+ */
+const CROWN_SPREAD = 3;
 
 /**
- * Place a grove's trees as close to its heart as their wood allows: largest
+ * Place a grove's trees as close to its heart as their crowns allow: largest
  * crown first, each tree takes the innermost spot on a fine sunflower spiral
- * where its trunk keeps MIN_TRUNK_GAP and every branch keeps CROWN_GAP of air
- * from the trees already standing. Crowns may interleave (a small tree under a
- * big one's limbs) but never pass through each other. A lone tree stands at
- * the centre. Returns trunk offsets from the grove centre in `grown` order,
- * and how far the farthest crown reaches from the centre.
+ * where its trunk keeps MIN_TRUNK_GAP and its crown keeps CROWN_SPREAD of
+ * clear ground from every crown already standing. A lone tree stands at the
+ * centre. Returns trunk offsets from the grove centre in `grown` order, and
+ * how far the farthest crown reaches from the centre.
  */
 function shyLayout(grown: GrownTree[], inner: number): { pts: { x: number; z: number }[]; extent: number } {
   const n = grown.length;
@@ -321,30 +323,7 @@ function shyLayout(grown: GrownTree[], inner: number): { pts: { x: number; z: nu
   const order = [...Array(n).keys()].sort((a, b) => reach[b]! - reach[a]! || a - b);
   let cands = sunflower(n * 80 + 200, inner, 2).pts;
   const placed: { i: number; x: number; z: number }[] = [];
-  // Placed wood as flat (x, y, z, padded radius) runs in a 3-D hash grid.
-  const grid = new Map<number, number[]>();
-  const key = (x: number, y: number, z: number) => cellKey3(Math.floor(x / WOOD_CELL), Math.floor(y / WOOD_CELL), Math.floor(z / WOOD_CELL));
-  const pad = (i: number, k: number) => grown[i]!.skeleton.radii[k]! + 0.5 * grown[i]!.step;
   const out: { x: number; z: number }[] = new Array(n);
-
-  const woodHits = (i: number, cx: number, cz: number, near: typeof placed) => {
-    const { nodes, n: m } = grown[i]!.skeleton;
-    for (let k = 0; k < m; k++) {
-      const x = cx + nodes[k * 3]!, y = nodes[k * 3 + 1]!, z = cz + nodes[k * 3 + 2]!;
-      // Only branches inside a neighbour's crown can touch it.
-      if (!near.some((p) => Math.hypot(x - p.x, z - p.z) <= reach[p.i]! + WOOD_CELL)) continue;
-      const pk = pad(i, k) + CROWN_GAP;
-      const gx = Math.floor(x / WOOD_CELL), gy = Math.floor(y / WOOD_CELL), gz = Math.floor(z / WOOD_CELL);
-      for (let a = gx - 1; a <= gx + 1; a++) for (let b = gy - 1; b <= gy + 1; b++) for (let c = gz - 1; c <= gz + 1; c++) {
-        const cell = grid.get(cellKey3(a, b, c));
-        if (!cell) continue;
-        for (let q = 0; q < cell.length; q += 4) {
-          if (Math.hypot(x - cell[q]!, y - cell[q + 1]!, z - cell[q + 2]!) < pk + cell[q + 3]!) return true;
-        }
-      }
-    }
-    return false;
-  };
 
   for (const i of order) {
     // A spiral that runs out before a wide crown fits is extended; it is
@@ -352,19 +331,13 @@ function shyLayout(grown: GrownTree[], inner: number): { pts: { x: number; z: nu
     for (let ci = 0; !out[i]; ci++) {
       if (ci === cands.length) cands = sunflower(cands.length * 2, inner, 2).pts;
       const c = cands[ci]!;
-      if (placed.some((p) => Math.hypot(p.x - c.x, p.z - c.z) < MIN_TRUNK_GAP)) continue;
-      const near = placed.filter((p) => Math.hypot(p.x - c.x, p.z - c.z) < reach[i]! + reach[p.i]! + CROWN_GAP);
-      if (near.length && woodHits(i, c.x, c.z, near)) continue;
+      const clear = placed.every((p) => {
+        const d = Math.hypot(p.x - c.x, p.z - c.z);
+        return d >= MIN_TRUNK_GAP && d >= reach[i]! + reach[p.i]! + CROWN_SPREAD;
+      });
+      if (!clear) continue;
       placed.push({ i, x: c.x, z: c.z });
       out[i] = c;
-      const { nodes, n: m } = grown[i]!.skeleton;
-      for (let k = 0; k < m; k++) {
-        const x = c.x + nodes[k * 3]!, y = nodes[k * 3 + 1]!, z = c.z + nodes[k * 3 + 2]!;
-        const kk = key(x, y, z);
-        const cell = grid.get(kk);
-        if (cell) cell.push(x, y, z, pad(i, k)); else grid.set(kk, [x, y, z, pad(i, k)]);
-      }
-      break;
     }
   }
   return { pts: out, extent: Math.max(0, ...out.map((p, i) => Math.hypot(p.x, p.z) + reach[i]!)) };
