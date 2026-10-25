@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { COARSE_POINTER } from "./Environment";
 import { exhibitApproach, type Exhibit } from "./exhibits";
 import { lineMatchesQuery, groveApproach, searchTrees, treeApproach, type Forest, type Grove, type TreeSite } from "./forest";
-import { albumRank, ALBUM_RANKS } from "./familyForest";
+import { albumRank, ALBUM_RANKS } from "./classForest";
 import { GenreGlyph } from "./GenreGlyph";
 import { SPECIES, speciesFor } from "./species";
 import { saveScreenshot } from "./screenshot";

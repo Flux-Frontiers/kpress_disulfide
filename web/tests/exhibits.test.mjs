@@ -5,26 +5,16 @@ import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 globalThis.window ??= { localStorage: { getItem: () => null, setItem() {} } };
 
-test("the home tree: the focal person's hourglass at the hub, every root inside the glass pit", () => {
+test("the database tree stands at the hub with no roots and no pit; the cart is kept off its trunk", () => {
   const { getForest } = require(`${process.env.FOREST_TEST_BUILD}/forest.js`);
-  const [family, focal] = orchardArgs();
-  const f = getForest(family, focal);
+  const [catalog, home] = orchardArgs();
+  const f = getForest(catalog, home);
   const c = f.corpusTree;
-  assert.equal(c.focal, focal);
+  assert.equal(c.focal, home);
   assert.ok(c.bark.count > 0 && c.foliage.count > 0);
-  // Every root is inside the pit, under the glass; the canopy is above ground.
-  const pos = c.bark.pos;
-  for (let i = 0; i < c.bark.count; i++) {
-    const x = pos[i * 3], y = pos[i * 3 + 1], z = pos[i * 3 + 2];
-    if (y < 0) {
-      assert.ok(Math.hypot(x, z) < c.pitRadius, `root at ${Math.hypot(x, z).toFixed(1)} m, pit ${c.pitRadius.toFixed(1)} m`);
-      assert.ok(-y < c.pitDepth, `root ${(-y).toFixed(1)} m deep, pit ${c.pitDepth.toFixed(1)} m`);
-    }
-  }
-  // The hub plaza rings the pit; the cart is kept off the trunk only, and drives over the glass.
+  for (let i = 0; i < c.bark.count; i++) assert.ok(c.bark.pos[i * 3 + 1] > -0.5, "no wood below ground");
   const hub = f.plazas.find((p) => p.x === 0 && p.z === 0);
-  assert.ok(hub.r > c.pitRadius, `hub ${hub.r.toFixed(1)} m, pit ${c.pitRadius.toFixed(1)} m`);
-  assert.ok(c.baseRadius < c.pitRadius / 2);
+  assert.ok(hub.r > c.baseRadius + 4, `hub ${hub.r.toFixed(1)} m, trunk ${c.baseRadius.toFixed(1)} m`);
   assert.equal(f.obstacles[0].r, c.baseRadius);
 });
 

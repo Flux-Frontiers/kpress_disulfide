@@ -1,9 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { BufferAttribute, BufferGeometry, CanvasTexture, Color, DoubleSide, InstancedMesh, MeshDepthMaterial, MeshStandardMaterial, Object3D, PlaneGeometry, RepeatWrapping, RGBADepthPacking, SRGBColorSpace } from "three";
 import { COARSE_POINTER, textureAnisotropy } from "./Environment";
-import { HUB_PLAQUE_DIR, HUB_PLAQUE_DIST, type Forest } from "./forest";
+import type { Forest } from "./forest";
 import type { SeasonName } from "./seasons";
-import { Lectern } from "./Signposts";
 import { useGame } from "./store";
 import { UplightFixtures, useUplitMaterials } from "./Uplights";
 
@@ -129,42 +128,16 @@ function sprayTexture() {
   return tex;
 }
 
-const REDWOOD_BODY =
-  "The home tree is one person's whole family. Their ancestors are the roots, under the glass: " +
-  "parents one tier down, grandparents two, doubling as they go. Their descendants are the crown. " +
-  "Every limb is a parent and a child, and every limb is as thick as the family it carries. " +
-  "Click the tree or press B to browse every line and jump to its tree.";
-
-const ANCESTORS_BODY =
-  "This is the home tree turned over: one person's ancestors rise as the crown, parents one tier " +
-  "up, grandparents two, doubling as they go. Every limb is a child and a parent. Switch back to " +
-  "the whole family from the hub card. Click the tree or press B to browse every line.";
-
 function pointer(on: boolean) {
   document.body.style.cursor = on ? "pointer" : "";
 }
 
-function RedwoodPlaque({ forest }: { forest: Forest }) {
-  const c = forest.corpusTree;
-  const byline = `${c.totalChunks.toLocaleString("en-US")} people · ${forest.trees.length} lines · ${Math.round(c.height)} m`;
-  const x = Math.cos(HUB_PLAQUE_DIR) * HUB_PLAQUE_DIST;
-  const z = Math.sin(HUB_PLAQUE_DIR) * HUB_PLAQUE_DIST;
-  // Tapping the plaque lists every line, as tapping the tree does.
-  return (
-    <group position={[x, 0, z]} rotation={[0, Math.atan2(x, z), 0]}
-      onClick={(e) => { e.stopPropagation(); useGame.getState().openCatalog(null); }}
-      onPointerOver={() => pointer(true)} onPointerOut={() => pointer(false)}>
-      <Lectern title={c.focalName} byline={byline} body={c.ancestors ? ANCESTORS_BODY : REDWOOD_BODY} />
-    </group>
-  );
-}
-
-/** The hub's redwood: one bark mesh and one instanced draw of foliage sprays. */
 /**
- * The home tree at the hub: its bark and foliage, and its plaque and uplights.
+ * The database tree at the hub: its bark and foliage, and its uplights. Its
+ * plaque stands with the home disulfide's monument (Molecules.tsx).
  *
  * :param wood: Draw the tree itself; schematic mode (Schematic.tsx) draws it
- *     as a diagram and keeps only the plaque and lights.
+ *     as a diagram and keeps only the lights.
  */
 export function CorpusRedwood({ forest, season, wood = true }: { forest: Forest; season: SeasonName; wood?: boolean }) {
   const c = forest.corpusTree;
@@ -223,8 +196,8 @@ export function CorpusRedwood({ forest, season, wood = true }: { forest: Forest;
       {wood ? (<>
       {/* Touch devices skip the redwood's shadows, as they do the book trees' leaves. */}
       <mesh geometry={bark} material={barkMat} castShadow={!COARSE_POINTER} receiveShadow />
-      {/* Tapping the trunk lists every book. An invisible cone takes the click:
-          hit-testing the bark itself, one limb per book, on every pointer move costs too much. */}
+      {/* Tapping the trunk lists every class. An invisible cone takes the click:
+          hit-testing the bark itself, one limb per class, on every pointer move costs too much. */}
       <mesh position={[0, c.height * 0.3, 0]}
         onClick={(e) => { e.stopPropagation(); useGame.getState().openCatalog(null); }}
         onPointerOver={() => pointer(true)} onPointerOut={() => pointer(false)}>
@@ -234,7 +207,6 @@ export function CorpusRedwood({ forest, season, wood = true }: { forest: Forest;
       <instancedMesh ref={ref} args={[spray, sprayMat, Math.max(1, c.foliage.count)]} customDepthMaterial={sprayDepth}
         castShadow={!COARSE_POINTER} receiveShadow={!COARSE_POINTER} />
       </>) : null}
-      <RedwoodPlaque forest={forest} />
       <UplightFixtures radius={c.baseRadius + 0.5} count={6} pool={3.5} />
     </group>
   );

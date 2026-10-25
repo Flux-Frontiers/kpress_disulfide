@@ -1,7 +1,7 @@
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { loadFamilyCatalog, loadPersonPage, type FamilyCatalog, type PersonPage } from "./familyCatalog";
-import type { LineCard } from "./familyForest";
+import type { LineCard } from "./classForest";
 import { useGame } from "./store";
 
 /** Where the app is served from; the families sit under it (`make family`, never committed). */

@@ -165,7 +165,9 @@ test("no discs at the junctions: curb fillets keep the tour's rounded turns on t
   const f = getForest(...orchardArgs());
   const isStop = (p) => f.circuit.some((wp) => wp.x === p.x && wp.z === p.z);
   const isExhibit = (p) => f.exhibits.some((e) => e.x === p.x && e.z === p.z);
-  assert.ok(f.plazas.every((p) => (p.x === 0 && p.z === 0) || isStop(p) || isExhibit(p)), "a plaza that is not the hub, a stop or an exhibit");
+  const isPad = (p) => f.molecules.some((m) => m.kind === "representative" && m.x === p.x && m.z === p.z);
+  assert.ok(f.plazas.every((p) => (p.x === 0 && p.z === 0) || isStop(p) || isExhibit(p) || isPad(p)),
+    "a plaza that is not the hub, a stop, a representative's pad or an exhibit");
   const spokes = f.roadLines.filter((l) => l.kind === "spoke").length;
   const rings = f.roadLines.filter((l) => l.kind === "ring").length;
   assert.equal(f.junctions.length, spokes * rings);

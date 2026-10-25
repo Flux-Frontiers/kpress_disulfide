@@ -39,7 +39,7 @@ test("leaving the ring puts the lantern trail away; a grove jump keeps it", () =
 });
 
 test("reset puts every setting back and forgets the tour welcome, but keeps the press", () => {
-  const store = new Map([["kpf-tour-heard", "1"]]);
+  const store = new Map([["kpd-tour-heard", "1"]]);
   globalThis.window = {
     localStorage: {
       getItem: (k) => store.get(k) ?? null,
@@ -67,7 +67,7 @@ test("reset puts every setting back and forgets the tour welcome, but keeps the 
   assert.equal(st().timeMode, "live");
   assert.equal(tourHeard(), false);
   assert.deepEqual(st().library, ["hamlet"]);
-  const saved = JSON.parse(store.get("kpf-library-v1"));
+  const saved = JSON.parse(store.get("kpd-library-v1"));
   assert.equal(saved.preferences.camera, "high");
   assert.deepEqual(saved.library, ["hamlet"]);
 });
@@ -87,7 +87,7 @@ test("emptying the press takes every book out and saves it", () => {
   st().emptyPress();
   assert.deepEqual(st().library, []);
   assert.equal(st().lastReadSlug, null);
-  assert.deepEqual(JSON.parse(store.get("kpf-library-v1")).library, []);
+  assert.deepEqual(JSON.parse(store.get("kpd-library-v1")).library, []);
 });
 
 test("exit goes back to the start screen with every panel shut and the tour over", () => {
@@ -127,13 +127,5 @@ test("each family keeps its own album, groves and home person; settings are shar
   assert.equal(st().home, "I125");
   assert.equal(st().familyBase, "/families/kennedy/");
   assert.equal(st().preferences.camera, "god");
-  assert.deepEqual(JSON.parse(store.get("kpf-family-v1:tudors")).library, ["tudor-I1"]);
-});
-
-test("the family shown: the URL's, else the last chosen, else the first", () => {
-  const { chooseFamily } = require(`${process.env.FOREST_TEST_BUILD}/familyCatalog.js`);
-  const fams = [{ slug: "kennedy" }, { slug: "tudors" }, { slug: "washington" }];
-  assert.equal(chooseFamily(fams, "tudors", "washington").slug, "tudors");
-  assert.equal(chooseFamily(fams, "nobody", "washington").slug, "washington");
-  assert.equal(chooseFamily(fams, null, null).slug, "kennedy");
+  assert.deepEqual(JSON.parse(store.get("kpd-forest-v1:tudors")).library, ["tudor-I1"]);
 });

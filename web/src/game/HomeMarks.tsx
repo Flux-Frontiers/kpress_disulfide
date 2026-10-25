@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { AdditiveBlending, CanvasTexture, MeshStandardMaterial, SpriteMaterial, SRGBColorSpace } from "three";
-import { indexCatalog, type FamilyCatalog } from "./familyCatalog";
-import { lineTree } from "./familyTree";
+import { indexCatalog, type ClassCatalog } from "./classCatalog";
+import { lineTree } from "./classTree";
 import type { Forest } from "./forest";
 import { gildedDescent, gildedSchematic, type GildedSegment } from "./homePath";
 import type { Schematic } from "./schematic";
@@ -28,21 +28,21 @@ function haloTexture(): CanvasTexture {
 }
 
 /**
- * The home person on their own line's tree out on the rings: the wood from
- * the ground up to them gilded, and a lantern where they are. In the
+ * The home disulfide on its own class's tree out on the rings: the wood from
+ * the ground up to its leaf gilded, and a lantern where it is. In the
  * schematic the gold follows its straight limbs instead of the bark.
  */
-export function HomeMarks({ forest, family, schematic }: { forest: Forest; family: FamilyCatalog; schematic: Schematic | null }) {
+export function HomeMarks({ forest, catalog, schematic }: { forest: Forest; catalog: ClassCatalog; schematic: Schematic | null }) {
   const marks = useMemo(() => {
     const home = forest.homeLine;
     if (!home) return null;
     const site = forest.trees[home.tree]!;
-    const tree = lineTree(indexCatalog(family), site.line.slug);
+    const tree = lineTree(indexCatalog(catalog), site.line.slug);
     const wood = gildedDescent(tree, forest.corpusTree.focal, site.x, site.z);
     if (!wood) return null;
     const lines = schematic ? gildedSchematic(schematic, tree, forest.corpusTree.focal, site.x, site.z) : [];
     return { wood: wood.segments, lines, at: wood.at };
-  }, [forest, family, schematic]);
+  }, [forest, catalog, schematic]);
   const gold = useMemo(() => new MeshStandardMaterial({ color: GOLD, metalness: 0.75, roughness: 0.3, emissive: GOLD, emissiveIntensity: 0.45 }), []);
   const lamp = useMemo(() => new MeshStandardMaterial({ color: "#fff1d0", emissive: "#ffd98a", emissiveIntensity: 2.2 }), []);
   const halo = useMemo(() => new SpriteMaterial({ map: haloTexture(), blending: AdditiveBlending, depthWrite: false, transparent: true, fog: false }), []);

@@ -1,7 +1,7 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, type RefObject } from "react";
 import { ACESFilmicToneMapping, PerspectiveCamera, Raycaster, Vector2, type Ray } from "three";
-import { indexCatalog, type FamilyCatalog } from "./familyCatalog";
+import { indexCatalog, type ClassCatalog } from "./classCatalog";
 import { openPerson } from "./FamilyReader";
 import { COARSE_POINTER, EXPOSURE, PHONE } from "./Environment";
 import { pickTree, type Forest, type TreeSite } from "./forest";
@@ -17,19 +17,17 @@ import { Trees } from "./Trees";
 import { World } from "./World";
 import { useGame } from "./store";
 
-export function ForestCanvas({ forest, family }: { forest: Forest; family: FamilyCatalog | null }) {
+export function ForestCanvas({ forest, catalog }: { forest: Forest; catalog: ClassCatalog | null }) {
   const season = useGame((s) => s.season);
   const query = useGame((s) => s.query);
   const playing = useGame((s) => s.playing);
   const detail = useGame((s) => s.preferences.detail);
   const picker = useRef<((e: MouseEvent) => TreeSite | null) | null>(null);
-  const schematic = useGame((s) => s.preferences.schematic) && family !== null;
+  const schematic = useGame((s) => s.preferences.schematic) && catalog !== null;
   const beadPicker = useRef<((ray: Ray, maxDist: number) => SchematicBead | null) | null>(null);
-  // Every person's place on their tree: the schematic draws it, and the name plates hang from it in either view.
-  const layout = useMemo(
-    () => (family ? buildSchematic(indexCatalog(family), forest.trees, forest.corpusTree.focal, forest.corpusTree.ancestors) : null),
-    [family, forest],
-  );
+  // Every class's and member's place on its tree: the schematic draws it, and the name plates hang from it in either view.
+  const index = useMemo(() => (catalog ? indexCatalog(catalog) : null), [catalog]);
+  const layout = useMemo(() => (index ? buildSchematic(index, forest.trees) : null), [index, forest]);
 
   return (
     <Canvas
@@ -50,11 +48,11 @@ export function ForestCanvas({ forest, family }: { forest: Forest; family: Famil
         else if (s.libraryOpen) s.toggleLibrary();
         else if (s.atlasOpen) s.toggleAtlas();
         else {
-          // In schematic mode a bead opens that person's page.
+          // In schematic mode a bead opens its tree's page.
           if (schematic && beadPicker.current) {
             aim(e);
             const bead = beadPicker.current(raycaster.ray, 200);
-            const line = bead ? family?.people.find((p) => p.id === bead.id)?.line : undefined;
+            const line = bead ? index?.lineOf.get(bead.id) : undefined;
             if (line && forest.trees.some((t) => t.line.slug === line)) { openPerson(line, bead!.id); return; }
           }
           // Clicking a tree pins its card, silent mode or not; clicking open ground clears it.
@@ -67,7 +65,7 @@ export function ForestCanvas({ forest, family }: { forest: Forest; family: Famil
       <World forest={forest} season={season} />
       {schematic && layout ? <SchematicOrchard schematic={layout} picker={beadPicker} /> : <Trees forest={forest} season={season} query={query} />}
       {layout ? <NamePlates forest={forest} schematic={layout} /> : null}
-      {family ? <HomeMarks forest={forest} family={family} schematic={schematic ? layout : null} /> : null}
+      {catalog ? <HomeMarks forest={forest} catalog={catalog} schematic={schematic ? layout : null} /> : null}
       <StatsSampler />
       <ScreenshotCapture />
       <TreePicker forest={forest} picker={picker} />
