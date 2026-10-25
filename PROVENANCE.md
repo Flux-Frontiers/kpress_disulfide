@@ -34,8 +34,8 @@ git -C ../kpress_family diff 22699d8 -- web/src/game/familyTree.ts
 | `CITATION.cff` | `CITATION.cff` | rewritten for The Disulfides; cites proteusPy, knowledge_press and kpress_family |
 
 Not copied: the Swift kit (`app/`, and with it `.github/workflows/app.yml`),
-`renders/`, `CHANGELOG.md`, `README.md` and `web/LAYOUT.md`, which is
-rewritten for the disulfide orchard.
+`renders/`, `CHANGELOG.md`, `README.md` and `web/LAYOUT.md`. `web/LAYOUT.md`
+is written new for the disulfide orchard.
 
 ## Still the Family's
 
