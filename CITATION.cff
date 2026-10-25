@@ -1,0 +1,49 @@
+cff-version: "1.2.0"
+message: "If you use this software, please cite it using the metadata below."
+type: software
+title: "The Knowledge Press: The Disulfides"
+abstract: >
+  The Disulfides is the third edition of The Knowledge Press. It reads the
+  proteusPy disulfide database: a browser-based 3-D orchard in which every
+  structural class is a tree, grown from the classes' torsions, in groves
+  by class family, with the consensus model disulfide of each class
+  standing as its representative. Built from The Knowledge Press: The
+  Family, itself built from The Knowledge Press (The Forest).
+authors:
+  - family-names: Suchanek
+    given-names: "Eric G., PhD"
+    orcid: "https://orcid.org/0009-0009-0891-1507"
+    email: suchanek@flux-frontiers.com
+    affiliation: "Flux-Frontiers"
+version: "0.1.0"
+license-url: "https://www.elastic.co/licensing/elastic-license"
+repository-code: "https://github.com/Flux-Frontiers/kpress_disulfide"
+url: "https://github.com/Flux-Frontiers/kpress_disulfide"
+keywords:
+  - knowledge-graph
+  - disulfide
+  - protein-structure
+  - proteuspy
+  - three-js
+  - visualization
+references:
+  - type: software
+    title: "proteusPy"
+    authors:
+      - family-names: Suchanek
+        given-names: "Eric G., PhD"
+    repository-code: "https://github.com/suchanek/proteusPy"
+    doi: "10.5281/zenodo.11148440"
+  - type: software
+    title: "The Knowledge Press: Reading a GutenbergKG Corpus"
+    authors:
+      - family-names: Suchanek
+        given-names: "Eric G., PhD"
+    repository-code: "https://github.com/Flux-Frontiers/knowledge_press"
+    doi: "10.5281/zenodo.22969736"
+  - type: software
+    title: "The Knowledge Press: The Family"
+    authors:
+      - family-names: Suchanek
+        given-names: "Eric G., PhD"
+    repository-code: "https://github.com/Flux-Frontiers/kpress_family"

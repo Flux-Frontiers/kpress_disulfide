@@ -1,0 +1,114 @@
+import { useEffect, useRef, useState } from "react";
+import { SEASON_ORDER, SEASONS, type SeasonName } from "./seasons";
+import { unlockSpeech } from "./speech";
+import { useGame } from "./store";
+import { weather, weatherName } from "./weather";
+
+export function PauseOverlay() {
+  const paused = useGame((s) => s.paused);
+  const pause = useGame((s) => s.pause);
+  const prefs = useGame((s) => s.preferences);
+  const setPreferences = useGame((s) => s.setPreferences);
+  const season = useGame((s) => s.season);
+  const setSeason = useGame((s) => s.setSeason);
+  const resetSettings = useGame((s) => s.resetSettings);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const back = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (paused) {
+      dialog.current?.showModal();
+      // showModal focuses the first control, the pace menu, which phones then
+      // show as picked. React's autoFocus ran once at mount, while the dialog
+      // was closed, so it can't steer this; focus the way back instead,
+      // without scrolling to it at the bottom, so the card opens at its top.
+      back.current?.focus({ preventScroll: true });
+      if (dialog.current) dialog.current.scrollTop = 0;
+    } else dialog.current?.close();
+  }, [paused]);
+
+  function resume() {
+    pause(false);
+    (document.activeElement as HTMLElement | null)?.blur();
+  }
+
+  return (
+    <dialog ref={dialog} aria-labelledby="settings-title" onCancel={(e) => { e.preventDefault(); resume(); }}
+      className="forest-settings m-auto max-h-[90dvh] w-[min(100%-2rem,30rem)] overflow-auto rounded-xl border border-border bg-surface p-6 text-fg shadow-2xl">
+      <p className="text-xs tracking-[0.2em] text-primary uppercase">Take a breath</p>
+      <h2 id="settings-title" className="mt-1 font-display text-3xl">Make the orchard yours</h2>
+      <p className="mt-2 text-sm text-muted">Your cart is parked. These settings are saved on this device.</p>
+      <div className="my-5 grid gap-4 text-sm">
+        <label className="flex items-center justify-between gap-4">Driving pace
+          <select value={prefs.pace} onChange={(e) => setPreferences({ pace: e.target.value as typeof prefs.pace })} className="rounded-md border border-border bg-bg p-2">
+            <option value="gentle">Gentle exploration</option><option value="brisk">Brisk driving</option>
+          </select>
+        </label>
+        <label className="grid gap-2">Steering response · {prefs.sensitivity.toFixed(1)}×
+          <input type="range" min="0.5" max="1.5" step="0.1" value={prefs.sensitivity} onChange={(e) => setPreferences({ sensitivity: Number(e.target.value) })} />
+        </label>
+        <label className="flex items-center justify-between gap-4">Camera · C
+          <select value={prefs.camera} onChange={(e) => setPreferences({ camera: e.target.value as typeof prefs.camera })} className="rounded-md border border-border bg-bg p-2">
+            <option value="follow">Behind the cart</option><option value="high">High view</option><option value="cart">In the cart</option><option value="god">God's eye · the whole orchard</option>
+          </select>
+        </label>
+        <label className="flex items-center justify-between gap-4">Wind & gentle cart motion
+          <input type="checkbox" checked={prefs.motion} onChange={(e) => setPreferences({ motion: e.target.checked })} />
+        </label>
+        <label className="flex items-center justify-between gap-4">Read each grove aloud on the ring
+          <input type="checkbox" checked={prefs.narrate} onChange={(e) => {
+            setPreferences({ narrate: e.target.checked });
+            // Speech is only allowed from a tap, and this is one.
+            if (e.target.checked) unlockSpeech(true);
+          }} />
+        </label>
+        <label className="flex items-center justify-between gap-4">Silent mode · no pop-up cards
+          <input type="checkbox" checked={prefs.silent} onChange={(e) => setPreferences({ silent: e.target.checked })} />
+        </label>
+        <label className="flex items-center justify-between gap-4">Show geometry & frame rate
+          <input type="checkbox" checked={prefs.stats} onChange={(e) => setPreferences({ stats: e.target.checked })} />
+        </label>
+        <label className="flex items-center justify-between gap-4">Shadows & forest floor detail
+          <input type="checkbox" checked={prefs.detail} onChange={(e) => setPreferences({ detail: e.target.checked })} />
+        </label>
+      </div>
+      <h3 className="mb-3 text-xs tracking-[0.2em] text-primary uppercase">Environment</h3>
+      <div className="mb-5 grid gap-4 text-sm">
+        <label className="flex items-center justify-between gap-4">Season
+          <select value={season} onChange={(e) => setSeason(e.target.value as SeasonName)} className="rounded-md border border-border bg-bg p-2">
+            {SEASON_ORDER.map((name) => <option key={name} value={name}>{SEASONS[name].label}</option>)}
+          </select>
+        </label>
+        <label className="flex items-center justify-between gap-4">Fog
+          <select value={prefs.fog} onChange={(e) => setPreferences({ fog: e.target.value as typeof prefs.fog })} className="rounded-md border border-border bg-bg p-2">
+            <option value="clear">Clear</option><option value="light">Light</option>
+            <option value="normal">Normal</option><option value="heavy">Heavy</option>
+          </select>
+        </label>
+        <label className="flex items-center justify-between gap-4">
+          <span>Schematic trees<span className="block text-xs text-muted">Each person a bead, colored by generation, living people are gray and unnamed · V</span></span>
+          <input type="checkbox" checked={prefs.schematic} onChange={(e) => setPreferences({ schematic: e.target.checked })} />
+        </label>
+        <label className="flex items-center justify-between gap-4">
+          <span>Name plates<span className="block text-xs text-muted">Names over the people of the nearest tree · N</span></span>
+          <input type="checkbox" checked={prefs.names} onChange={(e) => setPreferences({ names: e.target.checked })} />
+        </label>
+        <label className="flex items-center justify-between gap-4">
+          <span>Random weather<span className="block text-xs text-muted">Morning fog that burns off, and cloud{prefs.weather ? ` · now ${weatherName(weather).toLowerCase()}` : ""}</span></span>
+          <input type="checkbox" checked={prefs.weather} onChange={(e) => setPreferences({ weather: e.target.checked })} />
+        </label>
+      </div>
+      <div className="rounded-md bg-bg p-3 text-sm leading-relaxed text-muted">
+        <p><span className="text-fg">WASD</span> drive · <span className="text-fg">Drag</span> or <span className="text-fg">arrows</span> look around · <span className="text-fg">Space</span> brake</p>
+        <p><span className="text-fg">Shift</span> hurry · <span className="text-fg">E</span> album · <span className="text-fg">C</span> camera · <span className="text-fg">V</span> schematic · <span className="text-fg">N</span> names</p>
+        <p><span className="text-fg">G</span> groves · <span className="text-fg">B</span> lines · <span className="text-fg">H</span> home · <span className="text-fg">Q</span> guided tour · <span className="text-fg">?</span> about</p>
+        <p className="mt-2 text-xs">Release the throttle to stop. You can turn in place. On a phone, the stick drives and a drag anywhere else looks. Gamepad: left stick to drive, right stick to look around, A to add a line to the album, LT to brake, RT to hurry.</p>
+      </div>
+      <button type="button" className="mt-3 min-h-11 w-full rounded-md border border-border text-muted"
+        onClick={() => { if (window.confirm("Reset every setting on this device, including the tour welcome? Your album and visited groves are kept.")) resetSettings(); }}>
+        Reset all settings
+      </button>
+      <button ref={back} type="button" className="mt-5 min-h-11 w-full rounded-md bg-primary text-primary-fg" onClick={resume}>Back to the orchard</button>
+    </dialog>
+  );
+}

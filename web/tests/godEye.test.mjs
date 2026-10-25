@@ -1,0 +1,129 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
+globalThis.window ??= { localStorage: { getItem: () => null, setItem() {} } };
+
+const { godView, godLimits, resetGodView, zoomGodView, godPose, groundPose, flightPose, FLIGHT_S, GOD_TILT } =
+  require(`${process.env.FOREST_TEST_BUILD}/godEye.js`);
+
+const WORLD = 300;
+const limits = godLimits(WORLD, 20, 58);
+
+test("the god's-eye limits run from about one grove to the whole world", () => {
+  assert.ok(limits.min < limits.max);
+  const t = Math.tan((58 * Math.PI) / 360);
+  // At the top the world radius fills the half-height of the view, with margin.
+  assert.ok(limits.max * t > WORLD);
+  // At the bottom the view is a few grove radii tall, not a single tree.
+  assert.ok(limits.min * t > 20 && limits.min * t < 100);
+});
+
+test("zoom clamps hold at both ends", () => {
+  resetGodView(limits.max);
+  for (let i = 0; i < 200; i++) zoomGodView(40, -60, 0.8, limits, WORLD);
+  assert.equal(godView.height, limits.min);
+  for (let i = 0; i < 200; i++) zoomGodView(40, -60, 1.25, limits, WORLD);
+  assert.equal(godView.height, limits.max);
+  // All the way out, the view is back over the hub.
+  assert.equal(Math.hypot(godView.cx, godView.cz), 0);
+});
+
+test("zooming in keeps the ground point under the cursor", () => {
+  resetGodView(limits.max);
+  zoomGodView(0, 0, 0.5, limits, WORLD);
+  const before = godPose();
+  const ax = 30, az = 20;
+  // The point's offset from the camera, as a fraction of the height, is what fixes its pixel.
+  const rel = (p) => [(ax - p.cam.x) / p.cam.y, (az - p.cam.z) / p.cam.y];
+  const [bx, bz] = rel(before);
+  zoomGodView(ax, az, 0.7, limits, WORLD);
+  const [cx, cz] = rel(godPose());
+  assert.ok(Math.abs(bx - cx) < 1e-9 && Math.abs(bz - cz) < 1e-9);
+});
+
+test("a zoomed view never leaves the world", () => {
+  resetGodView(limits.max);
+  for (let i = 0; i < 50; i++) zoomGodView(5000, 5000, 0.9, limits, WORLD);
+  assert.ok(Math.hypot(godView.cx, godView.cz) <= WORLD + 1e-9);
+});
+
+test("the god's-eye pose looks at its centre from the south", () => {
+  resetGodView(limits.max);
+  const { cam, look } = godPose();
+  assert.deepEqual(look, { x: 0, y: 0, z: 0 });
+  assert.equal(cam.z, cam.y * GOD_TILT);
+});
+
+test("a flight leaves from god's eye and lands on the chase pose", () => {
+  resetGodView(limits.max);
+  const from = godPose();
+  for (const mode of ["follow", "high", "cart"]) {
+    const to = groundPose(mode, 12, 0.4, -80, 0.7);
+    assert.deepEqual(flightPose(from, to, 0).cam, from.cam);
+    const mid = flightPose(from, to, FLIGHT_S / 2);
+    assert.equal(mid.done, false);
+    assert.ok(mid.cam.y < from.cam.y && mid.cam.y > to.cam.y);
+    const end = flightPose(from, to, FLIGHT_S);
+    assert.equal(end.done, true);
+    assert.deepEqual(end.cam, to.cam);
+    assert.deepEqual(end.look, to.look);
+    // Overshooting the duration stays on the chase pose.
+    assert.deepEqual(flightPose(from, to, FLIGHT_S * 3).cam, to.cam);
+  }
+});
+
+test("the follow pose sits behind the cart and looks down the road", () => {
+  // Yaw 0 heads toward -z (sim.ts forwardOf).
+  const { cam, look } = groundPose("follow", 0, 0, 0, 0);
+  assert.ok(cam.z > 0 && look.z < 0);
+  assert.equal(cam.y, look.y);
+});
+
+test("driving past a tall tree the chase camera backs off, rises and tilts up, keeping the cart in frame", () => {
+  const { crownFrame, FOLLOW_BACK, FOLLOW_UP } = require(`${process.env.FOREST_TEST_BUILD}/godEye.js`);
+  const none = { back: 0, rise: 0, tilt: 0 };
+  // A one-person line, 6.5 m: the level view already shows it.
+  assert.deepEqual(crownFrame(5, 6.5, 58, 6), none);
+  // A 34 m tree out of reach leaves the camera alone.
+  assert.deepEqual(crownFrame(25, 34, 58, 6), none);
+  // Beside it: backed off, raised and tilted, within bounds.
+  const near = crownFrame(5, 34, 58, 6);
+  assert.ok(near.back > 5 && near.back <= 8, `back ${near.back}`);
+  assert.equal(near.rise, near.back / 2);
+  assert.ok(near.tilt > 0, `tilt ${near.tilt}`);
+  // The cart's bed stays above the frame's lower edge.
+  const half = (58 * Math.PI) / 360;
+  const cartBelow = Math.atan2(FOLLOW_UP + near.rise - 0.8, FOLLOW_BACK + near.back);
+  assert.ok(near.tilt - half < -cartBelow, `cart at ${cartBelow}, tilt ${near.tilt}`);
+  // Easing in on the approach: halfway in, less than beside it.
+  const coming = crownFrame(13, 34, 58, 6);
+  assert.ok(coming.back < near.back && coming.back > 0);
+});
+
+test("parked beside a tall tree the chase camera backs off until the whole tree fits; driving, only a little", () => {
+  const { crownFrame, FOLLOW_BACK, FOLLOW_UP } = require(`${process.env.FOREST_TEST_BUILD}/godEye.js`);
+  const half = (58 * Math.PI) / 360, margin = (4 * Math.PI) / 180;
+  const parked = crownFrame(5, 25, 58, 0);
+  const driving = crownFrame(5, 25, 58, 6);
+  assert.ok(driving.back <= 8, `driving back ${driving.back}`);
+  assert.ok(parked.back > driving.back + 5, `parked back ${parked.back}`);
+  // Parked, the crown top (and a metre of sky) is inside the frame's upper edge...
+  const up = FOLLOW_UP + parked.rise;
+  assert.ok(Math.atan2(25 + 1 - up, 5 + FOLLOW_BACK + parked.back) <= parked.tilt + half - margin + 1e-9);
+  // ...and the cart is still above its lower edge.
+  assert.ok(parked.tilt - half < -Math.atan2(up - 0.8, FOLLOW_BACK + parked.back));
+});
+
+test("from the high view, parked by a tall tree, the camera fits its crown and keeps the cart", () => {
+  const { crownFrame, HIGH_CAMERA } = require(`${process.env.FOREST_TEST_BUILD}/godEye.js`);
+  const half = (58 * Math.PI) / 360, margin = (4 * Math.PI) / 180;
+  const f = crownFrame(8, 26, 58, 0, HIGH_CAMERA);
+  assert.ok(f.tilt > 0 && f.back > 0, JSON.stringify(f));
+  const up = HIGH_CAMERA.up + f.rise;
+  const pitch = HIGH_CAMERA.pitch + f.tilt;
+  assert.ok(Math.atan2(26 + 1 - up, 8 + HIGH_CAMERA.back + f.back) <= pitch + half - margin + 1e-9, "crown top in frame");
+  assert.ok(pitch - half < -Math.atan2(up - 0.8, HIGH_CAMERA.back + f.back), "cart in frame");
+  // A small tree leaves the high view as it is.
+  assert.deepEqual(crownFrame(8, 6, 58, 0, HIGH_CAMERA), { back: 0, rise: 0, tilt: 0 });
+});
