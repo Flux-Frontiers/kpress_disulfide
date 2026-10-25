@@ -53,8 +53,8 @@ function plate(name: string) {
  * same layout. Twice a second the plates are laid out on screen trunk first,
  * tier by tier, and a plate that would cover one already placed is left out,
  * so a dense crown shows its coarse classes until the cart draws closer. Not
- * in god's eye, where the grove names (GroveLabels) say enough, and off by
- * the "Name plates" setting (N).
+ * in god's eye, where the grove names (GroveLabels) say enough, nor over the
+ * start screen, and off by the "Name plates" setting (N).
  */
 export function NamePlates({ forest, schematic }: { forest: Forest; schematic: Schematic }) {
   // The tree whose names show: the nearest to the cart, checked twice a second.
@@ -63,11 +63,13 @@ export function NamePlates({ forest, schematic }: { forest: Forest; schematic: S
   const since = useRef(0);
   const godEye = useGame((s) => s.preferences.camera === "god");
   const names = useGame((s) => s.preferences.names);
+  // Not over the start screen, where the camera circles the hub.
+  const playing = useGame((s) => s.playing);
   // The named tree's plates, trunk first and tier by tier: the order they claim the screen.
   const labels = useMemo(
-    () => (named === null || godEye || !names ? [] : schematic.beads.filter((b) => b.tree === named && b.name))
+    () => (named === null || godEye || !names || !playing ? [] : schematic.beads.filter((b) => b.tree === named && b.name))
       .sort((a, b) => a.generation - b.generation),
-    [named, schematic, godEye, names],
+    [named, schematic, godEye, names, playing],
   );
   useFrame(({ camera }, dt) => {
     since.current += dt;
