@@ -826,8 +826,9 @@ export function treesNear(forest: Forest, x: number, z: number, radius: number):
 }
 
 /**
- * Whether a line answers the lantern: any member's name, birthplace or year,
- * or the surname. Every word must match somewhere ("boston 1917").
+ * Whether a line answers the lantern: its class ids with their suffixes, its
+ * name and family, its function, or a sampled bond's key, which starts with
+ * its PDB id. Every word must match somewhere ("lhspiral 22222o").
  */
 export function lineMatchesQuery(line: LineCard, q: string): boolean {
   const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);

@@ -126,6 +126,12 @@ export type LineCard = {
   founders: string;
   /** Bonds in the class. */
   members: number;
+  /** The class's share of the database, percent. */
+  percentage: number;
+  /** "Allosteric", "Catalytic", or "". */
+  function: string;
+  /** The class's mean torsional energy, kcal/mol, when the export gives one. */
+  energy: number | null;
   span: string;
   summary: string;
   /** The sampled members' keys. */
@@ -137,12 +143,12 @@ export type LineCard = {
 };
 
 /** The album's ranks, lowest first. */
-export const ALBUM_RANKS = ["Reader", "Clerk", "Registrar", "Archivist", "Keeper of the Line"] as const;
+export const ALBUM_RANKS = ["Reader", "Modeler", "Refiner", "Curator", "Keeper of the Classes"] as const;
 
 /**
- * The rank an album of `count` lines earns out of `total`: Reader for the
- * first line, Clerk at a tenth, Registrar at a quarter, Archivist at half,
- * Keeper of the Line with every line. Null for an empty album.
+ * The rank an album of `count` classes earns out of `total`: Reader for the
+ * first class, Modeler at a tenth, Refiner at a quarter, Curator at half,
+ * Keeper of the Classes with every class. Null for an empty album.
  */
 export function albumRank(count: number, total: number): string | null {
   const need = [1, Math.ceil(total / 10), Math.ceil(total / 4), Math.ceil(total / 2), total];
@@ -174,6 +180,9 @@ export function lineCard(index: ClassIndex, line: ClassLine): LineCard {
     grove: line.grove,
     founders: `${percent(line.percentage)} of the database`,
     members: line.count,
+    percentage: line.percentage,
+    function: line.function,
+    energy: line.energy?.mean ?? null,
     span: "",
     summary: `${bonds}, ${percent(line.percentage)} of the database, in ${quadrants} quadrant and ${octants} octant classes.`
       + (line.function ? ` Function: ${line.function}.` : ""),
@@ -189,8 +198,6 @@ export type HomeTree = CorpusTree & {
   focal: string;
   /** The database's name for the plaque. */
   focalName: string;
-  /** Always false: a class tree has no ancestors to turn over. */
-  ancestors: boolean;
 };
 
 /**
@@ -244,6 +251,5 @@ export function homeTree(tree: ClassTree, home: string, lines: number, name: str
     foliage: { count, pos, scale, quat, shade },
     focal: home,
     focalName: name,
-    ancestors: false,
   };
 }

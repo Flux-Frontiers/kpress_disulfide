@@ -19,15 +19,18 @@ test("authors and titles are spoken without the catalog's disambiguators", () =>
   assert.equal(spokenTitle("Etidorhpa; or, The End of Earth.", "John Uri Lloyd"), "Etidorhpa; or, The End of Earth");
 });
 
-test("every grove's narration names it, counts its people and reads cleanly", () => {
+test("every grove's narration names it, counts its classes and bonds, and reads cleanly", () => {
   const { getForest } = require(`${process.env.FOREST_TEST_BUILD}/forest.js`);
   const f = getForest(...orchardArgs());
   for (const g of f.groves) {
     const n = g.narration;
     assert.ok(n.startsWith(`${g.label}:`), `${g.genre}: ${n}`);
-    const people = f.trees.filter((t) => t.line.grove === g.genre).reduce((k, t) => k + t.line.members, 0);
-    assert.ok(n.includes(people === 1 ? "one person born a" : `${people} people born a`), `${g.genre}: ${n}`);
-    if (g.bookCount > 1) assert.ok(n.includes(`${g.bookCount} lines`), `${g.genre}: ${n}`);
+    const lines = f.trees.filter((t) => t.line.grove === g.genre);
+    const bonds = lines.reduce((k, t) => k + t.line.members, 0);
+    assert.ok(n.includes(bonds === 1 ? "one bond," : `${bonds.toLocaleString("en-US")} bonds,`), `${g.genre}: ${n}`);
+    assert.ok(n.includes(g.bookCount === 1 ? "one binary class" : `${g.bookCount} binary classes`), `${g.genre}: ${n}`);
+    for (const fn of new Set(lines.map((t) => t.line.function).filter(Boolean))) assert.ok(n.includes(fn), `${g.genre}: ${n}`);
+    assert.ok(n.includes("kilocalories per mole"), `${g.genre}: ${n}`);
     assert.ok(n.endsWith("."), `${g.genre}: ${n}`);
     assert.ok(!/Unknown| — |\s\s/.test(n), `${g.genre}: ${n}`);
   }

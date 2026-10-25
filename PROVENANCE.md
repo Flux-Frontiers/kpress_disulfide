@@ -40,13 +40,9 @@ rewritten for the disulfide orchard.
 ## Still the Family's
 
 The orchard reads the disulfide database (`web/src/game/classCatalog.ts`,
-written by proteusPy's `proteusPy.export_web`; `make forest`). Still the
-Family's, to be rewritten for classes and bonds:
+written by proteusPy's `proteusPy.export_web`; `make forest`). The reader
+is class and bond cards (`ClassReader.tsx`, `classCards.ts`), and the HUD,
+tour, album ranks and About speak of classes and bonds. Still the
+Family's, to be rewritten:
 
-- the record reader (`FamilyReader.tsx`) and the export types it reads
-  (`familyCatalog.ts`); it opens on a tree's sampled members but finds no
-  person pages;
-- the wording of the HUD, the tour's narration and script, the album ranks
-  and About, and the "Show ancestors" button on the hub card, which does
-  nothing here;
 - `web/README.md`.
