@@ -31,8 +31,11 @@ export const TRUNK_HEIGHT = 3.0;
 export const TIER_UP = 2.0;
 /** Radial reach per tier before the crowding floor. */
 const RING = 1.0;
-/** Least arc between two classes on one ring; a crowded tier widens. */
-const MIN_LEAF_ARC = 0.9;
+/**
+ * Least arc between two classes on one ring, m, whatever the tree's scale: a
+ * crowded tier widens rather than packing its classes shoulder to shoulder.
+ */
+const MIN_LEAF_ARC = 1.2;
 /**
  * An octant class's members hang on a dome above it, this far from the class
  * node, m, whatever the tree's scale: a fan of twigs at the class's height
@@ -169,7 +172,7 @@ function tierCounts(shape: Shape, root: string): Map<number, number> {
 }
 
 function ringRadius(tier: number, count: number, f: Frame): number {
-  return Math.max(tier * f.ring * f.scale, (count * f.arc * f.scale) / (2 * Math.PI));
+  return Math.max(tier * f.ring * f.scale, (count * f.arc) / (2 * Math.PI));
 }
 
 /** The crown above `node`: a radial tidy tree, wedges by weight, members on a dome over each octant class. */
