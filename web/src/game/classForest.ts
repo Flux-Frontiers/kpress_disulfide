@@ -24,6 +24,12 @@ const SPRAYS_PER_PERSON = 4;
  */
 export const ENERGY_STEPS = [1, 1.5, 2, 2.5, 3, 4, 6];
 
+/**
+ * The color of each energy tint, coolest first: blue for a relaxed bond
+ * through yellow to red for a strained one. Data, so it holds in every season.
+ */
+export const ENERGY_COLORS = ["#2c7bb6", "#00a6ca", "#00ccbc", "#90eb9d", "#ffff8c", "#f9d057", "#f29e2e", "#d7191c"];
+
 /** A leaf's tint for a member's energy: 0 relaxed to 7 strained. */
 export function energyTint(energy: number): number {
   let t = 0;

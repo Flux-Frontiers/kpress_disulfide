@@ -31,9 +31,11 @@ test("every class and member on every tree is a bead where the organic layout pu
   assert.equal(schematic.beads.filter((b) => b.tree === -1).length, hubTree(index).people.length);
 });
 
-test("a bead's color is its tier and its plate reads its id, suffix and all", () => {
+test("a class bead's color is its tier, a member's its energy, and its plate reads its id, suffix and all", () => {
+  const { ENERGY_COLORS, energyTint } = require(`${process.env.FOREST_TEST_BUILD}/classForest.js`);
   for (const b of schematic.beads) {
-    assert.equal(b.color, generationColor(b.generation));
+    const member = index.memberOf.has(b.id);
+    assert.equal(b.color, member ? ENERGY_COLORS[energyTint(index.energy.get(b.id))] : generationColor(b.generation), b.id);
     assert.equal(b.name, b.id);
     assert.equal(b.living, false);
   }

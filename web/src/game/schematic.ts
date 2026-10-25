@@ -7,6 +7,7 @@
 // Pure, no React or three, so the tests can run it.
 
 import type { ClassIndex } from "./classCatalog";
+import { ENERGY_COLORS, energyTint } from "./classForest";
 import { HUB_ROOT, hubTree, lineTree, type ClassTree } from "./classTree";
 
 export type BeadShape = "round" | "square" | "diamond";
@@ -57,9 +58,10 @@ function shapeOf(id: string, member: boolean): BeadShape {
 /**
  * One tree's beads and limbs, placed at (ox, oz). Each node's limb runs to
  * it from the nearest node below it in the wood, or from the ground point
- * for the trunk.
+ * for the trunk. A class's bead is colored by its tier, a member's by its
+ * energy, as its leaves are.
  */
-function addTree(t: ClassTree, tree: number, ox: number, oz: number, out: Schematic): void {
+function addTree(t: ClassTree, tree: number, ox: number, oz: number, out: Schematic, energy: (id: string) => number | undefined): void {
   const byNode = new Map(t.people.map((p) => [p.node, p]));
   const at = new Map(t.people.map((p) => [p.id, { x: ox + p.x, y: p.y, z: oz + p.z }]));
   const below = (node: number) => {
@@ -79,7 +81,7 @@ function addTree(t: ClassTree, tree: number, ox: number, oz: number, out: Schema
       ...here,
       generation: p.generation,
       shape: shapeOf(p.id, p.member),
-      color: generationColor(p.generation),
+      color: p.member ? ENERGY_COLORS[energyTint(energy(p.id) ?? 0)]! : generationColor(p.generation),
       living: false,
       marriedIn: false,
       tree,
@@ -97,8 +99,9 @@ function addTree(t: ClassTree, tree: number, ox: number, oz: number, out: Schema
  */
 export function buildSchematic(index: ClassIndex, trees: readonly { line: { slug: string }; x: number; z: number }[]): Schematic {
   const out: Schematic = { beads: [], limbs: [], bars: [] };
-  trees.forEach((t, i) => addTree(lineTree(index, t.line.slug), i, t.x, t.z, out));
-  addTree(hubTree(index), -1, 0, 0, out);
+  const energy = (id: string) => index.energy.get(id);
+  trees.forEach((t, i) => addTree(lineTree(index, t.line.slug), i, t.x, t.z, out, energy));
+  addTree(hubTree(index), -1, 0, 0, out, energy);
   return out;
 }
 

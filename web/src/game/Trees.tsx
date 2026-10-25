@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { BufferAttribute, BufferGeometry, Color, DoubleSide, Group, InstancedMesh, MeshDepthMaterial, MeshStandardMaterial, Object3D, RepeatWrapping, RGBADepthPacking, Shape, ShapeGeometry, SRGBColorSpace, TextureLoader, Vector2 } from "three";
 import { COARSE_POINTER, textureAnisotropy } from "./Environment";
+import { ENERGY_COLORS } from "./classForest";
 import { useGame } from "./store";
 import type { Forest } from "./forest";
 import { lineMatchesQuery } from "./forest";
@@ -186,8 +187,8 @@ export function Trees({
     forest.chunks.forEach((chunk, ci) => {
       const mesh = leafRefs.current[ci];
       if (!mesh) return;
-      const [dh, ds, dl] = SPECIES[chunk.species]!.foliageShift;
-      const foliage = palette.foliage.map((hex) => new Color(hex).offsetHSL(dh, ds, dl));
+      // A leaf is a sampled bond, colored by its energy (classForest.energyTint), not the season.
+      const foliage = ENERGY_COLORS.map((hex) => new Color(hex));
       for (let n = 0; n < chunk.leafCount; n++) {
         const i = chunk.leafStart + n;
         const treeI = treeIndex[i]!;
@@ -199,7 +200,7 @@ export function Trees({
         dummy.quaternion.set(quat[i * 4]!, quat[i * 4 + 1]!, quat[i * 4 + 2]!, quat[i * 4 + 3]!);
         dummy.updateMatrix();
         mesh.setMatrixAt(n, dummy.matrix);
-        color.copy(foliage[tint[i]! % foliage.length]!);
+        color.copy(foliage[Math.min(tint[i]!, foliage.length - 1)]!);
         if (match && match.has(treeI)) color.offsetHSL(0, 0.05, 0.08);
         mesh.setColorAt(n, color);
       }
