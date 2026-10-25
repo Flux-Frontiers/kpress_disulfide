@@ -125,3 +125,27 @@ export function pickBead(
   }
   return best;
 }
+
+/** A name plate on screen, in normalized device coordinates: its center and half its width and height. */
+export type PlateRect = { x: number; y: number; hw: number; hh: number };
+
+/**
+ * The plates to show so that none covers another: taken in the order given,
+ * the coarser tiers first, each kept only if it overlaps no plate already
+ * kept. A null is a plate off screen.
+ *
+ * :param rects: The plates' screen rectangles, in priority order.
+ * :returns: The indexes of the plates kept.
+ */
+export function declutter(rects: readonly (PlateRect | null)[]): number[] {
+  const kept: number[] = [];
+  rects.forEach((r, i) => {
+    if (!r) return;
+    const clear = kept.every((k) => {
+      const o = rects[k]!;
+      return Math.abs(r.x - o.x) >= r.hw + o.hw || Math.abs(r.y - o.y) >= r.hh + o.hh;
+    });
+    if (clear) kept.push(i);
+  });
+  return kept;
+}

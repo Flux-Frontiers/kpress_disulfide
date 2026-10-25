@@ -65,3 +65,13 @@ test("a ray picks the nearest bead it passes through, and misses past them all",
   assert.equal(pickBead(schematic.beads, origin, { x: 0, y: -1, z: 0 }, 0.45, 200)?.id, b.id);
   assert.equal(pickBead(schematic.beads, { x: 0, y: 500, z: 0 }, { x: 0, y: 1, z: 0 }, 0.45, 200), null);
 });
+
+test("plates are kept in priority order, and one that would cover a kept plate is left out", () => {
+  const { declutter } = require(`${process.env.FOREST_TEST_BUILD}/schematic.js`);
+  const r = (x, y) => ({ x, y, hw: 0.1, hh: 0.02 });
+  // The trunk's plate claims its place; a quadrant's overlapping it goes, one clear of it stays.
+  assert.deepEqual(declutter([r(0, 0), r(0.05, 0.01), r(0.5, 0), null, r(0, 0.05)]), [0, 2, 4]);
+  // Touching edges do not overlap.
+  assert.deepEqual(declutter([r(0, 0), r(0.2, 0)]), [0, 1]);
+  assert.deepEqual(declutter([]), []);
+});
