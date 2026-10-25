@@ -327,7 +327,7 @@ export function HUD({ forest, index }: { forest: Forest; index: ClassIndex | nul
                 <span className="inline-block size-2 rounded-full" style={{ background: touring.color }} />
                 On the ring
               </p>
-              <h2 className="font-display mt-0.5 text-xl leading-tight sm:text-2xl">{touring.label}</h2>
+              <h2 className="font-display mt-0.5 text-xl leading-tight lining-nums sm:text-2xl">{touring.label}</h2>
               {forest.homeLine?.genre === touring.genre ? (
                 <p className="mt-0.5 flex items-center gap-1.5 text-sm text-[#f3d27a]">
                   <House className="size-3.5" strokeWidth={2} /> The home disulfide's class, gilded on the tree
@@ -382,7 +382,7 @@ export function HUD({ forest, index }: { forest: Forest; index: ClassIndex | nul
                 <X className="size-5" strokeWidth={1.75} />
               </button>
               <p className="text-xs tracking-wide text-muted uppercase">The hub</p>
-              <h2 className="font-display mt-0.5 text-xl leading-tight sm:text-2xl">{forest.corpusTree.focalName}</h2>
+              <h2 className="font-display mt-0.5 text-xl leading-tight lining-nums sm:text-2xl">{forest.corpusTree.focalName}</h2>
               <p className="text-sm text-muted tabular-nums">
                 {forest.trees.reduce((n, t) => n + t.line.members, 0).toLocaleString("en-US")} bonds · {forest.trees.length} binary classes · {Math.round(forest.corpusTree.height)} m
               </p>
@@ -408,7 +408,7 @@ export function HUD({ forest, index }: { forest: Forest; index: ClassIndex | nul
                 <X className="size-5" strokeWidth={1.75} />
               </button>
               <p className="text-xs tracking-wide text-muted uppercase">{nearby.line.surname}</p>
-              <h2 className="font-display mt-0.5 text-xl leading-tight sm:text-2xl">{nearby.line.title}</h2>
+              <h2 className="font-display mt-0.5 text-xl leading-tight lining-nums sm:text-2xl">{nearby.line.title}</h2>
               <p className="text-sm text-muted">{nearby.line.founders}</p>
               <p className="card-extra mt-1 hidden text-xs text-faint tabular-nums sm:block">
                 {nearby.line.members.toLocaleString("en-US")} {nearby.line.members === 1 ? "bond" : "bonds"}{nearby.line.span ? ` · ${nearby.line.span}` : ""}
