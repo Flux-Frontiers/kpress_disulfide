@@ -129,11 +129,15 @@ with proteusPy's own colors and radii (`atoms.json`, `molecule.ts`):
 
 The database tree stands at the hub (`hubTree`). Its trunk is every
 bond, its three rings are the 32 binary classes, then every quadrant
-class, then every octant class and `-other` tip, with no bonds. Its
-reach is three times a line tree's tier reach, and its crowded rings
-spread up and in by chance, by up to 0.45 of a tier. It has the line
-trees' trunk and rise per tier, so it stands about 13 m tall, not
-towering over them. Bark is redwood; foliage is four sprays per class.
+class, then every octant class and `-other` tip, with no bonds. It has
+the line trees' trunk and rise per tier, and reaches 24.3 m, but its
+rings hold hundreds of classes, too many for one ring at 1.2 m apart.
+Each crowded ring is stacked into layers 0.8 m apart, each leaning a
+little nearer the axis than the one below (`ringsOf`). A ring's classes
+take turns round it, layer by layer, so neighbors stand on different
+layers and classes on one layer keep 1.2 m of arc. The crown climbs to
+about 30 m on the subset and 42 m on the full export. Bark is redwood;
+foliage is four sprays per class.
 
 The home disulfide is the export's lowest-energy bond unless the reader
 or `?home=<key>` names another sampled bond: `1xr9_203A_259A` on the
@@ -161,9 +165,9 @@ Measured from the exports in `public/forests/` with the current code.
 | Largest tree | `00000b`, 1,158 bonds, 582 nodes, reach 19.4 m | `00000b`, 40,943 bonds, 1,677 nodes, reach 30.5 m |
 | Smallest tree | `20202b`, 12 bonds, 16 nodes, reach 3.7 m | `20202b`, 538 bonds, 120 nodes, reach 6.5 m |
 | Line tree height | about 10 m | about 10 m |
-| Database tree | 1,665 nodes, 13.3 m tall, reach 16.2 m | 2,903 nodes, 13.3 m tall, reach 16.2 m |
+| Database tree | 1,665 nodes, 29.6 m tall, reach 24.3 m | 2,903 nodes, 42.4 m tall, reach 24.3 m |
 | LHSpiral grove radius | 36.4 m | 58.5 m |
-| Orchard radius (outermost grove edge) | 134 m | 216 m |
+| Orchard radius (outermost grove edge) | 139 m | 216 m |
 | Home disulfide | `1xr9_203A_259A`, 0.49 kcal/mol | `2q7q_75D_140D`, 0.49 kcal/mol |
 
 Build either with `make forest FOREST=subset` or `make forest

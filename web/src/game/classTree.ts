@@ -59,16 +59,19 @@ const TIP_RADIUS = 0.03;
 
 /** A line tree's rise per tier, as a multiple of TIER_UP: its depth is fixed, so its height is too. */
 const LINE_TIER_STRETCH = 1.5;
-/** The database tree's reach: the orchard's widest tree, whatever its population, though no taller than the rest. */
+/** The database tree's reach: the orchard's widest tree, whatever its population. */
 export const HUB_SCALE = 3.0;
 /**
- * The database tree's tiers hold hundreds of classes, too many for a ring at
- * MIN_LEAF_ARC; its rings keep their tier's reach and its crowded tiers
- * spread up and in, into a crown, by up to this fraction of a tier.
+ * The database tree's tiers hold hundreds of classes, too many for one ring
+ * at its reach. A crowded ring is stacked into layers, this far apart, m:
+ * its classes take turns round the ring, layer by layer, so neighbours
+ * stand on different layers and classes on one layer keep MIN_LEAF_ARC.
  */
-const HUB_SPREAD = 0.45;
+const STACK_RISE = 0.8;
+/** Each layer stands this much nearer the axis than the one below, as a fraction of the ring at the top layer: a crown, not a tube. */
+const STACK_LEAN = 0.3;
 /** The database tree's reach per tier, before its scale: wider than a line tree's, for its crowded crown. */
-const HUB_RING = 1.8;
+const HUB_RING = 2.7;
 /** The database tree's trunk node id. */
 export const HUB_ROOT = "database";
 
@@ -149,7 +152,11 @@ type Shape = {
   flow: (id: string) => number;
 };
 
-type Frame = { scale: number; trunkHeight: number; tierUp: number; ring: number; arc: number; spread: number };
+/** `stack`: stack crowded rings into layers (the database tree). */
+type Frame = { scale: number; trunkHeight: number; tierUp: number; ring: number; arc: number; stack: boolean };
+
+/** One tier's ring: its radius, the height of its lowest layer, how many layers, and how many classes are placed so far. */
+type Ring = { radius: number; y: number; layers: number; placed: number };
 
 /** Nodes drawn at and below `id`, counting itself: its wedge's weight. */
 function weightOf(shape: Shape, id: string, cache: Map<string, number>): number {
@@ -175,9 +182,29 @@ function ringRadius(tier: number, count: number, f: Frame): number {
   return Math.max(tier * f.ring * f.scale, (count * f.arc) / (2 * Math.PI));
 }
 
+/**
+ * Every tier's ring above the trunk. A tier rises `tierUp` above the top
+ * layer of the tier below; a stacked tier has as many layers as it needs
+ * for MIN_LEAF_ARC between classes on one layer, even on its innermost.
+ */
+function ringsOf(counts: Map<number, number>, f: Frame): Map<number, Ring> {
+  const rings = new Map<number, Ring>();
+  let y = f.trunkHeight;
+  for (let tier = 1; counts.has(tier); tier++) {
+    const count = counts.get(tier)!;
+    const radius = ringRadius(tier, count, f);
+    const arc = (2 * Math.PI * radius * (1 - STACK_LEAN)) / count;
+    const layers = f.stack ? Math.max(1, Math.ceil(MIN_LEAF_ARC / arc)) : 1;
+    y += f.tierUp;
+    rings.set(tier, { radius, y, layers, placed: 0 });
+    y += (layers - 1) * STACK_RISE;
+  }
+  return rings;
+}
+
 /** The crown above `node`: a radial tidy tree, wedges by weight, members on a dome over each octant class. */
 function placeCanopy(
-  shape: Shape, b: Builder, f: Frame, counts: Map<number, number>, weights: Map<string, number>,
+  shape: Shape, b: Builder, f: Frame, rings: Map<number, Ring>, weights: Map<string, number>,
   id: string, node: number, gen: number, start: number, span: number,
 ): void {
   const here = b.points[node]!;
@@ -196,18 +223,17 @@ function placeCanopy(
   if (!kids.length) return;
   const kidWeights = kids.map((k) => weightOf(shape, k, weights));
   const total = kidWeights.reduce((a, w) => a + w, 0) || 1;
-  const radius = ringRadius(gen + 1, counts.get(gen + 1) ?? 1, f);
-  const y = f.trunkHeight + (gen + 1) * f.tierUp;
-  const rng = mulberry32(seedFromKey(`${id}:spread`));
+  const ring = rings.get(gen + 1)!;
   let c0 = start;
   kids.forEach((k, j) => {
     const kidSpan = (span * kidWeights[j]!) / total;
     const angle = c0 + kidSpan / 2;
     c0 += kidSpan;
-    // A crowded tier of the database tree: in toward the axis and up, by chance.
-    const s = f.spread > 0 && gen >= 1 ? rng() * f.spread : 0;
-    const n = b.add(polar(radius * spanReach(kidSpan) * (1 - 0.5 * s), angle, y + s * f.tierUp), node, k, gen + 1, shape.flow(k));
-    placeCanopy(shape, b, f, counts, weights, k, n, gen + 1, angle - kidSpan / 2, kidSpan);
+    // A stacked ring's classes take turns round it, layer by layer: up and in.
+    const layer = ring.placed++ % ring.layers;
+    const lean = ring.layers > 1 ? 1 - (STACK_LEAN * layer) / (ring.layers - 1) : 1;
+    const n = b.add(polar(ring.radius * spanReach(kidSpan) * lean, angle, ring.y + layer * STACK_RISE), node, k, gen + 1, shape.flow(k));
+    placeCanopy(shape, b, f, rings, weights, k, n, gen + 1, angle - kidSpan / 2, kidSpan);
   });
 }
 
@@ -293,11 +319,11 @@ function finish(b: Builder, key: string, f: Frame, tipRadius: number): ClassTree
 }
 
 function grow(shape: Shape, root: string, key: string, f: Frame, tipRadius: number): ClassTree {
-  const counts = tierCounts(shape, root);
+  const rings = ringsOf(tierCounts(shape, root), f);
   const b = new Builder();
   const ground = b.add([0, 0, 0], -1, null);
   const trunk = b.add([0, f.trunkHeight, 0], ground, root, 0, shape.flow(root));
-  placeCanopy(shape, b, f, counts, new Map(), root, trunk, 0, 0, 2 * Math.PI);
+  placeCanopy(shape, b, f, rings, new Map(), root, trunk, 0, 0, 2 * Math.PI);
   return finish(b, key, f, tipRadius);
 }
 
@@ -330,7 +356,7 @@ export function lineTree(index: ClassIndex, lineId: string): ClassTree {
   // The reach shrinks with the population, as the Family's does, but not the
   // height: every line tree has the same three tiers, and at the Family's
   // scaling a populous class grew 4 m tall and 26 m across.
-  const f: Frame = { scale, trunkHeight: TRUNK_HEIGHT, tierUp: TIER_UP * LINE_TIER_STRETCH, ring: RING, arc: MIN_LEAF_ARC, spread: 0 };
+  const f: Frame = { scale, trunkHeight: TRUNK_HEIGHT, tierUp: TIER_UP * LINE_TIER_STRETCH, ring: RING, arc: MIN_LEAF_ARC, stack: false };
   return grow(shape, lineId, `line:${lineId}`, f, TIP_RADIUS * scale);
 }
 
@@ -346,7 +372,7 @@ export function hubTree(index: ClassIndex): ClassTree {
     members: () => [],
     flow: flowOf(index),
   };
-  // As wide as its scale, but as tall as a line tree's tiers: it reads as one of the orchard's trees, not a tower over it.
-  const f: Frame = { scale: HUB_SCALE, trunkHeight: TRUNK_HEIGHT, tierUp: TIER_UP * LINE_TIER_STRETCH, ring: HUB_RING, arc: 0, spread: HUB_SPREAD };
+  // A line tree's trunk and rise per tier; its crowded rings stack into a tall crown.
+  const f: Frame = { scale: HUB_SCALE, trunkHeight: TRUNK_HEIGHT, tierUp: TIER_UP * LINE_TIER_STRETCH, ring: HUB_RING, arc: 0, stack: true };
   return grow(shape, HUB_ROOT, "hub", f, TIP_RADIUS);
 }

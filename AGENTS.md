@@ -83,7 +83,8 @@ Open in [#2](https://github.com/Flux-Frontiers/kpress_disulfide/pull/2)
   order; sampled bonds on a 1 m dome over their octant class; rings keep
   1.2 m of arc per class at every scale; crowns in a grove keep 3 m of
   clear ground; leaves and bond beads on a fixed energy ramp, blue to red;
-  the database tree at line-tree height (about 13 m).
+  the database tree with every tier, its crowded rings stacked into a
+  tall crown without overlap (about 30 m on the subset, 42 m on the full).
 - `web/LAYOUT.md`: the representation, with both exports as worked
   examples. 162 web tests.
 
@@ -94,8 +95,8 @@ Not done, in order of value:
 2. Optional: neighbor arcs in god's eye between binary classes one sign
    flip apart.
 
-Decided by EGS: the database tree stays at the hub, as tall as the line
-trees (#2).
+Decided by EGS: the database tree stays at the hub with all its tiers,
+as a tall crown (#2).
 
 Open with EGS, decided from stills, not by an agent:
 
