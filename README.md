@@ -1,9 +1,18 @@
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/Flux-Frontiers/kpress_disulfide/releases)
+[![License: Elastic-2.0](https://img.shields.io/badge/License-Elastic%202.0-blue.svg)](https://www.elastic.co/licensing/elastic-license)
+[![Node](https://img.shields.io/badge/node-22-blue.svg)](https://nodejs.org/)
+[![Data: proteusPy](https://img.shields.io/badge/data-proteusPy-blue.svg)](https://github.com/suchanek/proteusPy)
+[![CI](https://github.com/Flux-Frontiers/kpress_disulfide/actions/workflows/ci.yml/badge.svg)](https://github.com/Flux-Frontiers/kpress_disulfide/actions/workflows/ci.yml)
+[![Web](https://github.com/Flux-Frontiers/kpress_disulfide/actions/workflows/web.yml/badge.svg)](https://github.com/Flux-Frontiers/kpress_disulfide/actions/workflows/web.yml)
+
 # The Knowledge Press: The Disulfides
 
 The third edition of The Knowledge Press. It reads the
 [proteusPy](https://github.com/suchanek/proteusPy) disulfide database as a
 web orchard you drive through in 3-D: every disulfide bond in the Protein
 Data Bank, classified by its five side-chain torsions, grown as trees.
+
+*Author: Eric G. Suchanek, PhD -- Flux-Frontiers, Liberty TWP, OH*
 
 - Each of the 32 binary classes is a tree. Its quadrant classes are the
   first ring of limbs and its octant classes the second, and a sample of
@@ -78,6 +87,31 @@ make gallery       # a portrait of each class tree into renders/lines (needs web
 
 The tests run against a trimmed subset export committed under
 `web/tests/fixtures/subset/`.
+
+## Citation
+
+If you use The Disulfides in your research or project, please cite it:
+
+> Suchanek, E. G. (2026). *The Knowledge Press: The Disulfides* (Version 0.1.0) [Software]. Flux-Frontiers. https://github.com/Flux-Frontiers/kpress_disulfide
+
+```bibtex
+@software{suchanek_kpress_disulfide,
+  author    = {Suchanek, Eric G.},
+  title     = {The {Knowledge Press}: The Disulfides},
+  version   = {0.1.0},
+  year      = {2026},
+  publisher = {Flux-Frontiers},
+  url       = {https://github.com/Flux-Frontiers/kpress_disulfide},
+}
+```
+
+The same metadata is in [`CITATION.cff`](CITATION.cff). The disulfide
+database, its classification and the published set the orchard shows are
+proteusPy's; please cite them too:
+
+> Suchanek, E. G. (2024). proteusPy: A Python package for protein structure and disulfide bond modeling and analysis. *Journal of Open Source Software*, 9(100), 6169. https://doi.org/10.21105/joss.06169
+
+> Suchanek, E. G. (2026). Structural analysis of disulfide bonds in the Worldwide Protein Data Bank using proteusPy. In P. J. Hogg (Ed.), *Functional Disulphide Bonds: Methods and Protocols* (2nd ed., Methods in Molecular Biology, Vol. 3016, pp. 15-32). Springer US. https://doi.org/10.1007/978-1-0716-5158-2_2
 
 ## License
 

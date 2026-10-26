@@ -20,11 +20,13 @@ license-url: "https://www.elastic.co/licensing/elastic-license"
 repository-code: "https://github.com/Flux-Frontiers/kpress_disulfide"
 url: "https://github.com/Flux-Frontiers/kpress_disulfide"
 keywords:
-  - knowledge-graph
   - disulfide
   - protein-structure
+  - protein-data-bank
   - proteuspy
+  - structural-classification
   - three-js
+  - webgl
   - visualization
 references:
   - type: software
@@ -34,6 +36,38 @@ references:
         given-names: "Eric G., PhD"
     repository-code: "https://github.com/suchanek/proteusPy"
     doi: "10.5281/zenodo.11148440"
+  - type: article
+    title: "proteusPy: A Python Package for Protein Structure and Disulfide Bond Modeling and Analysis"
+    authors:
+      - family-names: Suchanek
+        given-names: "Eric G."
+    journal: "Journal of Open Source Software"
+    year: 2024
+    volume: 9
+    issue: 100
+    start: 6169
+    doi: "10.21105/joss.06169"
+  # CFF 1.2.0 has no book-chapter type; generic with collection-title,
+  # volume-title and section expresses one, as proteusPy's CITATION.cff does.
+  - type: generic
+    title: "Structural Analysis of Disulfide Bonds in the Worldwide Protein Data Bank Using proteusPy"
+    authors:
+      - family-names: Suchanek
+        given-names: "Eric G."
+    editors:
+      - family-names: Hogg
+        given-names: "Philip J."
+    collection-title: "Methods in Molecular Biology"
+    volume: 3016
+    volume-title: "Functional Disulphide Bonds: Methods and Protocols"
+    edition: "2nd"
+    section: "2"
+    start: 15
+    end: 32
+    year: 2026
+    doi: "10.1007/978-1-0716-5158-2_2"
+    publisher:
+      name: "Springer US"
   - type: software
     title: "The Knowledge Press: Reading a GutenbergKG Corpus"
     authors:
