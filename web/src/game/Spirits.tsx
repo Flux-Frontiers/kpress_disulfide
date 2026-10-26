@@ -130,7 +130,7 @@ function Spirit({ exhibit, spec }: { exhibit: Exhibit; spec: SpiritSpec }) {
   const facing = Math.atan2(exhibit.roadX - exhibit.x, exhibit.roadZ - exhibit.z);
   return (
     <group position={[exhibit.x, 0, exhibit.z]}>
-      <ExhibitPlaque exhibit={exhibit} title={spec.title} byline={spec.byline} body={spec.body} />
+      <ExhibitPlaque exhibit={exhibit} title={spec.title} byline={spec.byline} body={spec.body} pick={SPIRIT_HEIGHT} />
       {fits.length ? (
         <group rotation={[0, facing, 0]}>
           <lOD ref={lod}>

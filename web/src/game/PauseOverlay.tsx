@@ -13,17 +13,22 @@ export function PauseOverlay() {
   const setSeason = useGame((s) => s.setSeason);
   const resetSettings = useGame((s) => s.resetSettings);
   const dialog = useRef<HTMLDialogElement>(null);
-  const back = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (paused) {
       dialog.current?.showModal();
       // showModal focuses the first control, the pace menu, which phones then
       // show as picked. React's autoFocus ran once at mount, while the dialog
-      // was closed, so it can't steer this; focus the way back instead,
-      // without scrolling to it at the bottom, so the card opens at its top.
-      back.current?.focus({ preventScroll: true });
-      if (dialog.current) dialog.current.scrollTop = 0;
+      // was closed, so it can't steer this. Focus the card itself, at its top:
+      // focusing the way back at the bottom, even with preventScroll, still
+      // left iOS Safari opening the card scrolled to its end. Safari can also
+      // scroll a frame late, so the top is set again then.
+      const card = dialog.current;
+      card?.focus({ preventScroll: true });
+      if (card) {
+        card.scrollTop = 0;
+        requestAnimationFrame(() => { card.scrollTop = 0; });
+      }
     } else dialog.current?.close();
   }, [paused]);
 
@@ -33,8 +38,8 @@ export function PauseOverlay() {
   }
 
   return (
-    <dialog ref={dialog} aria-labelledby="settings-title" onCancel={(e) => { e.preventDefault(); resume(); }}
-      className="forest-settings m-auto max-h-[90dvh] w-[min(100%-2rem,30rem)] overflow-auto rounded-xl border border-border bg-surface p-6 text-fg shadow-2xl">
+    <dialog ref={dialog} tabIndex={-1} aria-labelledby="settings-title" onCancel={(e) => { e.preventDefault(); resume(); }}
+      className="forest-settings m-auto outline-none max-h-[90dvh] w-[min(100%-2rem,30rem)] overflow-auto rounded-xl border border-border bg-surface p-6 text-fg shadow-2xl">
       <p className="text-xs tracking-[0.2em] text-primary uppercase">Take a breath</p>
       <h2 id="settings-title" className="mt-1 font-display text-3xl">Make the orchard yours</h2>
       <p className="mt-2 text-sm text-muted">Your cart is parked. These settings are saved on this device.</p>
@@ -117,7 +122,7 @@ export function PauseOverlay() {
         onClick={() => { if (window.confirm("Reset every setting on this device, including the tour welcome? Your album and visited groves are kept.")) resetSettings(); }}>
         Reset all settings
       </button>
-      <button ref={back} type="button" className="mt-5 min-h-11 w-full rounded-md bg-primary text-primary-fg" onClick={resume}>Back to the orchard</button>
+      <button type="button" className="mt-5 min-h-11 w-full rounded-md bg-primary text-primary-fg" onClick={resume}>Back to the orchard</button>
     </dialog>
   );
 }

@@ -27,6 +27,8 @@ export type Actions = {
   look: number;
   /** Raise (1, R) or lower (-1, F) the view. */
   lift: number;
+  /** Turn the view back to straight ahead, level (X, or the Look ahead button), this frame. */
+  ahead: boolean;
   /** Pixels dragged across the forest since the last frame, x right and y down. */
   dragX: number;
   dragY: number;
@@ -39,6 +41,8 @@ let injectedKeys: string[] | null = null;
 let injectedSteer: number | null = null;
 let touchThrottle = 0;
 let touchSteer = 0;
+let touchLift = 0;
+let aheadAsked = false;
 let dragX = 0;
 let dragY = 0;
 let dragging = false;
@@ -61,7 +65,8 @@ function onKeyUp(e: KeyboardEvent) {
 
 export function resetInput() {
   keys.clear();
-  touchThrottle = touchSteer = 0;
+  touchThrottle = touchSteer = touchLift = 0;
+  aheadAsked = false;
   dragX = dragY = 0;
   dragging = false;
   prevInteract = false;
@@ -117,6 +122,16 @@ export function stickAxes(x: number, y: number): { throttle: number; steer: numb
 export function setTouchAxes(throttle: number, steer: number) {
   touchThrottle = throttle;
   touchSteer = steer;
+}
+
+/** The touch screen's raise and lower buttons: 1 held up, -1 held down, 0 let go. */
+export function setTouchLift(lift: number) {
+  touchLift = lift;
+}
+
+/** Turn the view back to straight ahead and level on the next frame. */
+export function lookAhead() {
+  aheadAsked = true;
 }
 
 /** A drag across the forest moved by (dx, dy) pixels: it looks around. */
@@ -175,12 +190,14 @@ export function sampleActions(): Actions {
     interactDown: false,
     pitch: 0,
     look: 0,
-    lift: 0,
+    lift: touchLift,
+    ahead: aheadAsked,
     dragX,
     dragY,
     dragging,
   };
   dragX = dragY = 0;
+  aheadAsked = false;
 
   if (held("KeyW")) actions.throttle += 1;
   if (held("KeyS")) actions.throttle -= 1;
