@@ -8,7 +8,7 @@ import { atGroveStop, treesNear, type Forest } from "./forest";
 import { addDragLook, resetInput, sampleActions, setDragging } from "./input";
 import { crownFrame, flightPose, FOLLOW_BACK, FOLLOW_CAMERA, FOLLOW_UP, forestGodLimits, HIGH_AHEAD, HIGH_CAMERA, HIGH_LOOK_UP, godPose, groundPose, resetGodView, type Vec3 } from "./godEye";
 import { clamp } from "./math";
-import { forwardOf, sim, stepVehicle, teleportSim } from "./sim";
+import { cruiseFactor, forwardOf, sim, stepVehicle, teleportSim } from "./sim";
 import { hush, speak, speaking } from "./speech";
 import { markTourHeard, TOUR_FAREWELL, TOUR_LAP_DONE, tourHeard, tourIntro } from "./tourScript";
 import { planTour, steerTour, tourState, tourStop } from "./tour";
@@ -31,6 +31,8 @@ const DRAG_LOOK = 0.0042;
 /** R and F raise and lower the ground view this fast, m/s, up to LIFT_MAX above its own height. */
 const LIFT_RATE = 6;
 const LIFT_MAX = 60;
+/** Within this far of a grove's stop, m, the cart keeps its ordinary top speed. */
+const CRUISE_STOP_CLEAR = 15;
 /** A press that moves farther than this, in pixels, is a drag, not a click. */
 const DRAG_CLICK = 6;
 /** The start screen's slow circle round the redwood: radius and eye height, m, and radians a second. */
@@ -262,7 +264,11 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
           }
         }
       }
-      stepVehicle(forest, throttle, steer, a.boost, dt, { ...preferences, brake: a.brake || tourBrake });
+      // Cruise faster out on the rings, but not with a tree's card up or near a grove's stop.
+      const st = useGame.getState();
+      const atStop = forest.circuit.some((wp) => Math.hypot(wp.x - sim.x, wp.z - sim.z) < CRUISE_STOP_CLEAR);
+      const cruise = st.cardSlug || st.pinnedSlug || atStop ? 1 : cruiseFactor(forest, sim.x, sim.z);
+      stepVehicle(forest, throttle, steer, a.boost, dt, { ...preferences, brake: a.brake || tourBrake, cruise });
       // A drag turns the view with the hand, as a mouse look does: right looks right, down looks down.
       pitch.current = clamp(pitch.current + a.pitch * 1.1 * dt - a.dragY * DRAG_LOOK, -0.45, 0.75);
       lift.current = clamp(lift.current + a.lift * LIFT_RATE * dt, 0, LIFT_MAX);

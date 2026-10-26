@@ -187,3 +187,21 @@ test("blur and visibility clear controls; binding can be cleaned up and mounted 
     Object.assign(globalThis, previous);
   }
 });
+
+test("the cart cruises faster out on the rings, and eases back to its ordinary top speed", () => {
+  const { cruiseFactor, CRUISE_MAX, sim, teleportSim, stepVehicle } = require(`${process.env.FOREST_TEST_BUILD}/sim.js`);
+  const ring = (r) => ({ kind: "ring", pts: [[r, 0]], closed: true });
+  const forest = { roadLines: [ring(40), ring(80)] };
+  assert.equal(cruiseFactor(forest, 0, 10), 1, "inside the inner ring");
+  assert.equal(cruiseFactor(forest, 40, 0), 1, "on the inner ring");
+  assert.ok(Math.abs(cruiseFactor(forest, 0, 80) - 2) < 1e-9, "twice as far out, twice as fast");
+  assert.equal(cruiseFactor(forest, 0, 400), CRUISE_MAX, "never past the most");
+  assert.equal(cruiseFactor({ roadLines: [] }, 5, 5), 1);
+  // Over the cap when the cruise ends, it slows over time, not at once.
+  const empty = { trees: [], obstacles: [], roads: [], plazas: [], worldRadius: 1000, grid: new Map(), cell: 10 };
+  teleportSim(0, 0, 0);
+  sim.speed = 9;
+  stepVehicle(empty, 1, 0, false, 1 / 60, { pace: "gentle" });
+  assert.ok(sim.speed > 4.5 && sim.speed < 9, `eases down, at ${sim.speed.toFixed(2)} m/s`);
+  sim.speed = 0;
+});
