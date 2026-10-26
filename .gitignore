@@ -64,3 +64,4 @@ web/public/models/
 
 # Local stills for review; not committed
 renders/
+.agentkg/
