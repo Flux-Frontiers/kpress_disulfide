@@ -1,6 +1,6 @@
 // Schematic mode: the orchard drawn as a class diagram you can read while
 // driving. Every class and sampled member is a bead where the layout
-// (classTree.ts) puts it, its color the tier; the wood is straight barked
+// (classTree.ts) puts it, its color the tier; the wood is straight aluminum
 // limbs from each class to the classes and members one tier up. The layout
 // is the same as the organic trees', so switching modes moves nothing.
 //

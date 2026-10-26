@@ -1,9 +1,8 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, type RefObject } from "react";
 import {
   BoxGeometry, Color, CylinderGeometry, InstancedMesh, MeshStandardMaterial, Object3D,
-  OctahedronGeometry, Quaternion, RepeatWrapping, SphereGeometry, Vector3, type Ray,
+  OctahedronGeometry, Quaternion, SphereGeometry, Vector3, type Ray,
 } from "three";
-import { redwoodBark } from "./CorpusRedwood";
 import { pickBead, type BeadShape, type Schematic, type SchematicBead, type SchematicSegment } from "./schematic";
 
 /** Bead size, m: a class's cube and the trunk's octahedron match a sphere this wide; a member's sphere is half. */
@@ -12,6 +11,7 @@ const LIMB_R = 0.07;
 const TRUNK_R = 0.16;
 const BAR_R = 0.05;
 const BRASS = "#b08a3e";
+const ALUMINUM = "#c4c9cf";
 
 const up = new Vector3(0, 1, 0);
 const o = new Object3D();
@@ -106,7 +106,7 @@ function BeadMesh({ beads, shape }: { beads: SchematicBead[]; shape: BeadShape }
 }
 
 /**
- * Schematic mode's orchard (schematic.ts): beads, barked limbs and brass
+ * Schematic mode's orchard (schematic.ts): beads, aluminum limbs and brass
  * marriage bars for every tree. The name plates are NamePlates, shared with
  * the wood view. Tapping a bead is handled by the canvas through `picker`.
  */
@@ -118,21 +118,16 @@ export function SchematicOrchard({ schematic, picker }: {
     for (const b of schematic.beads) out[b.shape].push(b);
     return out;
   }, [schematic]);
-  const barkMat = useMemo(() => {
-    const m = redwoodBark();
-    for (const t of [m.map, m.normalMap]) if (t) { t.wrapS = t.wrapT = RepeatWrapping; t.repeat.set(1, 3); }
-    // A little warmth of its own, so the wood does not go black at night.
-    m.emissive.set("#3a2416");
-    m.emissiveIntensity = 0.6;
-    return m;
-  }, []);
+  // Brushed aluminum: a diagram, not wood. A little light of its own, so the
+  // limbs do not go black at night with no sky to reflect.
+  const limbMat = useMemo(() => new MeshStandardMaterial({
+    color: ALUMINUM, metalness: 0.75, roughness: 0.32, emissive: ALUMINUM, emissiveIntensity: 0.18,
+  }), []);
   const brassMat = useMemo(() => new MeshStandardMaterial({ color: BRASS, metalness: 0.7, roughness: 0.35, emissive: BRASS, emissiveIntensity: 0.25 }), []);
   useEffect(() => () => {
-    barkMat.map?.dispose();
-    barkMat.normalMap?.dispose();
-    barkMat.dispose();
+    limbMat.dispose();
     brassMat.dispose();
-  }, [barkMat, brassMat]);
+  }, [limbMat, brassMat]);
   // A trunk is the segment from the ground; it is drawn thicker.
   const limbRadius = useMemo(() => (s: SchematicSegment) => (s.ay === 0 ? TRUNK_R : LIMB_R), []);
   const barRadius = useMemo(() => () => BAR_R, []);
@@ -144,7 +139,7 @@ export function SchematicOrchard({ schematic, picker }: {
 
   return (
     <group>
-      <SegmentMesh segments={schematic.limbs} radius={limbRadius} material={barkMat} sides={8} />
+      <SegmentMesh segments={schematic.limbs} radius={limbRadius} material={limbMat} sides={8} />
       <SegmentMesh segments={schematic.bars} radius={barRadius} material={brassMat} sides={8} />
       {(["round", "square", "diamond"] as const).map((shape) => <BeadMesh key={shape} beads={byShape[shape]} shape={shape} />)}
     </group>
