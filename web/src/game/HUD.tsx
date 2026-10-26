@@ -10,6 +10,7 @@ import { saveScreenshot } from "./screenshot";
 import { SEASONS } from "./seasons";
 import { wrapAngle, yawToward } from "./sim";
 import { ClassReader } from "./ClassReader";
+import { readHubPlaque } from "./Molecules";
 import type { ClassIndex } from "./classCatalog";
 import { READ_RANGE, useGame, type PlaqueText } from "./store";
 import type { TimeMode } from "./sky";
@@ -394,6 +395,10 @@ export function HUD({ forest, index }: { forest: Forest; index: ClassIndex | nul
                 <button type="button" onClick={toggleCatalog}
                   className="min-h-11 rounded-md bg-primary px-4 text-sm text-primary-fg">
                   Browse every class · B
+                </button>
+                <button type="button" onClick={readHubPlaque}
+                  className="min-h-11 rounded-md border border-border px-4 text-sm text-primary">
+                  Read the plaque
                 </button>
               </div>
             </article>
