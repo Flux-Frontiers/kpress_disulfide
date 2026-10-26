@@ -1,0 +1,76 @@
+# The Knowledge Press: The Disulfides
+
+The third edition of The Knowledge Press. It reads the
+[proteusPy](https://github.com/suchanek/proteusPy) disulfide database as a
+web orchard you drive through in 3-D: every disulfide bond in the Protein
+Data Bank, classified by its five side-chain torsions, grown as trees.
+
+- Each of the 32 binary classes is a tree. Its quadrant classes are the
+  first ring of limbs and its octant classes the second, and a sample of
+  each octant class's real bonds hang above it, tinted from blue (relaxed)
+  to red (strained) by torsional energy.
+- The trees of a class family (the left- and right-handed spirals, hooks
+  and staples) stand together in a grove; each unnamed class has a grove of
+  its own. At each grove's stop stands its representative, the model
+  disulfide built from its largest class's consensus torsions.
+- At the hub, the database tree carries every bond in its trunk and the 32
+  binary classes as its limbs, in their families' colors. Beside it, the
+  home disulfide stands on a monument, drawn from its own coordinates.
+
+Drive up to a tree and open the reader for any class or sampled bond: a
+class card gives its consensus torsions, energy, Cα distance, model and
+members; a bond card links the PDB entry at the RCSB and draws the bond.
+Add trees to your album, search PDB ids, class ids and family names with
+the lantern, or ride the guided tour.
+
+[web/LAYOUT.md](web/LAYOUT.md) describes how the orchard represents the
+database. The repository started as a copy of
+[kpress_family](https://github.com/Flux-Frontiers/kpress_family); see
+[PROVENANCE.md](PROVENANCE.md).
+
+## Databases to show
+
+proteusPy writes the orchard's data (`proteusPy.export_web`) into
+`web/public/forests/<slug>/`, with an index the start screen offers a choice
+from. The exports are not committed. `make forest` drives the export from a
+sibling proteusPy checkout (`PROTEUSPY_DIR`, default `../proteusPy`):
+
+```bash
+make demos                    # the 5,000-bond subset that ships with proteusPy
+make forest FOREST=full       # the full database: 175,277 bonds, about 11 s and 57 MB
+make web-dev
+```
+
+`FOREST_HOME=<key>` names the disulfide the monument opens on; otherwise it
+is the export's lowest-energy bond (`2q7q_75D_140D` on the full database).
+`FOREST_MEMBERS` sets how many bonds are sampled per octant class (default
+12), and `FOREST_MIN_MEMBERS` how many an octant class needs for its own
+limb.
+
+`?forest=<slug>` opens that database; otherwise the one chosen last on this
+device, or the first. Each database keeps its own album and home
+disulfide. `?home=<key>` opens on that bond's monument; otherwise it is the
+bond chosen with "Make this the home disulfide" in the reader. `?tree=<id>`
+opens beside a binary class's tree, for example `?tree=00000b`.
+
+## Build and test
+
+Needs Node 22.
+
+```bash
+make web-install   # once
+make web-test      # node test suite
+make web-build     # typecheck and production build
+make web-dev       # dev server on port 5173
+make gallery       # a portrait of each class tree into renders/lines (needs web-dev)
+```
+
+The tests run against a trimmed subset export committed under
+`web/tests/fixtures/subset/`.
+
+## License
+
+`web/` is under the Elastic License 2.0 ([LICENSE](LICENSE)). Names and
+artwork are covered by [TRADEMARK.md](TRADEMARK.md). The PDB is public data;
+the database and its classification are proteusPy's
+([CITATION.cff](CITATION.cff)).

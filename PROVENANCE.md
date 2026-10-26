@@ -25,7 +25,7 @@ git -C ../kpress_family diff 22699d8 -- web/src/game/familyTree.ts
 
 | Here | From kpress_family | Changes |
 |---|---|---|
-| `web/` | `web/` | package renamed `kpress-disulfide`, version 0.1.0, page title; `web/README.md` no longer links `LAYOUT.md` |
+| `web/` | `web/` | package renamed `kpress-disulfide`, version 0.1.0, page title; `web/README.md` since rewritten |
 | `LICENSE`, `TRADEMARK.md`, `.gitignore` | same paths | none |
 | `.pre-commit-config.yaml` | same path | header comment: no Swift package |
 | `.github/workflows/ci.yml` | same path | header comment |
@@ -34,15 +34,15 @@ git -C ../kpress_family diff 22699d8 -- web/src/game/familyTree.ts
 | `CITATION.cff` | `CITATION.cff` | rewritten for The Disulfides; cites proteusPy, knowledge_press and kpress_family |
 
 Not copied: the Swift kit (`app/`, and with it `.github/workflows/app.yml`),
-`renders/`, `CHANGELOG.md`, `README.md` and `web/LAYOUT.md`. `web/LAYOUT.md`
-is written new for the disulfide orchard.
+`renders/`, `CHANGELOG.md`, `README.md` and `web/LAYOUT.md`. The last three
+are written new for the disulfide orchard.
 
-## Still the Family's
+## What changed since the copy
 
 The orchard reads the disulfide database (`web/src/game/classCatalog.ts`,
 written by proteusPy's `proteusPy.export_web`; `make forest`). The reader
 is class and bond cards (`ClassReader.tsx`, `classCards.ts`), and the HUD,
-tour, album ranks and About speak of classes and bonds. Still the
-Family's, to be rewritten:
-
-- `web/README.md`.
+tour, album ranks and About speak of classes and bonds. Nothing user-facing
+is still the Family's; the world (sky, weather, roads, cart, exhibits) is
+shared with it and The Forest, and code comments may still name people,
+lines and generations where the shared renderers kept the Family's terms.

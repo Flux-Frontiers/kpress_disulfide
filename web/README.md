@@ -1,24 +1,25 @@
-# The Family: the web orchard
+# The Disulfides: the web orchard
 
-A family drawn as an orchard you drive through in the browser. Each family
-line (the people born with one surname) is a tree whose limbs run from parent
-to child. The lines of a surname stand together in a grove. At the hub, the
-home tree is one person's whole family: their descendants are the crown, and
-their ancestors are the roots, seen through a glass floor over a lit pit.
+The proteusPy disulfide database drawn as an orchard you drive through in
+the browser. Each binary class is a tree whose limbs run from class to finer
+class, the trees of a class family stand together in a grove, and at the
+hub the database tree carries every bond beside the home disulfide's
+monument. [LAYOUT.md](LAYOUT.md) describes the representation in full.
 
 ## Run it
 
 ```bash
 make web-install                         # once
-make demos                               # the demo families, through genealogy_kg
+make demos                               # the subset, through proteusPy.export_web
 make web-dev                             # http://localhost:5173
 ```
 
-The orchard reads families from `public/families/<slug>/`, written by `genkg
-export-web`, and `public/families/index.json` (`scripts/families.mjs`). That
-directory is personal data and is never committed. `?family=<slug>` picks the
-family, `?focal=<id>` the home tree's person, and `?tree=<line id>` opens
-beside a line's tree; see the top-level README for the order of choice.
+The orchard reads databases from `public/forests/<slug>/`, written by
+`proteusPy.export_web` (`make forest`), and `public/forests/index.json`
+(`scripts/forests.mjs`). The exports are not committed. `?forest=<slug>`
+picks the database, `?home=<key>` the home disulfide, and `?tree=<id>` opens
+beside a binary class's tree; see the top-level README for the order of
+choice.
 
 `make web-test` runs the node tests, and `make web-build` typechecks and
 builds.
@@ -27,24 +28,23 @@ builds.
 
 | File | What it does |
 |---|---|
-| `familyCatalog.ts` | Types for the export, a kinship index, and the loader |
-| `familyTree.ts` | The hourglass layout: home tree and line trees, the kinship graph as wood |
-| `familyForest.ts` | Line cards, line trees as the renderer's trees, and the home tree with its pit |
-| `forest.ts` | The orchard: groves by surname, the hub, roads, the tour loop |
-| `GlassPit.tsx` | The glass floor, the pit under it, and the marriage arcs |
-| `schematic.ts`, `SchematicOrchard.tsx` | Schematic mode (V): each person a bead colored by generation, straight limbs, marriage bars |
-| `HomeMarks.tsx`, `homePath.ts` | The home person on their own line's tree: the wood up to them gilded, and a lantern |
-| `NamePlates.tsx` | Names over the people of the tree nearest the cart, in either view; the "Name plates" setting (N) |
-| `FamilyReader.tsx` | The record reader: a line's people, one page each |
-| `HUD.tsx` | Cards, search, the line list and the album |
+| `classCatalog.ts` | Types for the export, the class index, and the loaders |
+| `classTree.ts` | The layout: line trees and the database tree, the class hierarchy as wood |
+| `classForest.ts` | Line cards, line trees as the renderer's trees, the database tree, energy colors |
+| `forest.ts` | The orchard: groves by class family, the hub, roads, the tour loop, representatives |
+| `molecule.ts`, `Molecules.tsx` | Ball-and-stick disulfides: representatives, foot plates, the monument |
+| `classCards.ts`, `ClassReader.tsx` | The reader: class cards from the catalog, bond cards from `bonds/<key>.json` |
+| `schematic.ts`, `SchematicOrchard.tsx` | Schematic mode (V): classes as cubes colored by tier, bonds as spheres colored by energy |
+| `HomeMarks.tsx`, `homePath.ts` | The home disulfide on its own class tree: the wood up to it gilded, and a lantern |
+| `NamePlates.tsx` | Class ids and bond keys over the nearest tree, decluttered; the "Name plates" setting (N) |
+| `narration.ts`, `tourScript.ts` | What the guided tour says at each grove and on the way |
+| `HUD.tsx` | Cards, search, the class list and the album |
 | `growTree.ts` | Pipe-model radii, the bark sweep and the leaves |
 
 The world itself (sky, stars, planets, weather, seasons, roads, the cart, the
 guided tour, and the Cosmographium, Double Helix and sundial exhibits) comes
-from The Knowledge Press: The Forest; see `../PROVENANCE.md`.
-
-The Family's account of how a family becomes an orchard (`LAYOUT.md`) was not
-copied; it is rewritten for the disulfide orchard.
+from The Knowledge Press: The Forest by way of The Family; see
+`../PROVENANCE.md`.
 
 ## Stack
 

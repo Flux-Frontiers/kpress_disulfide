@@ -64,36 +64,21 @@ Merged on `main`:
 - [#1](https://github.com/Flux-Frontiers/kpress_disulfide/pull/1): the
   orchard. `classCatalog.ts`, `classTree.ts`, `classForest.ts`,
   `molecule.ts`, `Molecules.tsx`; groves, trees, the database tree at the
-  hub with no pit, representatives on pads at the stop plazas, foot plates
-  at the trees, function plates on the signposts, the home bond's
-  monument and plaque on the hub plaza, the start screen's database
-  chooser. 156 web tests.
+  hub, representatives at the stop plazas, foot plates at the trees,
+  function plates on the signposts, the home bond's monument and plaque,
+  the start screen's database chooser.
+- [#2](https://github.com/Flux-Frontiers/kpress_disulfide/pull/2): the
+  reader (`ClassReader.tsx`, `classCards.ts`; class and bond cards, "Make
+  this the home disulfide"); the wording throughout; name plates off by
+  default and decluttered; sampled bonds on domes; fitted rings and one
+  limb pitch; crowns clear of each other; the energy color ramp; the
+  database tree as the 32 binary classes by family; `web/LAYOUT.md`. 162
+  web tests.
+- The root `README.md`, `web/README.md` and `CHANGELOG.md` (Unreleased).
 
-Open in [#2](https://github.com/Flux-Frontiers/kpress_disulfide/pull/2)
-(`feat/reader`), awaiting review:
+Not done:
 
-- The reader: `ClassReader.tsx` and `classCards.ts` replace the Family's
-  reader. Class cards from the catalog, bond cards from `bonds/<key>.json`,
-  "Make this the home disulfide". `familyCatalog.ts` is gone.
-- The wording: HUD, lantern, tour and grove narration, album ranks
-  (Reader, Modeler, Refiner, Curator, Keeper of the Classes), About; "Show
-  ancestors" is gone.
-- From EGS's review of the live orchard: name plates off by default, never
-  over the start screen, within 14 m, decluttered on screen in tier
-  order; sampled bonds on a 1 m dome over their octant class; rings keep
-  1.2 m of arc per class at every scale; crowns in a grove keep 3 m of
-  clear ground; leaves and bond beads on a fixed energy ramp, blue to red;
-  every tree's rings fit their classes and its limbs climb at one pitch
-  (line trees 7 to 15 m tall); the database tree is the 32 binary classes
-  in their families' colors, about 10 m tall.
-- `web/LAYOUT.md`: the representation, with both exports as worked
-  examples. 162 web tests.
-
-Not done, in order of value:
-
-1. A `README.md` at the root and in `web/` (still the Family's), and a
-   `CHANGELOG.md`. A follow-up PR after #2 merges.
-2. Optional: neighbor arcs in god's eye between binary classes one sign
+1. Optional: neighbor arcs in god's eye between binary classes one sign
    flip apart.
 
 Decided by EGS (#2): the database tree stays at the hub as the 32 binary
