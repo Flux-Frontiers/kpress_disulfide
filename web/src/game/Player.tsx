@@ -36,6 +36,9 @@ const DRAG_LOOK = 0.0042;
 /** R and F raise and lower the ground view this fast, m/s, up to LIFT_MAX above its own height. */
 const LIFT_RATE = 6;
 const LIFT_MAX = 60;
+/** The brass pins that hold the cart's models, m and color. */
+const CART_PIN_R = 0.006;
+const PIN_BRASS = "#b08a3e";
 /** The view tilts up to straight up or down, short of the pole where lookAt loses its bearing. */
 const PITCH_MAX = Math.PI / 2 - 0.02;
 /** Within this far of a grove's stop, m, the cart keeps its ordinary top speed. */
@@ -92,7 +95,8 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
   // Each grove's color, by line, so a model's stand matches the tree it came from.
   const coverColors = useMemo(() => new Map(forest.trees.map((t) => [t.line.slug, t.color])), [forest]);
   const load = useMemo(() => cartLoad(library, (slug) => coverColors.get(slug) ?? NEUTRAL_COVER), [library, coverColors]);
-  // On each stand, its class's consensus model, the one at its tree's foot, resting on its lowest atom.
+  // Over each stand, its class's consensus model, the one at its tree's foot, its lowest atom at the
+  // seat's floor, held on a brass pin from the plate to the atom nearest the stand's axis.
   const atoms = useAtoms(useGame((s) => s.familyBase));
   const models = useMemo(() => {
     if (!atoms) return undefined;
@@ -104,8 +108,9 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
       const low = model.atoms.reduce((a, b) => (b.y < a.y ? b : a));
       const r = (atoms.radii[low.element] ?? 1) * atoms.bs_scale;
       const one = ballAndStick(model, atoms, { x: seat.x, y: seat.floor + (r - low.y) * seat.scale, z: seat.z, yaw: seat.yaw, scale: seat.scale });
+      const held = one.balls.reduce((a, b) => (Math.hypot(b.x - seat.x, b.z - seat.z) < Math.hypot(a.x - seat.x, a.z - seat.z) ? b : a));
       balls.push(...one.balls);
-      sticks.push(...one.sticks);
+      sticks.push(...one.sticks, { ax: held.x, ay: seat.base, az: held.z, bx: held.x, by: held.y, bz: held.z, r: CART_PIN_R, color: PIN_BRASS });
     }
     return { balls, sticks };
   }, [atoms, forest, load]);
