@@ -11,7 +11,7 @@ const LIMB_R = 0.07;
 const TRUNK_R = 0.16;
 const BAR_R = 0.05;
 const BRASS = "#b08a3e";
-const ALUMINUM = "#c4c9cf";
+const ALUMINUM = "#7d838a";
 
 const up = new Vector3(0, 1, 0);
 const o = new Object3D();
@@ -121,7 +121,7 @@ export function SchematicOrchard({ schematic, picker }: {
   // Brushed aluminum: a diagram, not wood. A little light of its own, so the
   // limbs do not go black at night with no sky to reflect.
   const limbMat = useMemo(() => new MeshStandardMaterial({
-    color: ALUMINUM, metalness: 0.75, roughness: 0.32, emissive: ALUMINUM, emissiveIntensity: 0.18,
+    color: ALUMINUM, metalness: 0.85, roughness: 0.38, emissive: ALUMINUM, emissiveIntensity: 0.05,
   }), []);
   const brassMat = useMemo(() => new MeshStandardMaterial({ color: BRASS, metalness: 0.7, roughness: 0.35, emissive: BRASS, emissiveIntensity: 0.25 }), []);
   useEffect(() => () => {
