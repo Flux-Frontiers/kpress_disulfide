@@ -51,12 +51,14 @@ proteusPy writes the orchard's data; this repo only reads it.
 - Models built from torsions export 10 atoms and 9 bonds (no carbonyl O).
   Subset bonds have 12 atoms and 11 bonds; a complete bond 16 and 15.
   Coordinates are proteusPy's `internal_coords`, centered.
-- The full loader holds 175,277 bonds; its export takes about 11 s and
-  writes 57 MB. The subset is 5,000 bonds. `2q7q_75D_140D`, the
-  lowest-energy bond in the database, is the full export's default home;
-  the subset's is `1xr9_203A_259A`.
+- The export keeps only bonds within proteusPy's cutoffs, Cα-Cα under
+  6.71 Å and Sγ-Sγ under 2.12 Å (`CA_CUTOFF`, `SG_CUTOFF`): on the full
+  database the published set, 158,965 of the loader's 175,277 bonds in
+  35,367 structures; on the subset 4,575 of 5,000. The full export takes
+  about 11 s and writes 52 MB. `2q7q_75D_140D`, the lowest-energy bond,
+  is the full export's default home; the subset's is `1xr9_203A_259A`.
 
-## Where it stands (2026-10-25)
+## Where it stands (2026-10-26)
 
 Merged on `main`:
 
@@ -74,23 +76,33 @@ Merged on `main`:
   limb pitch; crowns clear of each other; the energy color ramp; the
   database tree as the 32 binary classes by family; `web/LAYOUT.md`. 162
   web tests.
-- The root `README.md`, `web/README.md` and `CHANGELOG.md` (Unreleased).
+- [#3](https://github.com/Flux-Frontiers/kpress_disulfide/pull/3): the
+  root `README.md`, `web/README.md` and `CHANGELOG.md` (Unreleased).
+- [#4](https://github.com/Flux-Frontiers/kpress_disulfide/pull/4): from
+  EGS's live review. Groves sized by their trunks and spaced by their
+  crowns, the unnamed classes on the inner ring and the named families on
+  the outer, each grove's largest tree by its ring road; crowded rings in
+  up to four rows; bond complexity; clickable hub limbs; R and F raise the
+  view, T looks down on a tree whole; cruising on the rings; the hub
+  plaque opens to read; octahedral octant beads and aluminum schematic
+  limbs; `web/LAYOUT.md` says what the orchard really shows. 165 web
+  tests.
 
-Not done:
+Decided by EGS:
 
-1. Optional: neighbor arcs in god's eye between binary classes one sign
-   flip apart.
+- The database tree stays at the hub as the 32 binary classes only,
+  colored by family (#2: a crown of every tier was unreadable).
+- Limbs climb at one pitch, 25 degrees, each tier rising 1.5 to 8 m (#2).
+- The unnamed classes on the inner ring, the named families on the outer;
+  the tour still meets the named families first (#4).
+- No neighbor arcs for now (2026-10-26).
+- The orchard shows the published set, within proteusPy's cutoffs
+  (2026-10-26; the export change is proteusPy `feat/export-cutoffs`).
 
-Decided by EGS (#2): the database tree stays at the hub as the 32 binary
-classes only, colored by family (a crown of every tier was unreadable);
-limbs climb at one pitch, 25 degrees, each tier rising 1.5 to 8 m.
+Nothing else is planned. Open with EGS, decided from stills, not by an
+agent:
 
-Open with EGS, decided from stills, not by an agent:
-
-- **Size.** Fitting every class has made the big trees wide: `00000b`
-  reaches 51 m on the full export and the orchard 312 m to its outermost
-  grove. Also whether the database tree keeps its redwood bark or takes a
-  species.
+- Whether the database tree keeps its redwood bark or takes a species.
 - Grove count (18 is the default), which database ships, whether the
   exhibits beyond the Double Helix stay, an app, and publishing.
 

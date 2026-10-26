@@ -191,7 +191,7 @@ export type Forest = {
   trees: TreeSite[];
   /** Sampled bonds shown per octant class, and so on every tree, its schematic and its home marks. */
   bonds: number;
-  /** Arcs between lines, by index into trees; empty until neighbor arcs are drawn. */
+  /** Arcs between lines, by index into trees: always empty here, the Family's marriage arcs. */
   links: ForestLink[];
   groves: Grove[];
   /** Straight pieces of every road line, for clearance tests. */
