@@ -387,8 +387,8 @@ export function HUD({ forest, index }: { forest: Forest; index: ClassIndex | nul
                 {forest.trees.reduce((n, t) => n + t.line.members, 0).toLocaleString("en-US")} bonds · {forest.trees.length} binary classes · {Math.round(forest.corpusTree.height)} m
               </p>
               <p className="card-extra mt-2 hidden text-sm leading-relaxed text-fg/90 sm:block">
-                The database tree: every bond in the trunk, the binary classes as its first limbs, their quadrant and
-                octant classes above. Beside it stands the home disulfide. Browse every class and jump to any one.
+                The database tree: every bond in the trunk, the 32 binary classes as its limbs in their families'
+                colors. Each grows as its own tree in the groves. Browse every class and jump to any one.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button type="button" onClick={toggleCatalog}

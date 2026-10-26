@@ -33,9 +33,8 @@ The sextant tier is not drawn. It does not nest under the quadrant tier
 Each of the 32 binary classes is one tree (`classTree.ts`, `lineTree`):
 
 - **Trunk:** the binary class, its top 3 m above the ground.
-- **First ring of limbs:** its quadrant classes, 3 m higher.
-- **Second ring:** its octant classes and its `-other` tips, 3 m higher
-  again.
+- **First ring of limbs:** its quadrant classes.
+- **Second ring:** its octant classes and its `-other` tips.
 - **Terminal spheres:** the sampled bonds of each octant class, up to 12
   (`--members-per-class`), lowest torsional energy first. They sit on a
   dome of radius 1 m above their octant class, spiralling down from the
@@ -43,29 +42,32 @@ Each of the 32 binary classes is one tree (`classTree.ts`, `lineTree`):
   leaves. In the schematic it is a small sphere. Either way it opens that
   bond's card in the reader.
 
-Every line tree has the same three tiers, so every line tree has the
-same height, about 10 m to its top.
-
 ### Where a class stands on its ring
 
 The layout is a radial tidy tree, as the Family's kinship trees were.
-Going up a tier, a class's wedge of the circle is split among its
-children in proportion to how many nodes (classes and sampled bonds) hang
-below each. A child stands at its wedge's bearing, and its distance from
-the axis falls as its wedge widens (`spanReach`). So a class that holds
-most of its parent's descendants stands near the axis, and its own
-children's limbs reach out and up.
-
-Each ring's radius is the larger of two values (`ringRadius`):
+Each class needs an arc on its own ring: 1.2 m, or 2.2 m for an octant
+class with sampled bonds, to clear its dome (`DOME_ARC`). Each ring's
+radius is the larger of two values (`ringRadius`):
 
 - the tier's own reach, 1 m per tier times the tree's scale;
-- the crowding floor: 1.2 m of arc for every class on that ring. This
-  holds at every scale, so a populous tier widens rather than packing its
-  classes together.
+- the sum of its classes' arcs, around the circle.
+
+Going up a tier, a class's wedge is split among its children by what
+each needs: the larger of its own arc on its ring and the wedges of its
+children on theirs (`angleOf`). So no class gets less than its arc. A
+child stands at its wedge's bearing, and its distance from the axis falls
+as its wedge widens (`spanReach`).
 
 The tree's scale is `sqrt(200 / nodes)`, clamped to 0.6 through 2.0. It
-shrinks the reach of large trees and grows that of small ones. It does
-not change their height.
+shrinks the tier reach of large trees and grows that of small ones,
+until their rings must widen to fit their classes.
+
+### How high each tier stands
+
+Limbs climb at one pitch. Each tier rises tan(25°) times its ring's reach
+past the ring below, held between 1.5 m and 8 m (`ringsOf`). So a narrow
+tree is not a steep vase and a wide one is not a flat disc. Line trees
+stand from about 7 m to 15 m to their top.
 
 ### How thick the wood is
 
@@ -81,11 +83,11 @@ parent's direction and then reaches out, with a little seeded jitter.
   ramp in every season (`ENERGY_COLORS`, `energyTint`). The steps fall at
   1, 1.5, 2, 2.5, 3, 4 and 6 kcal/mol: blue for the most relaxed bonds,
   through teal, green and yellow, to red above 6 kcal/mol.
-- **Class beads** in the schematic are colored by their tier from the
-  trunk: gold, orange, red, then magenta. On a line tree those are the
-  binary, quadrant and octant classes; on the database tree, the trunk,
-  then binary, quadrant and octant classes. Classes are cubes, bonds spheres, and the database tree's trunk is a
-  diamond (`schematic.ts`).
+- **Class beads** in the schematic are colored by tier on a line tree:
+  gold for the binary class, orange for its quadrant classes, red for its
+  octant classes. On the database tree each binary class takes its
+  family's grove color. Classes are cubes, bonds spheres, and the
+  database tree's trunk is a gold diamond (`schematic.ts`).
 - **Bark** takes the season's wood color.
 - **Species** is set by class family (`classForest.speciesForGrove`):
   LHSpiral oak, RHSpiral horse chestnut, LHHook London plane, RHHook stone
@@ -127,17 +129,12 @@ with proteusPy's own colors and radii (`atoms.json`, `molecule.ts`):
 
 ## The hub
 
-The database tree stands at the hub (`hubTree`). Its trunk is every
-bond, its three rings are the 32 binary classes, then every quadrant
-class, then every octant class and `-other` tip, with no bonds. It has
-the line trees' trunk and rise per tier, and reaches 24.3 m, but its
-rings hold hundreds of classes, too many for one ring at 1.2 m apart.
-Each crowded ring is stacked into layers 0.8 m apart, each leaning a
-little nearer the axis than the one below (`ringsOf`). A ring's classes
-take turns round it, layer by layer, so neighbors stand on different
-layers and classes on one layer keep 1.2 m of arc. The crown climbs to
-about 30 m on the subset and 42 m on the full export. Bark is redwood;
-foliage is four sprays per class.
+The database tree stands at the hub (`hubTree`). Its trunk, 6 m tall, is
+every bond; its one ring of limbs is the 32 binary classes, each as thick
+as its bonds and leafed in its family's grove color, the minimap's. It
+stops there: at the hub the quadrant and octant tiers were thousands of
+classes no one could read, and each binary class grows as its own tree in
+the groves. It stands about 10 m tall. Bark is redwood.
 
 The home disulfide is the export's lowest-energy bond unless the reader
 or `?home=<key>` names another sampled bond: `1xr9_203A_259A` on the
@@ -162,12 +159,12 @@ Measured from the exports in `public/forests/` with the current code.
 | Bonds | 5,000 in 1,038 PDB entries | 175,277 in 36,968 PDB entries |
 | `min_members` | 2 | 20 |
 | Sampled bonds (leaves) | 2,413 | 11,196 |
-| Largest tree | `00000b`, 1,158 bonds, 582 nodes, reach 19.4 m | `00000b`, 40,943 bonds, 1,677 nodes, reach 30.5 m |
-| Smallest tree | `20202b`, 12 bonds, 16 nodes, reach 3.7 m | `20202b`, 538 bonds, 120 nodes, reach 6.5 m |
-| Line tree height | about 10 m | about 10 m |
-| Database tree | 1,665 nodes, 29.6 m tall, reach 24.3 m | 2,903 nodes, 42.4 m tall, reach 24.3 m |
-| LHSpiral grove radius | 36.4 m | 58.5 m |
-| Orchard radius (outermost grove edge) | 139 m | 216 m |
+| Largest tree | `00000b`, 1,158 bonds, 582 nodes, 14.6 m tall, reach 31.0 m | `00000b`, 40,943 bonds, 1,677 nodes, 14.8 m tall, reach 50.6 m |
+| Smallest tree | `20202b`, 12 bonds, 16 nodes, 6.9 m tall, reach 4.1 m | `20202b`, 538 bonds, 120 nodes, 7.9 m tall, reach 7.6 m |
+| Line tree height | 6.8 to 14.6 m | 7.7 to 14.8 m |
+| Database tree | 33 nodes, 9.8 m tall, reach 8.0 m | 33 nodes, 9.8 m tall, reach 8.0 m |
+| LHSpiral grove radius | 55.4 m | 91.3 m |
+| Orchard radius (outermost grove edge) | 188 m | 312 m |
 | Home disulfide | `1xr9_203A_259A`, 0.49 kcal/mol | `2q7q_75D_140D`, 0.49 kcal/mol |
 
 Build either with `make forest FOREST=subset` or `make forest

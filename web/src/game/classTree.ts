@@ -10,14 +10,14 @@
 // * A line tree (`lineTree`): one binary class. The class is the trunk top;
 //   its quadrant classes are the first tier of limbs, their octant classes
 //   (and an `other` tip for the folded ones) the second, and each sampled
-//   member a short twig from its octant class, where its leaves hang.
-// * The database tree (`hubTree`): the whole classification at the hub. The
-//   trunk is every bond; the binary classes are the first tier, quadrant
-//   classes the second, octant classes the third, with no members.
+//   member on a dome over its octant class, where its leaves hang.
+// * The database tree (`hubTree`) at the hub. The trunk is every bond; its
+//   one tier of limbs is the 32 binary classes, each tree's own class. The
+//   finer tiers are in the line trees: at the hub they were thousands of
+//   classes no one could read.
 //
-// A line tree's wedges are split by the arc each class needs on its ring
-// (the database tree's by the nodes drawn below each, the Family's
-// descendant weight), and the wood is as thick as the bonds it carries: each
+// Wedges are split by the arc each class needs on its ring, and every tier
+// rises at one pitch over its reach. The wood is as thick as the bonds it carries: each
 // class node's flow into the pipe model is its count over the export's
 // `min_members`. The classes partition each other, so nothing is placed
 // twice and `skipped` is always 0.
@@ -28,8 +28,6 @@ import { mulberry32, seedFromKey } from "./math";
 
 /** Trunk, from the ground to the first fork. */
 export const TRUNK_HEIGHT = 3.0;
-/** Rise per tier. */
-export const TIER_UP = 2.0;
 /** Radial reach per tier before the crowding floor. */
 const RING = 1.0;
 /**
@@ -60,30 +58,19 @@ const MAX_SIZE_SCALE = 2.0;
 const PIPE_EXPONENT = 2.2;
 const TIP_RADIUS = 0.03;
 
-/** The database tree's rise per tier, as a multiple of TIER_UP. */
-const LINE_TIER_STRETCH = 1.5;
 /**
- * A line tree's limbs climb at about this pitch, radians: each tier rises
+ * Limbs climb at about this pitch, radians: each tier rises
  * in proportion to how far its ring reaches past the one below, so a narrow
  * tree is not a steep vase and a wide one not a flat disc.
  */
 const LIMB_PITCH = (25 * Math.PI) / 180;
-/** The least and most a line tree's tier rises, m, whatever its reach. */
+/** The least and most a tier rises, m, whatever its reach. */
 const MIN_RISE = 1.5;
 const MAX_RISE = 8;
-/** The database tree's reach: the orchard's widest tree, whatever its population. */
-export const HUB_SCALE = 3.0;
-/**
- * The database tree's tiers hold hundreds of classes, too many for one ring
- * at its reach. A crowded ring is stacked into layers, this far apart, m:
- * its classes take turns round the ring, layer by layer, so neighbours
- * stand on different layers and classes on one layer keep MIN_LEAF_ARC.
- */
-const STACK_RISE = 0.8;
-/** Each layer stands this much nearer the axis than the one below, as a fraction of the ring at the top layer: a crown, not a tube. */
-const STACK_LEAN = 0.3;
-/** The database tree's reach per tier, before its scale: wider than a line tree's, for its crowded crown. */
-const HUB_RING = 2.7;
+/** The database tree's reach: its ring of binary classes, m. */
+const HUB_RING = 8.1;
+/** The database tree's trunk, from the ground to its one fork, m: taller than a line tree's, as the orchard's centre. */
+const HUB_TRUNK = 6.0;
 /** The database tree's trunk node id. */
 export const HUB_ROOT = "database";
 
@@ -164,19 +151,13 @@ type Shape = {
   flow: (id: string) => number;
 };
 
-/**
- * `fit`: widen each ring to fit its classes, MIN_LEAF_ARC apart or DOME_ARC
- * for one with members, and share wedges by that need (line trees).
- * `stack`: stack crowded rings into layers instead (the database tree).
- * `pitch`: each tier rises at this pitch over its reach, clamped to
- * MIN_RISE..MAX_RISE; 0 for a fixed `tierUp`.
- */
-type Frame = { scale: number; trunkHeight: number; tierUp: number; ring: number; fit: boolean; stack: boolean; pitch: number };
+/** `ring`: reach per tier, m, before the scale; a ring widens past it to fit its classes. */
+type Frame = { scale: number; trunkHeight: number; ring: number };
 
-/** One tier's ring: its radius, the height of its lowest layer, how many layers, and how many classes are placed so far. */
-type Ring = { radius: number; y: number; layers: number; placed: number };
+/** One tier's ring: its radius and height. */
+type Ring = { radius: number; y: number };
 
-/** Nodes drawn at and below `id`, counting itself: its wedge's weight. */
+/** Nodes drawn at and below `id`, counting itself: a tree's population, for its scale. */
 function weightOf(shape: Shape, id: string, cache: Map<string, number>): number {
   const hit = cache.get(id);
   if (hit !== undefined) return hit;
@@ -206,11 +187,11 @@ function tierNeeds(shape: Shape, root: string): Map<number, { count: number; arc
 }
 
 function ringRadius(tier: number, arc: number, f: Frame): number {
-  return Math.max(tier * f.ring * f.scale, f.fit ? arc / (2 * Math.PI) : 0);
+  return Math.max(tier * f.ring * f.scale, arc / (2 * Math.PI));
 }
 
 /**
- * A class's wedge on a fitted tree, radians: the larger of what it needs on
+ * A class's wedge, radians: the larger of what it needs on
  * its own ring and what its children need on theirs, so the narrowest wedge
  * still clears its neighbours.
  */
@@ -226,23 +207,18 @@ function angleOf(shape: Shape, rings: Map<number, Ring>, id: string, tier: numbe
 }
 
 /**
- * Every tier's ring above the trunk. A tier rises above the top layer of
- * the tier below, by `tierUp` or at the frame's pitch over its reach; a
- * stacked tier has as many layers as it needs for MIN_LEAF_ARC between
- * classes on one layer, even on its innermost.
+ * Every tier's ring above the trunk, MIN_LEAF_ARC or DOME_ARC per class
+ * round it. A tier rises at LIMB_PITCH over its reach past the ring below,
+ * held to MIN_RISE..MAX_RISE.
  */
 function ringsOf(tiers: Map<number, { count: number; arc: number }>, f: Frame): Map<number, Ring> {
   const rings = new Map<number, Ring>();
   let y = f.trunkHeight, inner = 0;
   for (let tier = 1; tiers.has(tier); tier++) {
-    const { count, arc: need } = tiers.get(tier)!;
-    const radius = ringRadius(tier, need, f);
-    const arc = (2 * Math.PI * radius * (1 - STACK_LEAN)) / count;
-    const layers = f.stack ? Math.max(1, Math.ceil(MIN_LEAF_ARC / arc)) : 1;
-    y += f.pitch ? Math.min(MAX_RISE, Math.max(MIN_RISE, Math.tan(f.pitch) * (radius - inner))) : f.tierUp;
+    const radius = ringRadius(tier, tiers.get(tier)!.arc, f);
+    y += Math.min(MAX_RISE, Math.max(MIN_RISE, Math.tan(LIMB_PITCH) * (radius - inner)));
     inner = radius;
-    rings.set(tier, { radius, y, layers, placed: 0 });
-    y += (layers - 1) * STACK_RISE;
+    rings.set(tier, { radius, y });
   }
   return rings;
 }
@@ -274,10 +250,7 @@ function placeCanopy(
     const kidSpan = (span * kidWeights[j]!) / total;
     const angle = c0 + kidSpan / 2;
     c0 += kidSpan;
-    // A stacked ring's classes take turns round it, layer by layer: up and in.
-    const layer = ring.placed++ % ring.layers;
-    const lean = ring.layers > 1 ? 1 - (STACK_LEAN * layer) / (ring.layers - 1) : 1;
-    const n = b.add(polar(ring.radius * spanReach(kidSpan) * lean, angle, ring.y + layer * STACK_RISE), node, k, gen + 1, shape.flow(k));
+    const n = b.add(polar(ring.radius * spanReach(kidSpan), angle, ring.y), node, k, gen + 1, shape.flow(k));
     placeCanopy(shape, b, f, rings, weigh, k, n, gen + 1, angle - kidSpan / 2, kidSpan);
   });
 }
@@ -343,7 +316,7 @@ function finish(b: Builder, key: string, f: Frame, tipRadius: number): ClassTree
   const parentArr = Int32Array.from(parents);
   const radii = pipeRadii(parentArr, n, tipRadius, PIPE_EXPONENT, f.trunkHeight, Float32Array.from(flow));
   // Each edge into a node with nothing beyond it (a member's twig, a folded
-  // tip, the database tree's octant classes) tapers to a fine tip from the
+  // tip, the database tree's binary classes) tapers to a fine tip from the
   // wood it leaves, as the Family's spouse twigs do.
   const hasChild = new Uint8Array(n);
   for (let i = 1; i < n; i++) if (parentArr[i]! >= 0) hasChild[parentArr[i]!] = 1;
@@ -365,11 +338,8 @@ function finish(b: Builder, key: string, f: Frame, tipRadius: number): ClassTree
 
 function grow(shape: Shape, root: string, key: string, f: Frame, tipRadius: number): ClassTree {
   const rings = ringsOf(tierNeeds(shape, root), f);
-  // A fitted tree shares wedges by the arc each class needs; the database tree by the nodes below each.
-  const angles = new Map<string, number>(), weights = new Map<string, number>();
-  const weigh = f.fit
-    ? (id: string, tier: number) => angleOf(shape, rings, id, tier, angles)
-    : (id: string) => weightOf(shape, id, weights);
+  const angles = new Map<string, number>();
+  const weigh = (id: string, tier: number) => angleOf(shape, rings, id, tier, angles);
   const b = new Builder();
   const ground = b.add([0, 0, 0], -1, null);
   const trunk = b.add([0, f.trunkHeight, 0], ground, root, 0, shape.flow(root));
@@ -404,25 +374,23 @@ export function lineTree(index: ClassIndex, lineId: string): ClassTree {
   const population = weightOf(shape, lineId, new Map());
   const scale = sizeScale(population);
   // The reach shrinks with the population, as the Family's does, until its
-  // rings must widen to fit their classes; each tier then rises at
-  // LIMB_PITCH over its reach (tierUp is unused).
-  const f: Frame = { scale, trunkHeight: TRUNK_HEIGHT, tierUp: TIER_UP, ring: RING, fit: true, stack: false, pitch: LIMB_PITCH };
+  // rings must widen to fit their classes.
+  const f: Frame = { scale, trunkHeight: TRUNK_HEIGHT, ring: RING };
   return grow(shape, lineId, `line:${lineId}`, f, TIP_RADIUS * scale);
 }
 
 /**
- * The database tree at the hub: every bond in the trunk, the binary classes
- * as the first tier, quadrant classes the second, octant classes (and the
- * folded tips) the third. No member leaves and no roots.
+ * The database tree at the hub: every bond in the trunk and the 32 binary
+ * classes as its limbs, most populous first. No finer tiers, no members and
+ * no roots.
  */
 export function hubTree(index: ClassIndex): ClassTree {
   const lines = [...index.catalog.lines].sort((a, b) => b.count - a.count || a.id.localeCompare(b.id)).map((l) => l.id);
   const shape: Shape = {
-    kids: (id) => (id === HUB_ROOT ? lines : index.children.get(id) ?? []),
+    kids: (id) => (id === HUB_ROOT ? lines : []),
     members: () => [],
     flow: flowOf(index),
   };
-  // A line tree's trunk and rise per tier; its crowded rings stack into a tall crown.
-  const f: Frame = { scale: HUB_SCALE, trunkHeight: TRUNK_HEIGHT, tierUp: TIER_UP * LINE_TIER_STRETCH, ring: HUB_RING, fit: false, stack: true, pitch: 0 };
+  const f: Frame = { scale: 1, trunkHeight: HUB_TRUNK, ring: HUB_RING };
   return grow(shape, HUB_ROOT, "hub", f, TIP_RADIUS);
 }

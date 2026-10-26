@@ -423,7 +423,9 @@ function buildForest(catalog: ClassCatalog, homeKey: string): Forest {
 
   // The database tree, and a hub wide enough for its crown.
   const home = hubTree(index);
-  const corpusTree = homeTree(home, homeKey, catalog.lines.length, `The ${catalog.meta.database.name} database`);
+  // A grove's color is its seat's in the occupancy order, as the groves below take it.
+  const colorOf = (line: string) => GENRE_PALETTE[genres.indexOf(index.line.get(line)?.grove ?? "") % GENRE_PALETTE.length] ?? GENRE_PALETTE[0]!;
+  const corpusTree = homeTree(home, homeKey, catalog.lines.length, `The ${catalog.meta.database.name} database`, colorOf);
   let crownReach = 0;
   for (const person of home.people) if (person.y > 0) crownReach = Math.max(crownReach, Math.hypot(person.x, person.z));
   const hubPlazaR = HUB_PLAZA_R;

@@ -97,19 +97,17 @@ test("a line tree holds its own classes and sampled members once each, and nothi
   }
 });
 
-test("the database tree: every bond at the trunk, binary, quadrant and octant tiers, no members", () => {
+test("the database tree: every bond at the trunk and the binary classes as its limbs, nothing finer", () => {
   const hub = hubTree(index);
   const tiers = new Map();
   for (const p of hub.people) tiers.set(p.generation, (tiers.get(p.generation) ?? 0) + 1);
-  assert.equal(tiers.get(0), 1);
-  assert.equal(tiers.get(1), SUBSET.lines.length);
-  assert.equal(tiers.get(2), SUBSET.classes.filter((c) => c.level === "quadrant").length);
-  assert.equal(tiers.get(3), SUBSET.classes.filter((c) => c.level !== "quadrant").length);
-  assert.ok(!hub.people.some((p) => p.member));
-  // Taller and thicker than any line tree.
-  const top = (t) => Math.max(...t.people.map((p) => p.y));
-  const biggest = Math.max(...SUBSET.lines.map((l) => top(lineTree(index, l.id))));
-  assert.ok(top(hub) > biggest, `hub ${top(hub)} m vs ${biggest} m`);
+  assert.deepEqual([...tiers.entries()].sort(), [[0, 1], [1, SUBSET.lines.length]]);
+  assert.ok(hub.people.filter((p) => p.generation === 1).every((p) => index.line.has(p.id)));
+  // Its limbs stand at least a class's arc apart.
+  const limbs = hub.people.filter((p) => p.generation === 1);
+  for (let i = 0; i < limbs.length; i++) for (let j = i + 1; j < limbs.length; j++) {
+    assert.ok(Math.hypot(limbs[i].x - limbs[j].x, limbs[i].z - limbs[j].z) >= 1.19, `${limbs[i].id} ${limbs[j].id}`);
+  }
 });
 
 test("limbs are as thick as the bonds they carry", () => {

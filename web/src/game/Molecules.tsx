@@ -136,9 +136,9 @@ export function Molecules({ forest }: { forest: Forest }) {
 
 const MONUMENT_BODY =
   "The home disulfide, drawn ball-and-stick from its own coordinates in the Protein Data Bank, one " +
-  "angstrom to 35 cm. Behind it stands the database tree: every bond in the trunk, the 32 binary " +
-  "classes as its first limbs, their quadrant classes the second and octant classes the third, " +
-  "each limb as thick as the bonds it carries. Click the tree or press B to browse every class.";
+  "angstrom to 35 cm. Behind it stands the database tree: every bond in the trunk and the 32 binary " +
+  "classes as its limbs, each as thick as the bonds it carries and leafed in its family's color. Each " +
+  "binary class grows as its own tree out in the groves. Click the tree or press B to browse every class.";
 
 /** The home disulfide at monument scale on the hub plaza, with its plaque. */
 export function Monument({ forest }: { forest: Forest }) {

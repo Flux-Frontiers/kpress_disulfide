@@ -13,9 +13,10 @@ export type CorpusTree = {
   bark: { count: number; pos: Float32Array; normal: Float32Array; uv: Float32Array; index: Uint32Array };
   /**
    * Foliage sprays: flat needle cards lying along the limbs. Position, scale
-   * (x along the spray, z across it), quaternion (x, y, z, w), shade 0-7.
+   * (x along the spray, z across it), quaternion (x, y, z, w), shade 0-7,
+   * and each spray's color: its limb's class family.
    */
-  foliage: { count: number; pos: Float32Array; scale: Float32Array; quat: Float32Array; shade: Uint8Array };
+  foliage: { count: number; pos: Float32Array; scale: Float32Array; quat: Float32Array; shade: Uint8Array; color: string[] };
 };
 
 /**

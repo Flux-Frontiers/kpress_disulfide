@@ -59,9 +59,13 @@ function shapeOf(id: string, member: boolean): BeadShape {
  * One tree's beads and limbs, placed at (ox, oz). Each node's limb runs to
  * it from the nearest node below it in the wood, or from the ground point
  * for the trunk. A class's bead is colored by its tier, a member's by its
- * energy, as its leaves are.
+ * energy, as its leaves are, and a binary class on the database tree by its
+ * family's grove.
  */
-function addTree(t: ClassTree, tree: number, ox: number, oz: number, out: Schematic, energy: (id: string) => number | undefined): void {
+function addTree(
+  t: ClassTree, tree: number, ox: number, oz: number, out: Schematic,
+  energy: (id: string) => number | undefined, family: (id: string) => string | undefined,
+): void {
   const byNode = new Map(t.people.map((p) => [p.node, p]));
   const at = new Map(t.people.map((p) => [p.id, { x: ox + p.x, y: p.y, z: oz + p.z }]));
   const below = (node: number) => {
@@ -81,7 +85,7 @@ function addTree(t: ClassTree, tree: number, ox: number, oz: number, out: Schema
       ...here,
       generation: p.generation,
       shape: shapeOf(p.id, p.member),
-      color: p.member ? ENERGY_COLORS[energyTint(energy(p.id) ?? 0)]! : generationColor(p.generation),
+      color: p.member ? ENERGY_COLORS[energyTint(energy(p.id) ?? 0)]! : (tree < 0 ? family(p.id) : undefined) ?? generationColor(p.generation),
       living: false,
       marriedIn: false,
       tree,
@@ -95,13 +99,14 @@ function addTree(t: ClassTree, tree: number, ox: number, oz: number, out: Schema
  * The whole orchard as a schematic: every line tree where the forest stands
  * it, and the database tree at the hub.
  *
- * :param trees: The forest's trees, in order: each line's slug and trunk position.
+ * :param trees: The forest's trees, in order: each line's slug, trunk position and grove color.
  */
-export function buildSchematic(index: ClassIndex, trees: readonly { line: { slug: string }; x: number; z: number }[]): Schematic {
+export function buildSchematic(index: ClassIndex, trees: readonly { line: { slug: string }; x: number; z: number; color?: string }[]): Schematic {
   const out: Schematic = { beads: [], limbs: [], bars: [] };
   const energy = (id: string) => index.energy.get(id);
-  trees.forEach((t, i) => addTree(lineTree(index, t.line.slug), i, t.x, t.z, out, energy));
-  addTree(hubTree(index), -1, 0, 0, out, energy);
+  const family = new Map(trees.map((t) => [t.line.slug, t.color]));
+  trees.forEach((t, i) => addTree(lineTree(index, t.line.slug), i, t.x, t.z, out, energy, () => undefined));
+  addTree(hubTree(index), -1, 0, 0, out, energy, (id) => family.get(id));
   return out;
 }
 
