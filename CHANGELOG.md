@@ -42,8 +42,10 @@ uses [Semantic Versioning](https://semver.org/).
 - The guided tour, which visits the named families' groves first, each set
   largest first, and speaks each family's classes, bonds, function and
   energy.
-- The album, with ranks: Reader, Modeler, Refiner, Curator and Keeper of
-  the Classes.
+- The album, with ranks on the way to a doctorate: Undergraduate,
+  Research Assistant, Graduate Student, PhD Candidate and Doctor of
+  Philosophy. Each class collected rides in the cart as a model of its
+  disulfide on a stand in its grove's color.
 - Schematic mode (V): binary and quadrant classes as cubes and octant
   classes as octahedra, colored by tier, bonds as spheres colored by
   energy, on straight brushed-aluminum limbs.
