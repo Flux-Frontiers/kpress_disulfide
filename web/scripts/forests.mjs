@@ -22,6 +22,7 @@ const forests = readdirSync(root, { withFileTypes: true })
       lines: catalog.lines.length,
     };
   })
-  .sort((a, b) => a.title.localeCompare(b.title));
+  // Largest first: the app opens on the first unless a database was chosen before.
+  .sort((a, b) => b.bonds - a.bonds || a.title.localeCompare(b.title));
 writeFileSync(`${root}/index.json`, `${JSON.stringify({ forests }, null, 1)}\n`);
 console.log(forests.map((f) => `${f.slug}: ${f.title} (${f.bonds} bonds, ${f.lines} lines)`).join("\n"));
