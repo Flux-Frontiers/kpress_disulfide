@@ -15,7 +15,8 @@
 //   trunk is every bond; the binary classes are the first tier, quadrant
 //   classes the second, octant classes the third, with no members.
 //
-// Wedges are split by the nodes drawn below each class (the Family's
+// A line tree's wedges are split by the arc each class needs on its ring
+// (the database tree's by the nodes drawn below each, the Family's
 // descendant weight), and the wood is as thick as the bonds it carries: each
 // class node's flow into the pipe model is its count over the export's
 // `min_members`. The classes partition each other, so nothing is placed
@@ -46,6 +47,8 @@ const MEMBER_DOME = 1.0;
 const MEMBER_CAP = 1.2;
 /** Turn between successive members round the dome: the golden angle, so none line up. */
 const GOLDEN_ANGLE = Math.PI * (3 - Math.sqrt(5));
+/** The arc an octant class with members needs on its ring, m: its dome's width and a member bead's clearance. */
+const DOME_ARC = 2 * MEMBER_DOME * Math.sin(MEMBER_CAP) + 0.36;
 /** Curve points inserted per edge. */
 export const EDGE_SUBDIVISIONS = 3;
 /** Sideways jitter on those points, as a fraction of the edge. */
@@ -152,8 +155,12 @@ type Shape = {
   flow: (id: string) => number;
 };
 
-/** `stack`: stack crowded rings into layers (the database tree). */
-type Frame = { scale: number; trunkHeight: number; tierUp: number; ring: number; arc: number; stack: boolean };
+/**
+ * `fit`: widen each ring to fit its classes, MIN_LEAF_ARC apart or DOME_ARC
+ * for one with members, and share wedges by that need (line trees).
+ * `stack`: stack crowded rings into layers instead (the database tree).
+ */
+type Frame = { scale: number; trunkHeight: number; tierUp: number; ring: number; fit: boolean; stack: boolean };
 
 /** One tier's ring: its radius, the height of its lowest layer, how many layers, and how many classes are placed so far. */
 type Ring = { radius: number; y: number; layers: number; placed: number };
@@ -168,18 +175,43 @@ function weightOf(shape: Shape, id: string, cache: Map<string, number>): number 
   return w;
 }
 
-function tierCounts(shape: Shape, root: string): Map<number, number> {
-  const counts = new Map<number, number>();
+/** The arc a class needs on its ring, m. */
+function arcOf(shape: Shape, id: string): number {
+  return shape.members(id).length ? DOME_ARC : MIN_LEAF_ARC;
+}
+
+/** Each tier's classes: how many, and the arc they need between them. */
+function tierNeeds(shape: Shape, root: string): Map<number, { count: number; arc: number }> {
+  const tiers = new Map<number, { count: number; arc: number }>();
   const walk = (id: string, gen: number) => {
-    counts.set(gen, (counts.get(gen) ?? 0) + 1);
+    const t = tiers.get(gen) ?? { count: 0, arc: 0 };
+    t.count++;
+    t.arc += arcOf(shape, id);
+    tiers.set(gen, t);
     for (const k of shape.kids(id)) walk(k, gen + 1);
   };
   walk(root, 0);
-  return counts;
+  return tiers;
 }
 
-function ringRadius(tier: number, count: number, f: Frame): number {
-  return Math.max(tier * f.ring * f.scale, (count * f.arc) / (2 * Math.PI));
+function ringRadius(tier: number, arc: number, f: Frame): number {
+  return Math.max(tier * f.ring * f.scale, f.fit ? arc / (2 * Math.PI) : 0);
+}
+
+/**
+ * A class's wedge on a fitted tree, radians: the larger of what it needs on
+ * its own ring and what its children need on theirs, so the narrowest wedge
+ * still clears its neighbours.
+ */
+function angleOf(shape: Shape, rings: Map<number, Ring>, id: string, tier: number, cache: Map<string, number>): number {
+  const hit = cache.get(id);
+  if (hit !== undefined) return hit;
+  let below = 0;
+  for (const k of shape.kids(id)) below += angleOf(shape, rings, k, tier + 1, cache);
+  const ring = rings.get(tier);
+  const a = Math.max(ring ? arcOf(shape, id) / ring.radius : 0, below);
+  cache.set(id, a);
+  return a;
 }
 
 /**
@@ -187,12 +219,12 @@ function ringRadius(tier: number, count: number, f: Frame): number {
  * layer of the tier below; a stacked tier has as many layers as it needs
  * for MIN_LEAF_ARC between classes on one layer, even on its innermost.
  */
-function ringsOf(counts: Map<number, number>, f: Frame): Map<number, Ring> {
+function ringsOf(tiers: Map<number, { count: number; arc: number }>, f: Frame): Map<number, Ring> {
   const rings = new Map<number, Ring>();
   let y = f.trunkHeight;
-  for (let tier = 1; counts.has(tier); tier++) {
-    const count = counts.get(tier)!;
-    const radius = ringRadius(tier, count, f);
+  for (let tier = 1; tiers.has(tier); tier++) {
+    const { count, arc: need } = tiers.get(tier)!;
+    const radius = ringRadius(tier, need, f);
     const arc = (2 * Math.PI * radius * (1 - STACK_LEAN)) / count;
     const layers = f.stack ? Math.max(1, Math.ceil(MIN_LEAF_ARC / arc)) : 1;
     y += f.tierUp;
@@ -202,9 +234,9 @@ function ringsOf(counts: Map<number, number>, f: Frame): Map<number, Ring> {
   return rings;
 }
 
-/** The crown above `node`: a radial tidy tree, wedges by weight, members on a dome over each octant class. */
+/** The crown above `node`: a radial tidy tree, wedges by `weigh`, members on a dome over each octant class. */
 function placeCanopy(
-  shape: Shape, b: Builder, f: Frame, rings: Map<number, Ring>, weights: Map<string, number>,
+  shape: Shape, b: Builder, f: Frame, rings: Map<number, Ring>, weigh: (id: string, tier: number) => number,
   id: string, node: number, gen: number, start: number, span: number,
 ): void {
   const here = b.points[node]!;
@@ -221,7 +253,7 @@ function placeCanopy(
   }
   const kids = shape.kids(id);
   if (!kids.length) return;
-  const kidWeights = kids.map((k) => weightOf(shape, k, weights));
+  const kidWeights = kids.map((k) => weigh(k, gen + 1));
   const total = kidWeights.reduce((a, w) => a + w, 0) || 1;
   const ring = rings.get(gen + 1)!;
   let c0 = start;
@@ -233,7 +265,7 @@ function placeCanopy(
     const layer = ring.placed++ % ring.layers;
     const lean = ring.layers > 1 ? 1 - (STACK_LEAN * layer) / (ring.layers - 1) : 1;
     const n = b.add(polar(ring.radius * spanReach(kidSpan) * lean, angle, ring.y + layer * STACK_RISE), node, k, gen + 1, shape.flow(k));
-    placeCanopy(shape, b, f, rings, weights, k, n, gen + 1, angle - kidSpan / 2, kidSpan);
+    placeCanopy(shape, b, f, rings, weigh, k, n, gen + 1, angle - kidSpan / 2, kidSpan);
   });
 }
 
@@ -319,11 +351,16 @@ function finish(b: Builder, key: string, f: Frame, tipRadius: number): ClassTree
 }
 
 function grow(shape: Shape, root: string, key: string, f: Frame, tipRadius: number): ClassTree {
-  const rings = ringsOf(tierCounts(shape, root), f);
+  const rings = ringsOf(tierNeeds(shape, root), f);
+  // A fitted tree shares wedges by the arc each class needs; the database tree by the nodes below each.
+  const angles = new Map<string, number>(), weights = new Map<string, number>();
+  const weigh = f.fit
+    ? (id: string, tier: number) => angleOf(shape, rings, id, tier, angles)
+    : (id: string) => weightOf(shape, id, weights);
   const b = new Builder();
   const ground = b.add([0, 0, 0], -1, null);
   const trunk = b.add([0, f.trunkHeight, 0], ground, root, 0, shape.flow(root));
-  placeCanopy(shape, b, f, rings, new Map(), root, trunk, 0, 0, 2 * Math.PI);
+  placeCanopy(shape, b, f, rings, weigh, root, trunk, 0, 0, 2 * Math.PI);
   return finish(b, key, f, tipRadius);
 }
 
@@ -356,7 +393,7 @@ export function lineTree(index: ClassIndex, lineId: string): ClassTree {
   // The reach shrinks with the population, as the Family's does, but not the
   // height: every line tree has the same three tiers, and at the Family's
   // scaling a populous class grew 4 m tall and 26 m across.
-  const f: Frame = { scale, trunkHeight: TRUNK_HEIGHT, tierUp: TIER_UP * LINE_TIER_STRETCH, ring: RING, arc: MIN_LEAF_ARC, stack: false };
+  const f: Frame = { scale, trunkHeight: TRUNK_HEIGHT, tierUp: TIER_UP * LINE_TIER_STRETCH, ring: RING, fit: true, stack: false };
   return grow(shape, lineId, `line:${lineId}`, f, TIP_RADIUS * scale);
 }
 
@@ -373,6 +410,6 @@ export function hubTree(index: ClassIndex): ClassTree {
     flow: flowOf(index),
   };
   // A line tree's trunk and rise per tier; its crowded rings stack into a tall crown.
-  const f: Frame = { scale: HUB_SCALE, trunkHeight: TRUNK_HEIGHT, tierUp: TIER_UP * LINE_TIER_STRETCH, ring: HUB_RING, arc: 0, stack: true };
+  const f: Frame = { scale: HUB_SCALE, trunkHeight: TRUNK_HEIGHT, tierUp: TIER_UP * LINE_TIER_STRETCH, ring: HUB_RING, fit: false, stack: true };
   return grow(shape, HUB_ROOT, "hub", f, TIP_RADIUS);
 }
