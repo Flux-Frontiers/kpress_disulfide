@@ -11,7 +11,7 @@ const KEYS: [string, string][] = [
   ["Shift / Space", "hurry / brake"],
   ["E", "add the nearest tree's class to your album"],
   ["G / B / L", "the grove atlas, every class, your album"],
-  ["H / Q", "home to the hub / the guided tour, ridden from the cart facing ahead"],
+  ["H / Q", "home to the hub, facing ahead at the view's own height / the guided tour, ridden from the cart facing ahead"],
   ["C", "camera: in the cart, behind it, above it looking down on your collection, god's eye"],
   ["R / F", "raise / lower the view, until you change views or ride the ring"],
   ["X", "look straight ahead again"],
