@@ -145,14 +145,19 @@ test("old or malformed preferences have usable defaults and bounded sensitivity"
   assert.equal(readPreferences({ sensitivity: NaN }).sensitivity, 1);
   assert.equal(readPreferences({ sensitivity: 100 }).sensitivity, 1.5);
   // New visitors start in the high view; a saved behind-the-cart view survives.
-  assert.equal(readPreferences({ pace: "unknown", camera: "unknown" }).camera, "high");
-  assert.equal(readPreferences({ camera: "follow" }).camera, "follow");
+  assert.equal(readPreferences({ pace: "unknown", camera: "unknown" }).camera, "follow");
+  assert.equal(readPreferences({ camera: "high" }).camera, "high");
   // Name plates are off unless turned on: a class tree's ids crowd the view.
   assert.equal(readPreferences().names, false);
   assert.equal(readPreferences({ names: true }).names, true);
   // Bond complexity reads back, and an unknown level falls back to a default.
   assert.equal(readPreferences({ bonds: "ultra" }).bonds, "ultra");
-  assert.ok(["low", "medium"].includes(readPreferences({ bonds: "lots" }).bonds));
+  assert.equal(readPreferences({ bonds: "lots" }).bonds, "medium");
+  // Defaults: random weather on and sparse octants pruned, unless turned off.
+  assert.equal(readPreferences({}).weather, true);
+  assert.equal(readPreferences({ weather: false }).weather, false);
+  assert.equal(readPreferences({}).prune, true);
+  assert.equal(readPreferences({ prune: false }).prune, false);
   // A saved god's-eye view survives a reload.
   assert.equal(readPreferences({ camera: "god" }).camera, "god");
   assert.equal(readPreferences({ camera: "cart" }).camera, "cart");

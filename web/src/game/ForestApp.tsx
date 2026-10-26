@@ -192,7 +192,8 @@ export function ForestApp() {
       if (e.code === "KeyB") st.toggleCatalog();
       if (e.code === "KeyQ") st.toggleCircuit();
       if (e.code === "KeyC") {
-        const next = { follow: "high", high: "cart", cart: "god", god: "follow" } as const;
+        // In the cart, behind it, above it looking down on the collection, then god's eye.
+        const next = { cart: "follow", follow: "high", high: "god", god: "cart" } as const;
         st.setPreferences({ camera: next[st.preferences.camera] });
       }
       if (e.code === "KeyV") st.setPreferences({ schematic: !st.preferences.schematic });

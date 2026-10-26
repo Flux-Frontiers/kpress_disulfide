@@ -392,16 +392,19 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
       lookAt.set(sim.x + v.x * 10, sim.y + CART_EYE + lift.current, sim.z + v.z * 10);
     } else {
       // Beside a tall tree, the home tree too, the chase camera backs off and tilts up to its crown.
+      // The view above the cart stays on the collection in the bed.
       const high = preferences.camera === "high";
       const chase = high ? HIGH_CAMERA : FOLLOW_CAMERA;
       let want = { back: 0, rise: 0, tilt: 0 };
-      const tall = treesNear(forest, sim.x, sim.z, 18).map((t) => ({ dist: Math.hypot(t.x - sim.x, t.z - sim.z), top: t.top }));
-      // The home tree frames fully anywhere on the hub plaza, as a roadside tree does within 8 m of the cart.
-      const hubR = forest.plazas[0]?.r ?? 0;
-      tall.push({ dist: Math.max(0, Math.hypot(sim.x, sim.z) - hubR + 8), top: forest.corpusTree.height });
-      for (const t of tall) {
-        const frame = crownFrame(t.dist, t.top, cam.fov, sim.speed, chase);
-        if (frame.back > want.back) want = frame;
+      if (!high) {
+        const tall = treesNear(forest, sim.x, sim.z, 18).map((t) => ({ dist: Math.hypot(t.x - sim.x, t.z - sim.z), top: t.top }));
+        // The home tree frames fully anywhere on the hub plaza, as a roadside tree does within 8 m of the cart.
+        const hubR = forest.plazas[0]?.r ?? 0;
+        tall.push({ dist: Math.max(0, Math.hypot(sim.x, sim.z) - hubR + 8), top: forest.corpusTree.height });
+        for (const t of tall) {
+          const frame = crownFrame(t.dist, t.top, cam.fov, sim.speed, chase);
+          if (frame.back > want.back) want = frame;
+        }
       }
       const ease = 1 - Math.exp(-1.5 * dt);
       crown.current.back += (want.back - crown.current.back) * ease;
@@ -411,14 +414,9 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
       const height = chase.up + crown.current.rise;
       camPos.set(sim.x - v.x * follow, sim.y + height + lift.current, sim.z - v.z * follow);
       state.camera.position.lerp(camPos, 1 - Math.exp(-3.4 * dt));
-      // Behind the cart, look level down the road; the high view looks down at the cart.
+      // Behind the cart, look level down the road; above it, look down into the bed.
       const ahead = high ? HIGH_AHEAD : 10;
       lookAt.set(sim.x + v.x * ahead, sim.y + (high ? HIGH_LOOK_UP : FOLLOW_UP) + lift.current, sim.z + v.z * ahead);
-      // The high view tilts from its own downward rest; the follow view's tilt is added below.
-      if (high && crown.current.tilt > 0) {
-        const reach = follow + ahead;
-        lookAt.y = sim.y + height + lift.current + reach * Math.tan(HIGH_CAMERA.pitch + crown.current.tilt);
-      }
     }
     // T: looking down on a tree whole, eased there from wherever the camera was.
     const view = playing && !godEye && !flying ? game.treeView : null;
