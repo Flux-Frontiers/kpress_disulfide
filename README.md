@@ -36,10 +36,15 @@ from. The exports are not committed. `make forest` drives the export from a
 sibling proteusPy checkout (`PROTEUSPY_DIR`, default `../proteusPy`):
 
 ```bash
-make demos                    # the 5,000-bond subset that ships with proteusPy
-make forest FOREST=full       # the full database: 175,277 bonds, about 11 s and 57 MB
+make demos                    # the subset that ships with proteusPy: 4,575 bonds
+make forest FOREST=full       # the full database: 158,965 bonds, about 11 s and 52 MB
 make web-dev
 ```
+
+The export keeps only the bonds within proteusPy's distance cutoffs,
+Cα-Cα under 6.71 Å and Sγ-Sγ under 2.12 Å (`CA_CUTOFF`, `SG_CUTOFF`). On
+the full database that is the published set of the Springer chapter,
+158,965 bonds in 35,367 structures, of the 175,277 the loader holds.
 
 `FOREST_HOME=<key>` names the disulfide the monument opens on; otherwise it
 is the export's lowest-energy bond (`2q7q_75D_140D` on the full database).

@@ -22,14 +22,15 @@
 # Databases (web/public/forests/<slug>, never committed):
 #   make forest FOREST=subset|full [FOREST_TITLE="..."] [FOREST_HOME=<key>]
 #                      -- proteusPy.export_web from $(PROTEUSPY_DIR), then
-#                         refresh the index. The subset is the 5,000 bonds
-#                         that ship with proteusPy; full is the whole loader
-#                         (about 11 s and 57 MB)
+#                         refresh the index. Only bonds within proteusPy's
+#                         Ca and Sg cutoffs: the subset that ships with
+#                         proteusPy is 4,575 of its 5,000; full is the
+#                         published set, 158,965 (about 11 s and 52 MB)
 #   make demos         -- the subset
 
 PROTEUSPY_DIR ?= ../proteusPy
 FOREST ?= subset
-FOREST_TITLE ?= $(if $(filter full,$(FOREST)),The full database,The 5000-bond subset)
+FOREST_TITLE ?= $(if $(filter full,$(FOREST)),The full database,The subset)
 # The disulfide the monument opens on; empty lets the export pick the lowest-energy bond.
 FOREST_HOME ?=
 # Members sampled per octant class, and the least members an octant class
