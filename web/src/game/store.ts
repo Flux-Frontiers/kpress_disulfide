@@ -5,7 +5,7 @@ import { seasonFor, type SeasonName } from "./seasons";
 import { readPreferences, type Preferences } from "./preferences";
 import { resetInput } from "./input";
 import { clearTourHeard } from "./tourScript";
-import type { Portrait } from "./portrait";
+import type { Portrait, PortraitPose } from "./portrait";
 import type { GroundCamera } from "./godEye";
 
 const SAVE_KEY = "kpd-library-v1";
@@ -149,6 +149,9 @@ export type GameStore = {
   /** `?shot=`: a fixed camera on one tree, with no game on screen (portrait.ts). */
   portrait: Portrait | null;
   setPortrait: (portrait: Portrait | null) => void;
+  /** T: the camera looking down on one tree whole, until T again or the cart moves (portrait.treeViewPose). */
+  treeView: PortraitPose | null;
+  setTreeView: (view: PortraitPose | null) => void;
   /** Hold the sky at a mode, without stepping through the others. */
   setTimeMode: (mode: TimeMode) => void;
   toggleCleanView: () => void;
@@ -302,6 +305,8 @@ export const useGame = create<GameStore>((set, get) => ({
   cleanView: false,
   portrait: null,
   setPortrait: (portrait) => set({ portrait }),
+  treeView: null,
+  setTreeView: (treeView) => set({ treeView }),
   setTimeMode: (timeMode) => set({ timeMode, ...readSky(timeMode, get().place) }),
   toggleCleanView: () => set({ cleanView: !get().cleanView }),
   travelMode: "free",

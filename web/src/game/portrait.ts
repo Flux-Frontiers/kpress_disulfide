@@ -84,3 +84,30 @@ export function portraitPose(tree: Pick<TreeSite, "x" | "z">, extent: Extent, be
     fov: PORTRAIT_FOV,
   };
 }
+
+/** The whole-tree view (T) looks down on a tree from this far above level, radians. */
+export const TREE_VIEW_ELEVATION = (35 * Math.PI) / 180;
+
+/**
+ * Where to look at a tree whole while driving (T): on the cart's side of it,
+ * TREE_VIEW_ELEVATION above it, far enough back that its crown fits the frame.
+ * A class tree is wide, not tall, so it fits by its reach.
+ *
+ * :param fromX: Where the cart is, so the view keeps its side of the tree.
+ * :param fov: The camera's vertical field of view, degrees.
+ * :param aspect: The view's width over its height.
+ */
+export function treeViewPose(
+  tree: Pick<TreeSite, "x" | "z">, extent: Extent, fromX: number, fromZ: number, fov: number, aspect: number,
+): PortraitPose {
+  const halfV = (fov * Math.PI) / 360;
+  const half = Math.min(halfV, Math.atan(Math.tan(halfV) * aspect));
+  const reach = extent.radius * LEAF_REACH;
+  const dist = reach / Math.tan(half) / FILL;
+  const mid = (Math.min(0, extent.minY) + extent.maxY) / 2;
+  let dx = fromX - tree.x, dz = fromZ - tree.z;
+  const d = Math.hypot(dx, dz);
+  if (d < 1e-6) { dx = 1; dz = 0; } else { dx /= d; dz /= d; }
+  const out = dist * Math.cos(TREE_VIEW_ELEVATION), up = dist * Math.sin(TREE_VIEW_ELEVATION);
+  return { cam: [tree.x + dx * out, mid + up, tree.z + dz * out], look: [tree.x, mid, tree.z], fov };
+}

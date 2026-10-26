@@ -46,3 +46,20 @@ test("a shared frame shows every tree at one scale, sized for the largest", () =
     assert.equal(pose.cam[1], frame.mid);
   }
 });
+
+test("the whole-tree view looks down on a tree from the cart's side, its crown in frame", () => {
+  const { treeViewPose, TREE_VIEW_ELEVATION } = require(`${process.env.FOREST_TEST_BUILD}/portrait.js`);
+  const tree = { x: 10, z: 20 };
+  const extent = { minY: 0, maxY: 12, radius: 24 };
+  const pose = treeViewPose(tree, extent, 10, 60, 58, 1.6);
+  const [cx, cy, cz] = pose.cam, [lx, ly, lz] = pose.look;
+  assert.deepEqual([lx, lz], [10, 20], "looks at the trunk");
+  assert.ok(cz > 20 && Math.abs(cx - 10) < 1e-9, "stands on the cart's side");
+  const out = Math.hypot(cx - lx, cz - lz), up = cy - ly;
+  assert.ok(Math.abs(Math.atan2(up, out) - TREE_VIEW_ELEVATION) < 1e-9, "looks down at the set elevation");
+  // The crown's reach fits inside the narrower half of the view.
+  const half = (58 * Math.PI) / 360;
+  assert.ok(Math.atan2(extent.radius, Math.hypot(out, up)) < half, "the crown fits the frame");
+  // With the cart on the trunk, it still picks a side.
+  assert.ok(treeViewPose(tree, extent, 10, 20, 58, 1.6).cam.every(Number.isFinite));
+});

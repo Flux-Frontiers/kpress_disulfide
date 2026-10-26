@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { About } from "./About";
 import { ForestCanvas } from "./ForestCanvas";
-import { HUD } from "./HUD";
+import { HUD, viewWholeTree } from "./HUD";
 import { PauseOverlay } from "./PauseOverlay";
 import { StartScreen } from "./StartScreen";
 import { TouchControls } from "./TouchControls";
@@ -198,8 +198,9 @@ export function ForestApp() {
       if (e.code === "KeyN") st.setPreferences({ names: !st.preferences.names });
       if (e.code === "KeyH" && forest) {
         st.selectGrove(null);
-        st.requestJump(forest.home, "Home · the home tree");
+        st.requestJump(forest.home, "Home · the hub");
       }
+      if (e.code === "KeyT" && forest) viewWholeTree(forest);
     }
     window.addEventListener("keydown", onKey);
     function onBlur() {

@@ -18,6 +18,9 @@ const camPos = new Vector3();
 /** Within this of a picked tree, the cart has arrived (reading range plus a margin). */
 const TRAIL_ARRIVED = 9;
 const lookAt = new Vector3();
+/** Where the whole-tree view's camera is, easing toward its pose. */
+const viewPos = new Vector3();
+const viewAt = new Vector3();
 /** Upward tilt, radians, the behind-the-cart camera rests at on a portrait screen. */
 const PORTRAIT_TILT = 0.14;
 /** Where the god's-eye camera looks, eased like its position so a zoom glides. */
@@ -53,6 +56,8 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
   const pitch = useRef(0);
   /** How far R has raised the ground view above its own height, m (F lowers it). */
   const lift = useRef(0);
+  /** The whole-tree view (T) was showing last frame. */
+  const viewing = useRef(false);
   /** The follow camera's framing of a tall tree beside the cart (crownFrame), eased. */
   const crown = useRef({ back: 0, rise: 0, tilt: 0 });
   /** Pan off the cart's heading, radians, left positive. */
@@ -181,6 +186,8 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
       if (speaking()) hush();
     } else {
       const a = sampleActions();
+      // Driving or steering, or the tour moving the cart, hands the whole-tree view back to the chase camera.
+      if ((a.throttle || a.steer || Math.abs(sim.speed) > 1) && useGame.getState().treeView) useGame.getState().setTreeView(null);
       let throttle = a.throttle;
       let steer = a.steer;
       let tourBrake = false;
@@ -381,6 +388,22 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
         lookAt.y = sim.y + height + lift.current + reach * Math.tan(HIGH_CAMERA.pitch + crown.current.tilt);
       }
     }
+    // T: looking down on a tree whole, eased there from wherever the camera was.
+    const view = playing && !godEye && !flying ? game.treeView : null;
+    if (view) {
+      if (!viewing.current) viewPos.copy(state.camera.position);
+      viewing.current = true;
+      const ease = 1 - Math.exp(-2.5 * dt);
+      viewPos.lerp(viewAt.set(...view.cam), ease);
+      state.camera.position.copy(viewPos);
+      state.camera.lookAt(lookAt.set(...view.look));
+      cam.fov = MathUtils.lerp(cam.fov, view.fov, ease);
+      cam.near = GROUND_NEAR;
+      cam.far = GROUND_FAR;
+      cam.updateProjectionMatrix();
+      return;
+    }
+    viewing.current = false;
     // A tree portrait (portrait.ts) overrides the chase camera entirely.
     const portrait = game.portrait;
     if (portrait) {
