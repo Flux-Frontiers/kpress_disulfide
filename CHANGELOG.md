@@ -7,6 +7,8 @@ uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-26
+
 ### Added
 
 - The web orchard, read from `proteusPy.export_web` databases in
@@ -45,7 +47,8 @@ uses [Semantic Versioning](https://semver.org/).
 - The album, with ranks on the way to a doctorate: Undergraduate,
   Research Assistant, Graduate Student, PhD Candidate and Doctor of
   Philosophy. Each class collected rides in the cart as a model of its
-  disulfide on a stand in its grove's color.
+  disulfide, held on a brass pin over a stand in its grove's color, low
+  and high in a checkerboard.
 - Cameras in the order in the cart, behind it, above it, god's eye. The
   view above the cart looks down on the collection, which fills the bed
   from the front.
@@ -76,6 +79,14 @@ uses [Semantic Versioning](https://semver.org/).
   nothing else are left as gaps, without moving a class or a tree.
 - A click on a limb of the database tree takes the cart to that binary
   class's tree.
+- A free look: drag or the arrows turn and tilt the view, straight up and
+  down included, and it stays where it is left; Look ahead (X, or the
+  target button) brings it back. Home, any jump, a change of view and
+  riding the ring all reset the look and the R/F height.
+- On a touch screen, buttons to raise and lower the view.
+- An exhibit opens its plaque when clicked, as its plaque does.
+- The home disulfide stands on a brass pin over its plinth, lit from above
+  and ringed by floor lights.
 
 ### Changed
 
@@ -84,3 +95,8 @@ uses [Semantic Versioning](https://semver.org/).
   come from there unchanged; the Mysterium Cosmographicum and the
   armillary sundial were not kept.
 - The start screen offers the full database first.
+- The Spirits are drawn from simplified copies until the cart is within
+  30 m, and a full model is held only within 60 to 90 m of its glade, so
+  the orchard holds about 84 MB of textures away from them, not 243 MB.
+- Leaner fir, pine and oak leaves: on Ultra a god's-eye frame drops from
+  9.9M to 5.9M triangles, shadows still on.
