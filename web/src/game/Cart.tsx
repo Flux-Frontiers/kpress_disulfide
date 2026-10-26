@@ -1,10 +1,12 @@
 import { forwardRef, useLayoutEffect, useRef } from "react";
 import { Color, Object3D, type Group, type InstancedMesh } from "three";
 import { CART_CAPACITY, type CartBox } from "./cartLoad";
+import type { Ball, Stick } from "./molecule";
+import { BallAndStickMesh } from "./Molecules";
 
 /**
- * The lantern cart: a small oak wagon, the rider's own vehicle, carrying the
- * family albums collected on the way, and the figure that stands beside each
+ * The lantern cart: a small oak wagon, the rider's own vehicle, carrying a
+ * model of each class collected on the way, and the figure that stands beside each
  * tree in the line gallery for scale.
  *
  * Forward is +z. It is 1.9 m long, 1.2 m wide over the wheels and 1.5 m to
@@ -52,10 +54,12 @@ type CartProps = {
   wheelLeft?: React.Ref<Group>;
   wheelRight?: React.Ref<Group>;
   /**
-   * The family albums to carry, from cartLoad. Omitted, as for the gallery's
-   * parked cart, the bed is empty.
+   * The collected classes' stands, from cartLoad. Omitted, as for the
+   * gallery's parked cart, the bed is empty.
    */
   load?: readonly CartBox[];
+  /** The models on those stands, in the cart's frame (Player.tsx). */
+  models?: { balls: Ball[]; sticks: Stick[] };
 };
 
 const WHITE = new Color("#ffffff");
@@ -63,8 +67,8 @@ const placer = new Object3D();
 const tint = new Color();
 
 /**
- * The albums as one InstancedMesh: a unit box scaled, turned and colored per
- * instance, so every part of every album is one draw call.
+ * The stands as one InstancedMesh: a unit box scaled, turned and colored per
+ * instance, so every part of every stand is one draw call.
  *
  * :param load: the boxes to draw, at most CART_CAPACITY.
  */
@@ -91,7 +95,7 @@ function CartCargo({ load }: { load: readonly CartBox[] }) {
     m.count = load.length;
   }, [load]);
 
-  // The bounding sphere is one unit box's, so the albums would be culled from the seat.
+  // The bounding sphere is one unit box's, so the stands would be culled from the seat.
   return (
     <instancedMesh ref={mesh} args={[undefined, undefined, CART_CAPACITY]} frustumCulled={false} castShadow>
       <boxGeometry args={[1, 1, 1]} />
@@ -100,7 +104,7 @@ function CartCargo({ load }: { load: readonly CartBox[] }) {
   );
 }
 
-export function Cart({ lanternColor = "#f3e6c2", light = true, wheelLeft, wheelRight, load }: CartProps) {
+export function Cart({ lanternColor = "#f3e6c2", light = true, wheelLeft, wheelRight, load, models }: CartProps) {
   return (
     <group>
       {/* Bed: planks over two iron-shod runners. */}
@@ -142,8 +146,9 @@ export function Cart({ lanternColor = "#f3e6c2", light = true, wheelLeft, wheelR
         <meshStandardMaterial color={OAK_DARK} roughness={0.8} />
       </mesh>
 
-      {/* The family albums collected on the way. */}
+      {/* The classes collected on the way: a model on a stand for each. */}
       {load ? <CartCargo load={load} /> : null}
+      {models?.balls.length ? <BallAndStickMesh balls={models.balls} sticks={models.sticks} /> : null}
 
       {/* The lantern: an iron shepherd's hook at the front, a brass-capped lamp hanging from it. */}
       <mesh position={[-0.46, 0.98, 0.84]} castShadow>

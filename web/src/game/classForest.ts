@@ -149,13 +149,14 @@ export type LineCard = {
   search: string;
 };
 
-/** The album's ranks, lowest first. */
-export const ALBUM_RANKS = ["Reader", "Modeler", "Refiner", "Curator", "Keeper of the Classes"] as const;
+/** The album's ranks, lowest first: a structural biologist's way to the doctorate (EGS, 2026-10-26). */
+export const ALBUM_RANKS = ["Undergraduate", "Research Assistant", "Graduate Student", "PhD Candidate", "Doctor of Philosophy"] as const;
 
 /**
- * The rank an album of `count` classes earns out of `total`: Reader for the
- * first class, Modeler at a tenth, Refiner at a quarter, Curator at half,
- * Keeper of the Classes with every class. Null for an empty album.
+ * The rank an album of `count` classes earns out of `total`: Undergraduate
+ * for the first class, Research Assistant at a tenth, Graduate Student at a
+ * quarter, PhD Candidate at half, Doctor of Philosophy with every class. Null
+ * for an empty album.
  */
 export function albumRank(count: number, total: number): string | null {
   const need = [1, Math.ceil(total / 10), Math.ceil(total / 4), Math.ceil(total / 2), total];

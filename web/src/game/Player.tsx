@@ -3,6 +3,8 @@ import { useEffect, useMemo, useRef } from "react";
 import { Group, MathUtils, PerspectiveCamera, Vector3 } from "three";
 import { Cart, WHEEL_R } from "./Cart";
 import { cartLoad, NEUTRAL_COVER } from "./cartLoad";
+import { ballAndStick, type Ball, type Stick } from "./molecule";
+import { useAtoms } from "./Molecules";
 import { EXPOSURE } from "./Environment";
 import { atGroveStop, treesNear, type Forest } from "./forest";
 import { addDragLook, resetInput, sampleActions, setDragging } from "./input";
@@ -87,9 +89,26 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
   const setPose = useGame((s) => s.setPose);
   const library = useGame((s) => s.library);
 
-  // Each grove's color, by line, so an album's cover matches the tree it came from.
+  // Each grove's color, by line, so a model's stand matches the tree it came from.
   const coverColors = useMemo(() => new Map(forest.trees.map((t) => [t.line.slug, t.color])), [forest]);
   const load = useMemo(() => cartLoad(library, (slug) => coverColors.get(slug) ?? NEUTRAL_COVER), [library, coverColors]);
+  // On each stand, its class's consensus model, the one at its tree's foot, resting on its lowest atom.
+  const atoms = useAtoms(useGame((s) => s.familyBase));
+  const models = useMemo(() => {
+    if (!atoms) return undefined;
+    const plate = new Map(forest.molecules.filter((m) => m.kind === "plate").map((m) => [m.of, m.model]));
+    const balls: Ball[] = [], sticks: Stick[] = [];
+    for (const seat of load.seats) {
+      const model = plate.get(seat.slug);
+      if (!model?.atoms.length) continue;
+      const low = model.atoms.reduce((a, b) => (b.y < a.y ? b : a));
+      const r = (atoms.radii[low.element] ?? 1) * atoms.bs_scale;
+      const one = ballAndStick(model, atoms, { x: seat.x, y: seat.floor + (r - low.y) * seat.scale, z: seat.z, yaw: seat.yaw, scale: seat.scale });
+      balls.push(...one.balls);
+      sticks.push(...one.sticks);
+    }
+    return { balls, sticks };
+  }, [atoms, forest, load]);
 
   const lanternColor = useMemo(() => "#f3e6c2", []);
   const gl = useThree((s) => s.gl);
@@ -499,7 +518,7 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
 
   return (
     <group ref={group}>
-      <Cart lanternColor={lanternColor} wheelLeft={wheelL} wheelRight={wheelR} load={load} />
+      <Cart lanternColor={lanternColor} wheelLeft={wheelL} wheelRight={wheelR} load={load.boxes} models={models} />
     </group>
   );
 }

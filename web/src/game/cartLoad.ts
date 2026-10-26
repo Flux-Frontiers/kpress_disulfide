@@ -1,21 +1,25 @@
 /**
- * The lantern cart's cargo: the family albums the rider has collected, one
- * per line added to the album, lying flat in stacks in the bed.
+ * The lantern cart's cargo: one model disulfide for each class the rider has
+ * added to the album, its binary class's consensus model in ball and stick,
+ * standing on a small stand in its grove's color in the bed.
  *
  * Pure layout, no React or three, so the tests can run it. Slot k belongs to
  * the k-th line added, and depends only on k and that line's slug, so adding
- * one more line adds one album and never moves the others.
+ * one more line adds one model and never moves the others.
  *
- * An album is a landscape volume, wider than tall: a cover in its grove's
- * color, top and bottom, with a spine along one long edge, a cream page block
- * between, and brass caps on the two fore-edge corners. Each part is a box,
- * so the cart draws every album as one InstancedMesh (Cart.tsx).
+ * A stand is a block in the grove's color, a brass post and a brass plate,
+ * three boxes, so the cart draws every stand as one InstancedMesh
+ * (Cart.tsx). Its model is drawn by the caller at the seat this layout gives
+ * it (Player.tsx). The stands alternate low and high in a checkerboard, so a
+ * model only has to clear its diagonal neighbors at its own height: twice
+ * the room of a flat grid.
  *
  * The cart's local frame has forward as +z and the bed floor at y = 0.53. The
  * bed runs 1.04 m between the side rails and from the tailboard to the front
- * board. Albums stand in three columns across it and six rows along it, clear
- * of the lantern's hook at the front left, and stack no higher than LOAD_CAP,
- * below the lamp (bottom about 1.13 m) and the rider's eye (CART_EYE, 2.2 m).
+ * board. Stands go in four columns across it and eight rows along it, one per
+ * binary class, clear of the lantern's hook at the front left, and no model
+ * rises above LOAD_CAP, below the lamp (bottom about 1.13 m) and the rider's
+ * eye (CART_EYE, 2.2 m).
  */
 
 /** One box of the load, placed in the cart's local frame. */
@@ -34,49 +38,67 @@ export type CartBox = {
   color: string;
 };
 
+/** Where a model stands on its stand, in the cart's local frame. */
+export type CartSeat = {
+  /** The line whose model this is. */
+  slug: string;
+  /** The center of the stand's top, m: the model's lowest atom rests here. */
+  x: number;
+  floor: number;
+  z: number;
+  /** The model's turn about the vertical, radians. */
+  yaw: number;
+  /** Metres per angstrom. */
+  scale: number;
+};
+
 /** The top of the bed floor, m: the planks' upper face. */
 export const BED_FLOOR = 0.53;
-/** No album rises above this, m. */
+/** No model rises above this, m. */
 export const LOAD_CAP = 1.2;
 
-/** Albums across the bed, along it, and stacked. */
-const COLS = 3;
-const ROWS = 6;
-const LAYERS = 9;
-const COL_PITCH = 0.34;
-const ROW_PITCH = 0.27;
-/** Center of the first row, m: just clear of the tailboard. */
-const ROW_Z0 = -0.74;
-const LAYER_PITCH = 0.058;
+/** Stands across the bed and along it: one for each of the 32 binary classes. */
+const COLS = 4;
+const ROWS = 8;
+const COL_PITCH = 0.25;
+const ROW_PITCH = 0.199;
+/** Center of the first row, m: a model's reach clear of the tailboard. */
+const ROW_Z0 = -0.736;
 
-/** An album's size: across the bed, along it, and thick, m. */
-const ALBUM_W = 0.31;
-const ALBUM_D = 0.24;
-const ALBUM_T = 0.052;
-const COVER = 0.006;
-const SPINE = 0.01;
-/** Pages stand in from the cover's three open edges by this much, m. */
-const PAGE_INSET = 0.006;
-const CORNER = 0.035;
+/** A stand's block, square, its brass post and plate, m. */
+const STAND = 0.13;
+const STAND_H = 0.03;
+const POST = 0.025;
+const POST_H = 0.02;
+const PLATE = 0.11;
+const PLATE_H = 0.006;
+/**
+ * A model's scale, m per angstrom. On the full database the consensus models
+ * reach 4.57 A from their center and stand 8.94 A tall, balls included: one
+ * stands about 27 cm across and high. Two tiers of that rise to 1.12 m,
+ * under the lamp (1.13 m), and diagonal neighbors at one height clear each other.
+ */
+export const MODEL_SCALE = 0.03;
+/** A high stand's post rises this much more than a low one's, m: a low model's height. */
+const TIER_LIFT = 0.27;
 
-/** Boxes drawn for each album. */
-export const ALBUM_PARTS = 6;
-/** How many albums the cart holds; lines added past this are not drawn. */
-export const CART_ALBUMS = COLS * ROWS * LAYERS;
+/** Boxes drawn for each stand. */
+export const STAND_PARTS = 3;
+/** How many models the cart holds; lines added past this are not drawn. */
+export const CART_SLOTS = COLS * ROWS;
 /** How many boxes the cart draws at most. */
-export const CART_CAPACITY = CART_ALBUMS * ALBUM_PARTS;
+export const CART_CAPACITY = CART_SLOTS * STAND_PARTS;
 
-/** The cover of an album whose line the caller cannot place. */
+/** The stand of a model whose line the caller cannot place. */
 export const NEUTRAL_COVER = "#6b5a46";
-const PAGES = "#efe6cf";
 const BRASS = "#b08a3e";
-/** Covers are the grove's color tanned toward this brown, by LEATHER_TAN: leather, not paint. */
+/** Stands are the grove's color tanned toward this brown, by LEATHER_TAN: wood stain, not paint. */
 const LEATHER = [0x3a, 0x26, 0x18];
 const LEATHER_TAN = 0.5;
 
 /**
- * A grove color as album leather: blended toward a dark brown, so the
- * grove's hue survives but a pastel reads as a bound cover.
+ * A grove color as a stand's stain: blended toward a dark brown, so the
+ * grove's hue survives but a pastel reads as stained wood.
  *
  * :param hex: "#rrggbb".
  */
@@ -95,25 +117,6 @@ function hashSlug(s: string): number {
     h = Math.imul(h, 0x01000193);
   }
   return h >>> 0;
-}
-
-/**
- * A repeatable number in [0, 1) for one purpose of one album.
- *
- * :param hash: the line's slug hash.
- * :param salt: which quantity this is, so offsets and angles are independent.
- */
-function unit(hash: number, salt: number): number {
-  let h = (hash ^ Math.imul(salt + 1, 0x9e3779b1)) >>> 0;
-  h = Math.imul(h ^ (h >>> 16), 0x85ebca6b);
-  h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
-  h ^= h >>> 16;
-  return (h >>> 0) / 4294967296;
-}
-
-/** Linear blend from a to b by t in [0, 1). */
-function between(a: number, b: number, t: number): number {
-  return a + (b - a) * t;
 }
 
 /**
@@ -139,51 +142,34 @@ export function cartBoxHalfExtents(b: Pick<CartBox, "w" | "h" | "d" | "yaw" | "l
 }
 
 /**
- * The boxes of the album in slot k: its covers, spine, pages and corners,
- * all turned together by the album's small yaw about its own center.
- */
-function album(k: number, hash: number, color: string): CartBox[] {
-  const col = k % COLS;
-  const row = Math.floor(k / COLS) % ROWS;
-  const layer = Math.floor(k / (COLS * ROWS));
-  const cx = (col - (COLS - 1) / 2) * COL_PITCH + between(-0.008, 0.008, unit(hash, 0));
-  const cz = ROW_Z0 + row * ROW_PITCH + between(-0.006, 0.006, unit(hash, 1));
-  const cy = BED_FLOOR + layer * LAYER_PITCH + ALBUM_T / 2;
-  const yaw = between(-0.05, 0.05, unit(hash, 2));
-  const cos = Math.cos(yaw), sin = Math.sin(yaw);
-  // A part offset (dx, dy, dz) from the album's center, sized w x h x d.
-  const part = (dx: number, dy: number, dz: number, w: number, h: number, d: number, c: string): CartBox => ({
-    x: cx + dx * cos + dz * sin,
-    y: cy + dy,
-    z: cz - dx * sin + dz * cos,
-    w, h, d, yaw, lean: 0, color: c,
-  });
-  const half = { w: ALBUM_W / 2, t: ALBUM_T / 2, d: ALBUM_D / 2 };
-  const pageH = ALBUM_T - 2 * COVER;
-  // The spine runs along the album's left long edge (-x); the fore edge is +x.
-  const pageW = ALBUM_W - SPINE - PAGE_INSET;
-  return [
-    part(0, -half.t + COVER / 2, 0, ALBUM_W, COVER, ALBUM_D, color),
-    part(0, half.t - COVER / 2, 0, ALBUM_W, COVER, ALBUM_D, color),
-    part(-half.w + SPINE / 2, 0, 0, SPINE, pageH, ALBUM_D, color),
-    part(-half.w + SPINE + pageW / 2, 0, 0, pageW, pageH, ALBUM_D - 2 * PAGE_INSET, PAGES),
-    part(half.w - CORNER / 2, 0, half.d - CORNER / 2, CORNER, ALBUM_T + 0.002, CORNER, BRASS),
-    part(half.w - CORNER / 2, 0, -half.d + CORNER / 2, CORNER, ALBUM_T + 0.002, CORNER, BRASS),
-  ];
-}
-
-/**
- * Lay out the collected albums in the cart's bed, slot k for the k-th line
- * added: a layer of eighteen on the floor, then the next layer on top, and so
- * on. Past CART_ALBUMS the extra lines are not drawn.
+ * Lay out the collected classes in the cart's bed, slot k for the k-th line
+ * added, row by row from the tailboard. Past CART_SLOTS the extra lines are
+ * not drawn.
  *
  * :param slugs: the lines in the album, in the order they were added.
- * :param colorOf: a line's grove color, by slug; its album wears it as leather.
- * :returns: ALBUM_PARTS boxes per album, album by album.
+ * :param colorOf: a line's grove color, by slug; its stand wears it as stain.
+ * :returns: STAND_PARTS boxes per stand, stand by stand, and each model's seat.
  */
-export function cartLoad(slugs: readonly string[], colorOf: (slug: string) => string): CartBox[] {
-  const out: CartBox[] = [];
-  const n = Math.min(slugs.length, CART_ALBUMS);
-  for (let k = 0; k < n; k++) out.push(...album(k, hashSlug(slugs[k]!), leather(colorOf(slugs[k]!))));
-  return out;
+export function cartLoad(slugs: readonly string[], colorOf: (slug: string) => string): { boxes: CartBox[]; seats: CartSeat[] } {
+  const boxes: CartBox[] = [];
+  const seats: CartSeat[] = [];
+  const n = Math.min(slugs.length, CART_SLOTS);
+  for (let k = 0; k < n; k++) {
+    const slug = slugs[k]!;
+    const col = k % COLS, row = Math.floor(k / COLS);
+    const x = (col - (COLS - 1) / 2) * COL_PITCH;
+    const z = ROW_Z0 + row * ROW_PITCH;
+    const post = POST_H + ((col + row) % 2) * TIER_LIFT;
+    const box = (y: number, w: number, h: number, color: string): CartBox => ({ x, y, z, w, h, d: w, yaw: 0, lean: 0, color });
+    const top = BED_FLOOR + STAND_H + post;
+    boxes.push(
+      box(BED_FLOOR + STAND_H / 2, STAND, STAND_H, leather(colorOf(slug))),
+      box(BED_FLOOR + STAND_H + post / 2, POST, post, BRASS),
+      box(top + PLATE_H / 2, PLATE, PLATE_H, BRASS),
+    );
+    // Each model turned its own way, so the rows do not read as a grid of one shape.
+    const yaw = (hashSlug(slug) / 4294967296) * 2 * Math.PI;
+    seats.push({ slug, x, floor: top + PLATE_H, z, yaw, scale: MODEL_SCALE });
+  }
+  return { boxes, seats };
 }
