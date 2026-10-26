@@ -1,6 +1,6 @@
 // Schematic mode: the orchard drawn as a class diagram you can read while
 // driving. Every class and sampled member is a bead where the layout
-// (classTree.ts) puts it, its color the tier; the wood is straight barked
+// (classTree.ts) puts it, its color the tier; the wood is straight aluminum
 // limbs from each class to the classes and members one tier up. The layout
 // is the same as the organic trees', so switching modes moves nothing.
 //
@@ -10,7 +10,7 @@ import type { ClassIndex } from "./classCatalog";
 import { ENERGY_COLORS, energyTint } from "./classForest";
 import { HUB_ROOT, hubTree, lineTree, type ClassTree } from "./classTree";
 
-export type BeadShape = "round" | "square" | "diamond";
+export type BeadShape = "round" | "square" | "octa" | "diamond";
 
 export type SchematicBead = {
   id: string;
@@ -50,9 +50,14 @@ export function generationColor(g: number): string {
   return GENERATION_COLORS[((g % n) + n) % n]!;
 }
 
-/** A class is a cube, a member a sphere, the database tree's trunk a diamond. */
+/**
+ * A binary or quadrant class is a cube, an octant class or folded tip an
+ * octahedron, a member a sphere, and the database tree's trunk a large diamond.
+ */
 function shapeOf(id: string, member: boolean): BeadShape {
-  return member ? "round" : id === HUB_ROOT ? "diamond" : "square";
+  if (member) return "round";
+  if (id === HUB_ROOT) return "diamond";
+  return /o$|-other$/.test(id) ? "octa" : "square";
 }
 
 /**
@@ -100,12 +105,16 @@ function addTree(
  * it, and the database tree at the hub.
  *
  * :param trees: The forest's trees, in order: each line's slug, trunk position and grove color.
+ * :param bonds: Sampled bonds shown per octant class, as the forest grew them.
+ * :param keep: The home disulfide, shown whatever `bonds` is.
  */
-export function buildSchematic(index: ClassIndex, trees: readonly { line: { slug: string }; x: number; z: number; color?: string }[]): Schematic {
+export function buildSchematic(
+  index: ClassIndex, trees: readonly { line: { slug: string }; x: number; z: number; color?: string }[], bonds = Infinity, keep?: string,
+): Schematic {
   const out: Schematic = { beads: [], limbs: [], bars: [] };
   const energy = (id: string) => index.energy.get(id);
   const family = new Map(trees.map((t) => [t.line.slug, t.color]));
-  trees.forEach((t, i) => addTree(lineTree(index, t.line.slug), i, t.x, t.z, out, energy, () => undefined));
+  trees.forEach((t, i) => addTree(lineTree(index, t.line.slug, bonds, keep), i, t.x, t.z, out, energy, () => undefined));
   addTree(hubTree(index), -1, 0, 0, out, energy, (id) => family.get(id));
   return out;
 }

@@ -100,7 +100,13 @@ test("input reset clears held keyboard, touch axes, look and interaction edges",
   assert.deepEqual([input.sampleActions().dragX, input.sampleActions().dragY], [0, 0], "and is used once");
   input.addDragLook(5, 5);
   input.resetInput();
-  assert.deepEqual(input.sampleActions(), { throttle: 0, steer: 0, boost: false, brake: false, interact: false, interactDown: false, pitch: 0, look: 0, dragX: 0, dragY: 0, dragging: false });
+  assert.deepEqual(input.sampleActions(), { throttle: 0, steer: 0, boost: false, brake: false, interact: false, interactDown: false, pitch: 0, look: 0, lift: 0, dragX: 0, dragY: 0, dragging: false });
+  // R raises the view, F lowers it.
+  input.setInjectedKeys(["KeyR"]);
+  assert.equal(input.sampleActions().lift, 1);
+  input.setInjectedKeys(["KeyF"]);
+  assert.equal(input.sampleActions().lift, -1);
+  input.setInjectedKeys(null);
   // Up/Down look; only W/S drive.
   input.setInjectedKeys(["ArrowUp"]);
   let look = input.sampleActions();
@@ -135,6 +141,9 @@ test("old or malformed preferences have usable defaults and bounded sensitivity"
   // Name plates are off unless turned on: a class tree's ids crowd the view.
   assert.equal(readPreferences().names, false);
   assert.equal(readPreferences({ names: true }).names, true);
+  // Bond complexity reads back, and an unknown level falls back to a default.
+  assert.equal(readPreferences({ bonds: "ultra" }).bonds, "ultra");
+  assert.ok(["low", "medium"].includes(readPreferences({ bonds: "lots" }).bonds));
   // A saved god's-eye view survives a reload.
   assert.equal(readPreferences({ camera: "god" }).camera, "god");
   assert.equal(readPreferences({ camera: "cart" }).camera, "cart");
@@ -177,4 +186,22 @@ test("blur and visibility clear controls; binding can be cleaned up and mounted 
   } finally {
     Object.assign(globalThis, previous);
   }
+});
+
+test("the cart cruises faster out on the rings, and eases back to its ordinary top speed", () => {
+  const { cruiseFactor, CRUISE_MAX, sim, teleportSim, stepVehicle } = require(`${process.env.FOREST_TEST_BUILD}/sim.js`);
+  const ring = (r) => ({ kind: "ring", pts: [[r, 0]], closed: true });
+  const forest = { roadLines: [ring(40), ring(80)] };
+  assert.equal(cruiseFactor(forest, 0, 10), 1, "inside the inner ring");
+  assert.equal(cruiseFactor(forest, 40, 0), 1, "on the inner ring");
+  assert.ok(Math.abs(cruiseFactor(forest, 0, 80) - 2) < 1e-9, "twice as far out, twice as fast");
+  assert.equal(cruiseFactor(forest, 0, 400), CRUISE_MAX, "never past the most");
+  assert.equal(cruiseFactor({ roadLines: [] }, 5, 5), 1);
+  // Over the cap when the cruise ends, it slows over time, not at once.
+  const empty = { trees: [], obstacles: [], roads: [], plazas: [], worldRadius: 1000, grid: new Map(), cell: 10 };
+  teleportSim(0, 0, 0);
+  sim.speed = 9;
+  stepVehicle(empty, 1, 0, false, 1 / 60, { pace: "gentle" });
+  assert.ok(sim.speed > 4.5 && sim.speed < 9, `eases down, at ${sim.speed.toFixed(2)} m/s`);
+  sim.speed = 0;
 });

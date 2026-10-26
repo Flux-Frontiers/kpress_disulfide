@@ -2,7 +2,8 @@ import { Bell, BellOff, BookOpen, Camera, Check, Clock, Compass, Ellipsis, Eye, 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { COARSE_POINTER } from "./Environment";
 import { exhibitApproach, type Exhibit } from "./exhibits";
-import { lineMatchesQuery, groveApproach, searchTrees, treeApproach, type Forest, type Grove, type TreeSite } from "./forest";
+import { lineMatchesQuery, groveApproach, searchTrees, treeApproach, treesNear, type Forest, type Grove, type TreeSite } from "./forest";
+import { treeExtent, treeViewPose } from "./portrait";
 import { albumRank, ALBUM_RANKS } from "./classForest";
 import { GenreGlyph } from "./GenreGlyph";
 import { SPECIES, speciesFor } from "./species";
@@ -10,6 +11,7 @@ import { saveScreenshot } from "./screenshot";
 import { SEASONS } from "./seasons";
 import { wrapAngle, yawToward } from "./sim";
 import { ClassReader } from "./ClassReader";
+import { readHubPlaque } from "./Molecules";
 import type { ClassIndex } from "./classCatalog";
 import { READ_RANGE, useGame, type PlaqueText } from "./store";
 import type { TimeMode } from "./sky";
@@ -388,12 +390,16 @@ export function HUD({ forest, index }: { forest: Forest; index: ClassIndex | nul
               </p>
               <p className="card-extra mt-2 hidden text-sm leading-relaxed text-fg/90 sm:block">
                 The database tree: every bond in the trunk, the 32 binary classes as its limbs in their families'
-                colors. Each grows as its own tree in the groves. Browse every class and jump to any one.
+                colors. Each grows as its own tree in the groves: click a limb to go to it, or browse every class.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button type="button" onClick={toggleCatalog}
                   className="min-h-11 rounded-md bg-primary px-4 text-sm text-primary-fg">
                   Browse every class · B
+                </button>
+                <button type="button" onClick={readHubPlaque}
+                  className="min-h-11 rounded-md border border-border px-4 text-sm text-primary">
+                  Read the plaque
                 </button>
               </div>
             </article>
@@ -435,7 +441,12 @@ export function HUD({ forest, index }: { forest: Forest; index: ClassIndex | nul
                     className="min-h-11 rounded-md border border-primary/60 px-4 text-sm text-fg">
                     Fly there
                   </button>
-                ) : null}
+                ) : (
+                  <button type="button" onClick={() => viewWholeTree(forest, nearby)}
+                    className="min-h-11 rounded-md border border-border px-4 text-sm text-fg">
+                    Whole tree · T
+                  </button>
+                )}
               </div>
             </article>
           ) : null}
@@ -455,7 +466,7 @@ export function HUD({ forest, index }: { forest: Forest; index: ClassIndex | nul
         </div>
 
         <p className="key-hints absolute bottom-3 left-1/2 hidden -translate-x-1/2 text-xs text-faint sm:block">
-          WASD drive · Drag or arrows look · Space brake · E album · B classes · C camera · V schematic · N names · Esc settings · ? about
+          WASD drive · Drag or arrows look · Space brake · R/F raise/lower · T whole tree · E album · B classes · C camera · V schematic · N names · Esc settings · ? about
         </p>
       </>)}
 
@@ -496,7 +507,28 @@ function jumpToGrove(g: Grove) {
   useGame.getState().requestJump({ x: wp.x, z: wp.z, yaw: wp.yaw }, `${g.label} grove`);
 }
 
-function jumpToTree(t: TreeSite) {
+/**
+ * T, or the card's button: look down on a tree whole (portrait.treeViewPose),
+ * or come back to the chase camera if already looking. The pinned tree, else
+ * the nearest within TREE_VIEW_RANGE.
+ */
+export function viewWholeTree(forest: Forest, t?: TreeSite) {
+  const s = useGame.getState();
+  if (s.treeView) { s.setTreeView(null); return; }
+  const pinned = s.pinnedSlug ? forest.trees.find((tr) => tr.line.slug === s.pinnedSlug) : undefined;
+  const nearest = treesNear(forest, s.x, s.z, TREE_VIEW_RANGE)
+    .sort((a, b) => Math.hypot(a.x - s.x, a.z - s.z) - Math.hypot(b.x - s.x, b.z - s.z))[0];
+  const tree = t ?? pinned ?? nearest;
+  if (!tree) { s.setToast("Drive up to a tree to see it whole"); return; }
+  const extent = treeExtent(forest.chunks[tree.chunk]!.bark.pos, tree.woodStart, tree.woodCount, tree.x, tree.z);
+  s.setTreeView(treeViewPose(tree, extent, s.x, s.z, 58, window.innerWidth / Math.max(1, window.innerHeight)));
+  s.setToast(`${tree.line.title} · T or drive to come back`);
+}
+
+/** How far T reaches for the nearest tree, m. */
+const TREE_VIEW_RANGE = 40;
+
+export function jumpToTree(t: TreeSite) {
   const s = useGame.getState();
   s.selectGrove(null);
   s.pickSearch(t.line.slug);
@@ -506,7 +538,7 @@ function jumpToTree(t: TreeSite) {
 }
 
 /** From god's eye: put the cart at the tree and dive the camera down to it. */
-function flyToTree(t: TreeSite) {
+export function flyToTree(t: TreeSite) {
   const s = useGame.getState();
   s.selectGrove(null);
   s.pinTree(t.line.slug);

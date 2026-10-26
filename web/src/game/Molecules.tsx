@@ -5,7 +5,7 @@ import { HUB_PLAQUE_DIR, HUB_PLAQUE_DIST, MONUMENT_PLINTH, MONUMENT_SCALE, molec
 import { bondName } from "./classCards";
 import { ballAndStick, type Ball, type Stick } from "./molecule";
 import { Lectern } from "./Signposts";
-import { useGame } from "./store";
+import { useGame, type PlaqueText } from "./store";
 
 const o = new Object3D();
 const up = new Vector3(0, 1, 0);
@@ -138,7 +138,16 @@ const MONUMENT_BODY =
   "The home disulfide, drawn ball-and-stick from its own coordinates in the Protein Data Bank, one " +
   "angstrom to 35 cm. Behind it stands the database tree: every bond in the trunk and the 32 binary " +
   "classes as its limbs, each as thick as the bonds it carries and leafed in its family's color. Each " +
-  "binary class grows as its own tree out in the groves. Click the tree or press B to browse every class.";
+  "binary class grows as its own tree out in the groves. Click a limb to go to its tree, or press B to " +
+  "browse every class.";
+
+/** The hub plaque's text as last drawn, for the hub card's "Read the plaque". */
+let hubPlaque: PlaqueText | null = null;
+
+/** Open the hub plaque's text in the plaque panel, where it reads from any camera. */
+export function readHubPlaque(): void {
+  if (hubPlaque) useGame.getState().openPlaque(hubPlaque);
+}
 
 /** The home disulfide at monument scale on the hub plaza, with its plaque. */
 export function Monument({ forest }: { forest: Forest }) {
@@ -157,12 +166,13 @@ export function Monument({ forest }: { forest: Forest }) {
   const byline = bond
     ? `${bond.energy.toFixed(2)} kcal/mol · Ca ${bond.ca_distance.toFixed(2)} Å · ${bond.classes.octant} · ${forest.corpusTree.focalName}`
     : forest.corpusTree.focalName;
+  hubPlaque = { title, byline, body: MONUMENT_BODY };
   return (
     <group>
       <Plinth x={x} z={z} top={MONUMENT_PLINTH} r={1.3} />
       {drawn ? <BallAndStickMesh balls={drawn.balls} sticks={drawn.sticks} /> : null}
       <group position={[px, 0, pz]} rotation={[0, Math.atan2(px, pz), 0]}
-        onClick={(e) => { e.stopPropagation(); useGame.getState().openCatalog(null); }}
+        onClick={(e) => { e.stopPropagation(); readHubPlaque(); }}
         onPointerOver={() => { document.body.style.cursor = "pointer"; }}
         onPointerOut={() => { document.body.style.cursor = ""; }}>
         <Lectern title={title} byline={byline} body={MONUMENT_BODY} />

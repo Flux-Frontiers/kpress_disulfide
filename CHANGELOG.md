@@ -15,11 +15,16 @@ uses [Semantic Versioning](https://semver.org/).
 - One tree per binary class (32): its quadrant classes the first ring of
   limbs, its octant classes and folded `-other` tips the second, and up to
   12 sampled bonds per octant class on a dome above it. Every class gets
-  the arc it needs on its ring, and limbs climb at one pitch.
+  the arc it needs on its ring, crowded rings split into up to four rows, and
+  limbs climb at one pitch.
 - Leaves and bond beads colored by torsional energy on a fixed ramp, blue
   for relaxed to red for strained.
 - One grove per class family: the six named families and each unnamed
-  binary class, 18 in all, seated by occupancy, with a species per family.
+  binary class, 18 in all: the unnamed classes on the inner ring, the
+  named families on the outer, each spaced by its crowns, with a species
+  per family.
+  A grove is sized by its trunks, with its largest tree by the ring road
+  and its crowns reaching over the road.
 - Model disulfides drawn ball-and-stick with proteusPy's colors and radii:
   each grove's representative at its stop, each tree's own model at its
   foot, and the home disulfide on the hub's monument, from its real
@@ -38,11 +43,23 @@ uses [Semantic Versioning](https://semver.org/).
   energy.
 - The album, with ranks: Reader, Modeler, Refiner, Curator and Keeper of
   the Classes.
-- Schematic mode (V): classes as cubes colored by tier, bonds as spheres
-  colored by energy.
+- Schematic mode (V): binary and quadrant classes as cubes and octant
+  classes as octahedra, colored by tier, bonds as spheres colored by
+  energy, on straight brushed-aluminum limbs.
+- R and F raise and lower the view, up to 60 m.
+- T, or "Whole tree" on a tree's card, looks down on the nearest tree whole;
+  T again or driving comes back.
+- The cart cruises faster out on the rings, up to 2.2 times, so a lap of
+  any ring takes about as long as the inner one.
+- The hub plaque opens to read in a panel, from its lectern or the hub
+  card.
 - Name plates (N), off by default: shown only near a tree and laid out so
   none covers another.
 - `web/LAYOUT.md`, describing how the orchard represents the database.
+- Bond complexity in settings: 1, 3, 6 or every sampled bond per octant
+  class, without moving a class; the home disulfide always shows.
+- A click on a limb of the database tree takes the cart to that binary
+  class's tree.
 
 ### Changed
 

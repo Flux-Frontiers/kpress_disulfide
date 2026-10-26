@@ -28,6 +28,39 @@ export function lerp(a: number, b: number, t: number): number {
 }
 
 /**
+ * The smallest circle holding every point: tried on each pair as a diameter
+ * and each triple's circumcircle, which suits the handful of trunks in a grove.
+ *
+ * :param pts: At least one point.
+ * :param through: A point the circle must pass through, by index, or -1.
+ * :returns: The circle's center and radius.
+ */
+export function enclosingCircle(pts: readonly { x: number; z: number }[], through = -1): { x: number; z: number; r: number } {
+  const holds = (c: { x: number; z: number; r: number }) => pts.every((p) => Math.hypot(p.x - c.x, p.z - c.z) <= c.r + 1e-6);
+  let best = { x: pts[0]!.x, z: pts[0]!.z, r: 0 };
+  if (holds(best)) return best;
+  best = { x: 0, z: 0, r: Infinity };
+  const consider = (c: { x: number; z: number; r: number }) => { if (c.r < best.r && holds(c)) best = c; };
+  // With `through`, only circles with that point on their rim.
+  const on = (...ks: number[]) => through < 0 || ks.includes(through);
+  for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
+    const a = pts[i]!, b = pts[j]!;
+    if (on(i, j)) consider({ x: (a.x + b.x) / 2, z: (a.z + b.z) / 2, r: Math.hypot(a.x - b.x, a.z - b.z) / 2 });
+    for (let k = j + 1; k < pts.length; k++) {
+      if (!on(i, j, k)) continue;
+      const c = pts[k]!;
+      const d = 2 * (a.x * (b.z - c.z) + b.x * (c.z - a.z) + c.x * (a.z - b.z));
+      if (Math.abs(d) < 1e-9) continue;
+      const a2 = a.x * a.x + a.z * a.z, b2 = b.x * b.x + b.z * b.z, c2 = c.x * c.x + c.z * c.z;
+      const x = (a2 * (b.z - c.z) + b2 * (c.z - a.z) + c2 * (a.z - b.z)) / d;
+      const z = (a2 * (c.x - b.x) + b2 * (a.x - c.x) + c2 * (b.x - a.x)) / d;
+      consider({ x, z, r: Math.hypot(a.x - x, a.z - z) });
+    }
+  }
+  return best;
+}
+
+/**
  * n points spread evenly (equal area each) over an annulus from `inner`, about
  * `spacing` apart: a sunflower (Vogel) spiral, r = sqrt(inner^2 + c^2 i).
  * Returns the points and the outer radius they reach.
@@ -61,13 +94,18 @@ export function sunflower(n: number, inner: number, spacing: number): { pts: { x
  * :param opts: `hub`, the least radius of the first ring; `setback`, ring road
  *   to grove edge; `gap`, least clear distance between two groves; `lane`,
  *   least clear distance from a spoke's centreline to a grove edge; `spokes`,
- *   how many spokes, at most one per inner-tier grove.
+ *   how many spokes, at most one per inner-tier grove; `spans`, each grove's
+ *   reach from its centre beyond its radius, its crowns, which neighbours,
+ *   spokes and the tiers either side keep `gap` from (default the radii);
+ *   `inner`, how many groves, from the first, make the inner tier (default
+ *   whichever count gives the smallest wheel); `keep`, a radius about the
+ *   hub the inner tier's crowns stay `gap` outside.
  * :returns: Each grove's centre and tier, each tier's ring radius, the spoke
- *   bearings (radians), and the world radius (the outermost grove edge).
+ *   bearings (radians), and the world radius (the outermost crown).
  */
 export function wheelLayout(
   radii: number[],
-  opts: { hub: number; setback: number; gap: number; lane: number; spokes: number },
+  opts: { hub: number; setback: number; gap: number; lane: number; spokes: number; spans?: number[]; inner?: number; keep?: number },
 ): { centers: { x: number; z: number }[]; tier: number[]; rings: number[]; spokes: number[]; outer: number } {
   const { hub, setback, gap, lane } = opts;
   radii.forEach((r, i) => {
@@ -80,15 +118,29 @@ export function wheelLayout(
   const LANE = -1;
   const laneR = Math.max(0, lane - gap);
   const rad = (g: number) => (g === LANE ? laneR : radii[g]!);
-  // Angle between neighbours whose inner edges both sit `setback` outside ring R.
+  // A grove's crowns, never inside its own edge.
+  const span = (g: number) => (g === LANE ? laneR : Math.max(radii[g]!, opts.spans?.[g] ?? 0));
+  // Angle between neighbours whose inner edges both sit `setback` outside
+  // ring R, their crowns `gap` apart.
   const sep = (R: number, a: number, b: number) => {
-    const ca = R + setback + a, cb = R + setback + b, d = a + b + gap;
+    const ca = R + setback + rad(a), cb = R + setback + rad(b), d = span(a) + span(b) + gap;
     return Math.acos(clamp((ca * ca + cb * cb - d * d) / (2 * ca * cb), -1, 1));
+  };
+  // Angle from a grove to its neighbour. Beside a lane it is the angle that
+  // keeps the whole spoke, a ray from the hub, `lane` clear of the grove's
+  // edge, not only the phantom's circle at the ring: a wide grove bulges
+  // toward the spoke farther out.
+  const sepOf = (R: number, a: number, b: number) => {
+    if (a !== LANE && b !== LANE) return sep(R, a, b);
+    const g = a === LANE ? b : a;
+    if (g === LANE) return 0;
+    const c = R + setback + radii[g]!;
+    return Math.max(sep(R, a, b), Math.asin(clamp((span(g) + lane) / c, -1, 1)));
   };
   const place = (order: number[], R: number): number[] | null => {
     const k = order.length;
     if (k === 1) return [0];
-    const gaps = order.map((g, i) => sep(R, rad(g), rad(order[(i + 1) % k]!)));
+    const gaps = order.map((g, i) => sepOf(R, g, order[(i + 1) % k]!));
     const slack = 2 * Math.PI - gaps.reduce((a, b) => a + b, 0);
     if (slack < 0) return null;
     const ang: number[] = [0];
@@ -100,7 +152,7 @@ export function wheelLayout(
     // Neighbours are spaced by construction; check every other pair too.
     for (let i = 0; i < k; i++) for (let j = i + 1; j < k; j++) {
       const a = at(i), b = at(j);
-      if (Math.hypot(a.x - b.x, a.z - b.z) < rad(order[i]!) + rad(order[j]!) + gap - 1e-6) return null;
+      if (Math.hypot(a.x - b.x, a.z - b.z) < span(order[i]!) + span(order[j]!) + gap - 1e-6) return null;
     }
     return ang;
   };
@@ -137,17 +189,22 @@ export function wheelLayout(
   const all = [...radii.keys()];
   let best: { tiers: number[][]; rings: number[]; outer: number } | null = null;
   // The first k groves in the inner tier; k = 0 is a single ring.
-  for (let k = 0; k < n; k++) {
+  const counts = opts.inner && opts.inner > 0 && opts.inner < n ? [opts.inner] : [...Array(n).keys()];
+  for (const k of counts) {
     const tiers = k ? [withLanes(all.slice(0, k)), all.slice(k)] : [withLanes(all)];
     const rings: number[] = [];
-    let least = hub;
+    let least = hub, crowns = opts.keep ?? 0;
     for (const t of tiers) {
-      const R = fit(t, least);
+      const groves = t.filter((g) => g !== LANE);
+      // Far enough out that the tier's crowns, reaching in past its ring,
+      // clear the hub's keep or the crowns of the tier inside.
+      const inward = Math.max(...groves.map((g) => span(g) - rad(g)));
+      const R = fit(t, Math.max(least, crowns + gap + inward - setback));
       rings.push(R);
-      least = R + setback + 2 * Math.max(...t.map(rad)) + setback;
+      least = R + setback + 2 * Math.max(...groves.map(rad)) + setback;
+      crowns = Math.max(...groves.map((g) => R + setback + rad(g) + span(g)));
     }
-    const last = tiers[tiers.length - 1]!;
-    const outer = rings[rings.length - 1]! + setback + 2 * Math.max(...last.map(rad));
+    const outer = crowns;
     if (!best || outer < best.outer - 1e-6) best = { tiers, rings, outer };
   }
   const { tiers, rings, outer } = best!;

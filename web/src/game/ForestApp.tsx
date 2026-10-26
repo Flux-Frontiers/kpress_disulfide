@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { About } from "./About";
 import { ForestCanvas } from "./ForestCanvas";
-import { HUD } from "./HUD";
+import { HUD, viewWholeTree } from "./HUD";
 import { PauseOverlay } from "./PauseOverlay";
 import { StartScreen } from "./StartScreen";
 import { TouchControls } from "./TouchControls";
@@ -12,6 +12,7 @@ import { chooseForest, indexCatalog, loadForestCatalog, loadForestIndex, type Cl
 import { ASSET_ROOT } from "./ClassReader";
 import { savedForest } from "./forestChoice";
 import { getForest, treeApproach, type Forest } from "./forest";
+import { BOND_CAP } from "./preferences";
 import { GROW_VERSION } from "./growTree";
 import { bindInput, isInputTarget } from "./input";
 import { requestPlace } from "./location";
@@ -32,6 +33,8 @@ export function ForestApp() {
   // the export's, its lowest-energy bond. A home must be a sampled member,
   // whose bond card the export wrote, or the export's own.
   const home = useGame((s) => s.home);
+  // Sampled bonds shown per octant class: the orchard regrows when this changes.
+  const bonds = useGame((s) => BOND_CAP[s.preferences.bonds]);
   const index = useMemo(() => (catalog ? indexCatalog(catalog) : null), [catalog]);
   const focal = useMemo(() => {
     if (!catalog || !index) return "";
@@ -110,12 +113,12 @@ export function ForestApp() {
       w.onmessage = (e: MessageEvent<{ id: number; forest: Forest }>) => {
         if (e.data.id === request.current) apply(e.data.forest);
       };
-      w.postMessage({ id, catalog, home: focal });
+      w.postMessage({ id, catalog, home: focal, bonds });
       return;
     }
-    const t = window.setTimeout(() => apply(getForest(catalog, focal)), 0);
+    const t = window.setTimeout(() => apply(getForest(catalog, focal, bonds)), 0);
     return () => window.clearTimeout(t);
-  }, [catalog, focal, GROW_VERSION]);
+  }, [catalog, focal, bonds, GROW_VERSION]);
 
   // `?tree=<slug>` opens the drive beside that book's tree instead of at home.
   const linked = useMemo(() => (forest ? treeFromSearch(window.location.search, forest.trees) : undefined), [forest]);
@@ -195,8 +198,9 @@ export function ForestApp() {
       if (e.code === "KeyN") st.setPreferences({ names: !st.preferences.names });
       if (e.code === "KeyH" && forest) {
         st.selectGrove(null);
-        st.requestJump(forest.home, "Home · the home tree");
+        st.requestJump(forest.home, "Home · the hub");
       }
+      if (e.code === "KeyT" && forest) viewWholeTree(forest);
     }
     window.addEventListener("keydown", onKey);
     function onBlur() {

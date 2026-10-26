@@ -8,7 +8,7 @@ import { atGroveStop, treesNear, type Forest } from "./forest";
 import { addDragLook, resetInput, sampleActions, setDragging } from "./input";
 import { crownFrame, flightPose, FOLLOW_BACK, FOLLOW_CAMERA, FOLLOW_UP, forestGodLimits, HIGH_AHEAD, HIGH_CAMERA, HIGH_LOOK_UP, godPose, groundPose, resetGodView, type Vec3 } from "./godEye";
 import { clamp } from "./math";
-import { forwardOf, sim, stepVehicle, teleportSim } from "./sim";
+import { cruiseFactor, forwardOf, sim, stepVehicle, teleportSim } from "./sim";
 import { hush, speak, speaking } from "./speech";
 import { markTourHeard, TOUR_FAREWELL, TOUR_LAP_DONE, tourHeard, tourIntro } from "./tourScript";
 import { planTour, steerTour, tourState, tourStop } from "./tour";
@@ -18,6 +18,9 @@ const camPos = new Vector3();
 /** Within this of a picked tree, the cart has arrived (reading range plus a margin). */
 const TRAIL_ARRIVED = 9;
 const lookAt = new Vector3();
+/** Where the whole-tree view's camera is, easing toward its pose. */
+const viewPos = new Vector3();
+const viewAt = new Vector3();
 /** Upward tilt, radians, the behind-the-cart camera rests at on a portrait screen. */
 const PORTRAIT_TILT = 0.14;
 /** Where the god's-eye camera looks, eased like its position so a zoom glides. */
@@ -28,6 +31,11 @@ const GROUND_FAR = 560;
 const GOD_NEAR = 2;
 /** Radians of turn or tilt per pixel dragged across the forest. */
 const DRAG_LOOK = 0.0042;
+/** R and F raise and lower the ground view this fast, m/s, up to LIFT_MAX above its own height. */
+const LIFT_RATE = 6;
+const LIFT_MAX = 60;
+/** Within this far of a grove's stop, m, the cart keeps its ordinary top speed. */
+const CRUISE_STOP_CLEAR = 15;
 /** A press that moves farther than this, in pixels, is a drag, not a click. */
 const DRAG_CLICK = 6;
 /** The start screen's slow circle round the redwood: radius and eye height, m, and radians a second. */
@@ -46,6 +54,10 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
   const wasBlocked = useRef(false);
   // Camera tilt in radians, held between drives; Up/Down or the right stick.
   const pitch = useRef(0);
+  /** How far R has raised the ground view above its own height, m (F lowers it). */
+  const lift = useRef(0);
+  /** The whole-tree view (T) was showing last frame. */
+  const viewing = useRef(false);
   /** The follow camera's framing of a tall tree beside the cart (crownFrame), eased. */
   const crown = useRef({ back: 0, rise: 0, tilt: 0 });
   /** Pan off the cart's heading, radians, left positive. */
@@ -174,6 +186,8 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
       if (speaking()) hush();
     } else {
       const a = sampleActions();
+      // Driving or steering, or the tour moving the cart, hands the whole-tree view back to the chase camera.
+      if ((a.throttle || a.steer || Math.abs(sim.speed) > 1) && useGame.getState().treeView) useGame.getState().setTreeView(null);
       let throttle = a.throttle;
       let steer = a.steer;
       let tourBrake = false;
@@ -257,9 +271,14 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
           }
         }
       }
-      stepVehicle(forest, throttle, steer, a.boost, dt, { ...preferences, brake: a.brake || tourBrake });
+      // Cruise faster out on the rings, but not with a tree's card up or near a grove's stop.
+      const st = useGame.getState();
+      const atStop = forest.circuit.some((wp) => Math.hypot(wp.x - sim.x, wp.z - sim.z) < CRUISE_STOP_CLEAR);
+      const cruise = st.cardSlug || st.pinnedSlug || atStop ? 1 : cruiseFactor(forest, sim.x, sim.z);
+      stepVehicle(forest, throttle, steer, a.boost, dt, { ...preferences, brake: a.brake || tourBrake, cruise });
       // A drag turns the view with the hand, as a mouse look does: right looks right, down looks down.
       pitch.current = clamp(pitch.current + a.pitch * 1.1 * dt - a.dragY * DRAG_LOOK, -0.45, 0.75);
+      lift.current = clamp(lift.current + a.lift * LIFT_RATE * dt, 0, LIFT_MAX);
       // Held arrows or a drag pan up to ~110° either way; let go, the view eases back ahead.
       look.current = clamp(look.current + a.look * 1.6 * dt - a.dragX * DRAG_LOOK, -1.9, 1.9);
       if (!a.look && !a.dragging) look.current *= Math.exp(-3 * dt);
@@ -336,9 +355,9 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
       // A standing adult's eye level (1.65 m), gazing level over the lantern, so the
       // horizon, plaques and plinths sit where they would on foot; tilt to look up.
       // Rigid, no chase lag.
-      camPos.set(sim.x - v.x * 0.45, sim.y + 1.65, sim.z - v.z * 0.45);
+      camPos.set(sim.x - v.x * 0.45, sim.y + 1.65 + lift.current, sim.z - v.z * 0.45);
       state.camera.position.copy(camPos);
-      lookAt.set(sim.x + v.x * 10, sim.y + 1.65, sim.z + v.z * 10);
+      lookAt.set(sim.x + v.x * 10, sim.y + 1.65 + lift.current, sim.z + v.z * 10);
     } else {
       // Beside a tall tree, the home tree too, the chase camera backs off and tilts up to its crown.
       const high = preferences.camera === "high";
@@ -358,17 +377,33 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
       crown.current.tilt += (want.tilt - crown.current.tilt) * ease;
       const follow = chase.back + crown.current.back;
       const height = chase.up + crown.current.rise;
-      camPos.set(sim.x - v.x * follow, sim.y + height, sim.z - v.z * follow);
+      camPos.set(sim.x - v.x * follow, sim.y + height + lift.current, sim.z - v.z * follow);
       state.camera.position.lerp(camPos, 1 - Math.exp(-3.4 * dt));
       // Behind the cart, look level down the road; the high view looks down at the cart.
       const ahead = high ? HIGH_AHEAD : 10;
-      lookAt.set(sim.x + v.x * ahead, sim.y + (high ? HIGH_LOOK_UP : FOLLOW_UP), sim.z + v.z * ahead);
+      lookAt.set(sim.x + v.x * ahead, sim.y + (high ? HIGH_LOOK_UP : FOLLOW_UP) + lift.current, sim.z + v.z * ahead);
       // The high view tilts from its own downward rest; the follow view's tilt is added below.
       if (high && crown.current.tilt > 0) {
         const reach = follow + ahead;
-        lookAt.y = sim.y + height + reach * Math.tan(HIGH_CAMERA.pitch + crown.current.tilt);
+        lookAt.y = sim.y + height + lift.current + reach * Math.tan(HIGH_CAMERA.pitch + crown.current.tilt);
       }
     }
+    // T: looking down on a tree whole, eased there from wherever the camera was.
+    const view = playing && !godEye && !flying ? game.treeView : null;
+    if (view) {
+      if (!viewing.current) viewPos.copy(state.camera.position);
+      viewing.current = true;
+      const ease = 1 - Math.exp(-2.5 * dt);
+      viewPos.lerp(viewAt.set(...view.cam), ease);
+      state.camera.position.copy(viewPos);
+      state.camera.lookAt(lookAt.set(...view.look));
+      cam.fov = MathUtils.lerp(cam.fov, view.fov, ease);
+      cam.near = GROUND_NEAR;
+      cam.far = GROUND_FAR;
+      cam.updateProjectionMatrix();
+      return;
+    }
+    viewing.current = false;
     // A tree portrait (portrait.ts) overrides the chase camera entirely.
     const portrait = game.portrait;
     if (portrait) {

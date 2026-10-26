@@ -58,13 +58,29 @@ export function yawToward(fromX: number, fromZ: number, toX: number, toZ: number
   return Math.atan2(-dx, -dz);
 }
 
+/** The most the cart's top speed grows out on the rings: a lap of any ring takes about as long as the inner ring's. */
+export const CRUISE_MAX = 2.2;
+
+/**
+ * How much faster the cart may go here: its distance from the hub over the
+ * inner ring's radius, from 1 inside the inner ring up to CRUISE_MAX.
+ *
+ * :param forest: Its ring roads.
+ * :param x: The cart's position, m.
+ */
+export function cruiseFactor(forest: Pick<Forest, "roadLines">, x: number, z: number): number {
+  const rings = forest.roadLines.filter((l) => l.kind === "ring").map((l) => Math.hypot(...l.pts[0]!));
+  if (!rings.length) return 1;
+  return clamp(Math.hypot(x, z) / Math.min(...rings), 1, CRUISE_MAX);
+}
+
 export function stepVehicle(
   forest: Forest,
   throttle: number,
   steer: number,
   boost: boolean,
   dt: number,
-  options: { brake?: boolean; pace?: Preferences["pace"]; sensitivity?: number } = {},
+  options: { brake?: boolean; pace?: Preferences["pace"]; sensitivity?: number; cruise?: number } = {},
 ) {
   // Small steps keep collisions and handling stable across frame rates.
   const steps = Math.ceil(Math.min(Math.max(dt, 0), 0.1) / (1 / 120));
@@ -73,11 +89,13 @@ export function stepVehicle(
 }
 
 function step(forest: Forest, throttle: number, steer: number, boost: boolean, dt: number,
-  options: { brake?: boolean; pace?: Preferences["pace"]; sensitivity?: number }) {
+  options: { brake?: boolean; pace?: Preferences["pace"]; sensitivity?: number; cruise?: number }) {
   const gentle = options.pace !== "brisk";
   // Halved for the compact layout (trees ~9 m apart): gentle is ~16 km/h.
-  const maxSpeed = (gentle ? 4.5 : 9) * (boost ? 1.45 : 1);
-  const accel = gentle ? 6 : 12;
+  // Out on the rings the cart may cruise faster (cruiseFactor).
+  const cruise = Math.max(1, options.cruise ?? 1);
+  const maxSpeed = (gentle ? 4.5 : 9) * (boost ? 1.45 : 1) * cruise;
+  const accel = (gentle ? 6 : 12) * cruise;
   if (options.brake) {
     sim.speed = Math.sign(sim.speed) * Math.max(0, Math.abs(sim.speed) - 32 * dt);
   } else {
@@ -86,7 +104,9 @@ function step(forest: Forest, throttle: number, steer: number, boost: boolean, d
   const drag = throttle === 0 ? 4.5 : 0.65;
   sim.speed *= Math.exp(-drag * dt);
   if (Math.abs(sim.speed) < 0.04 && throttle === 0) sim.speed = 0;
-  sim.speed = clamp(sim.speed, gentle ? -2.5 : -4.5, maxSpeed);
+  // Over the cap (the cruise just ended, by a card or a stop), ease down to it rather than stop dead.
+  if (sim.speed > maxSpeed) sim.speed = Math.max(maxSpeed, sim.speed - 10 * dt);
+  sim.speed = Math.max(sim.speed, gentle ? -2.5 : -4.5);
 
   const speedFactor = clamp(Math.abs(sim.speed) / 5, 0.65, 1);
   const turnRate = 1.55;

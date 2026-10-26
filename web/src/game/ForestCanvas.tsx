@@ -11,11 +11,15 @@ import { Player } from "./Player";
 import { HomeMarks } from "./HomeMarks";
 import { NamePlates } from "./NamePlates";
 import { SchematicOrchard } from "./SchematicOrchard";
-import { buildSchematic, type SchematicBead } from "./schematic";
+import { buildSchematic, pickBead, type SchematicBead } from "./schematic";
+import { flyToTree, jumpToTree } from "./HUD";
 import { setScreenshotCapture } from "./screenshot";
 import { Trees } from "./Trees";
 import { World } from "./World";
 import { useGame } from "./store";
+
+/** How near a click must pass to a database-tree limb's node to pick it, m: its foliage reaches about this far. */
+const HUB_LIMB_PICK = 1.5;
 
 export function ForestCanvas({ forest, catalog }: { forest: Forest; catalog: ClassCatalog | null }) {
   const season = useGame((s) => s.season);
@@ -27,7 +31,12 @@ export function ForestCanvas({ forest, catalog }: { forest: Forest; catalog: Cla
   const beadPicker = useRef<((ray: Ray, maxDist: number) => SchematicBead | null) | null>(null);
   // Every class's and member's place on its tree: the schematic draws it, and the name plates hang from it in either view.
   const index = useMemo(() => (catalog ? indexCatalog(catalog) : null), [catalog]);
-  const layout = useMemo(() => (index ? buildSchematic(index, forest.trees) : null), [index, forest]);
+  const layout = useMemo(
+    () => (index ? buildSchematic(index, forest.trees, forest.bonds, forest.corpusTree.focal) : null),
+    [index, forest],
+  );
+  // The database tree's 32 limbs, where its foliage hangs in either view.
+  const hubLimbs = useMemo(() => layout?.beads.filter((b) => b.tree === -1 && b.generation === 1) ?? [], [layout]);
 
   return (
     <Canvas
@@ -48,6 +57,11 @@ export function ForestCanvas({ forest, catalog }: { forest: Forest; catalog: Cla
         else if (s.libraryOpen) s.toggleLibrary();
         else if (s.atlasOpen) s.toggleAtlas();
         else {
+          // A limb of the database tree, in either view: off to that class's own tree.
+          aim(e);
+          const limb = pickBead(hubLimbs, raycaster.ray.origin, raycaster.ray.direction, HUB_LIMB_PICK, 200);
+          const own = limb ? forest.trees.find((t) => t.line.slug === limb.id) : undefined;
+          if (own) { (s.preferences.camera === "god" ? flyToTree : jumpToTree)(own); return; }
           // In schematic mode a bead opens its class's or bond's page.
           if (schematic && beadPicker.current) {
             aim(e);

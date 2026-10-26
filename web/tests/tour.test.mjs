@@ -73,11 +73,11 @@ test("the guided tour keeps to the road, from home and from the hub end of a spo
   for (const s of starts) {
     const { tour, onRoad, worst, stops, faced } = driveTour(f, s.x, s.z, s.yaw);
     if (s.name === "spoke") assert.ok(tour.loopStart > 0, "a start on a spoke rides the spoke out to the ring");
-    // The inner ring comes first: its stops before any on the outer ring.
+    // The outer ring, where the named families stand, comes first: its stops before any on the inner ring.
     const radii = tour.stops.map((st) => f.circuit.find((wp) => wp.genre === st.genre)).map((wp) => Math.round(Math.hypot(wp.x, wp.z)));
-    const inner = Math.min(...radii);
-    const firstOuter = radii.findIndex((r) => r > inner);
-    assert.ok(radii.slice(firstOuter).every((r) => r > inner), `${s.name}: stops by ring radius ${radii.join(", ")}`);
+    const outer = Math.max(...radii);
+    const firstInner = radii.findIndex((r) => r < outer);
+    assert.ok(firstInner > 0 && radii.slice(firstInner).every((r) => r < outer), `${s.name}: stops by ring radius ${radii.join(", ")}`);
     assert.ok(onRoad, `${s.name}: never reached the road`);
     // Half the narrowest road (the 2.8 m spokes).
     assert.ok(worst < 1.4, `${s.name}: strayed ${worst.toFixed(2)} m from the road`);

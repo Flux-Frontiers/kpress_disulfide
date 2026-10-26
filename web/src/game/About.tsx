@@ -13,6 +13,8 @@ const KEYS: [string, string][] = [
   ["G / B / L", "the grove atlas, every class, your album"],
   ["H / Q", "home to the hub / the guided tour"],
   ["C", "camera: behind, high, in the cart, god's eye"],
+  ["R / F", "raise / lower the view"],
+  ["T", "look down on the nearest tree whole; T again or drive to come back"],
   ["?", "this page"],
   ["Esc", "close a panel; with none open, settings"],
 ];

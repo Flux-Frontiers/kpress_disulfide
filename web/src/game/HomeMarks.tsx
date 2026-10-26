@@ -37,7 +37,7 @@ export function HomeMarks({ forest, catalog, schematic }: { forest: Forest; cata
     const home = forest.homeLine;
     if (!home) return null;
     const site = forest.trees[home.tree]!;
-    const tree = lineTree(indexCatalog(catalog), site.line.slug);
+    const tree = lineTree(indexCatalog(catalog), site.line.slug, forest.bonds, forest.corpusTree.focal);
     const wood = gildedDescent(tree, forest.corpusTree.focal, site.x, site.z);
     if (!wood) return null;
     const lines = schematic ? gildedSchematic(schematic, tree, forest.corpusTree.focal, site.x, site.z) : [];
