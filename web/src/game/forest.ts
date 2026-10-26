@@ -104,8 +104,12 @@ const GROVE_SETBACK = 1.4;
 const EXHIBIT_ROOM = 30;
 /** Least clear ground between two groves. */
 const GROVE_GAP = 4;
-/** A grove reaches this far past its widest crown, m, and is never smaller than GROVE_MIN_R. */
-const GROVE_MARGIN = 3;
+/**
+ * A grove reaches this far past its outermost trunk, m, and is never smaller
+ * than GROVE_MIN_R. Its crowns may reach past it, over the road: they start
+ * well above the cart.
+ */
+const TRUNK_CLEAR = 3;
 const GROVE_MIN_R = 5;
 /** Least clear ground from a spoke's centreline to a grove it passes between. */
 const SPOKE_LANE = 2;
@@ -309,22 +313,22 @@ const CROWN_SPREAD = 3;
 
 /**
  * Place a grove's trees as close to its heart as their crowns allow: largest
- * crown first, each tree takes the innermost spot on a fine sunflower spiral
- * where its trunk keeps MIN_TRUNK_GAP and its crown keeps CROWN_SPREAD of
- * clear ground from every crown already standing. A lone tree stands at the
- * centre. Returns trunk offsets from the grove centre in `grown` order, and
- * how far the farthest crown reaches from the centre.
+ * crown first, at the centre, then each tree takes the innermost spot on a
+ * fine sunflower spiral where its trunk keeps MIN_TRUNK_GAP and its crown
+ * keeps CROWN_SPREAD of clear ground from every crown already standing.
+ * Returns trunk offsets from the grove centre in `grown` order, how far the
+ * farthest crown reaches from the centre, and how far the farthest trunk.
  */
-function shyLayout(grown: GrownTree[], inner: number): { pts: { x: number; z: number }[]; extent: number } {
+function shyLayout(grown: GrownTree[], inner: number): { pts: { x: number; z: number }[]; extent: number; trunks: number } {
   const n = grown.length;
   const reach = grown.map(({ skeleton: { nodes, n: m } }) => {
     let r = 0;
     for (let k = 0; k < m; k++) r = Math.max(r, Math.hypot(nodes[k * 3]!, nodes[k * 3 + 2]!));
     return r;
   });
-  if (n === 1) return { pts: [{ x: 0, z: 0 }], extent: reach[0]! };
   const order = [...Array(n).keys()].sort((a, b) => reach[b]! - reach[a]! || a - b);
-  let cands = sunflower(n * 80 + 200, inner, 2).pts;
+  const spiral = (k: number) => [{ x: 0, z: 0 }, ...sunflower(k, inner, 2).pts];
+  let cands = spiral(n * 80 + 200);
   const placed: { i: number; x: number; z: number }[] = [];
   const out: { x: number; z: number }[] = new Array(n);
 
@@ -332,7 +336,7 @@ function shyLayout(grown: GrownTree[], inner: number): { pts: { x: number; z: nu
     // A spiral that runs out before a wide crown fits is extended; it is
     // prefix-stable, so every tree that already fit keeps its spot.
     for (let ci = 0; !out[i]; ci++) {
-      if (ci === cands.length) cands = sunflower(cands.length * 2, inner, 2).pts;
+      if (ci === cands.length) cands = spiral(cands.length * 2);
       const c = cands[ci]!;
       const clear = placed.every((p) => {
         const d = Math.hypot(p.x - c.x, p.z - c.z);
@@ -343,7 +347,11 @@ function shyLayout(grown: GrownTree[], inner: number): { pts: { x: number; z: nu
       out[i] = c;
     }
   }
-  return { pts: out, extent: Math.max(0, ...out.map((p, i) => Math.hypot(p.x, p.z) + reach[i]!)) };
+  return {
+    pts: out,
+    extent: Math.max(0, ...out.map((p, i) => Math.hypot(p.x, p.z) + reach[i]!)),
+    trunks: Math.max(0, ...out.map((p, i) => Math.hypot(p.x, p.z) + grown[i]!.trunkRadius)),
+  };
 }
 
 /** A signpost's centre from any road centreline: half the widest road (1.3 m), the cart (1.05 m), and a little. */
@@ -422,7 +430,8 @@ function buildForest(catalog: ClassCatalog, homeKey: string, bonds: number): For
   const energy = (key: string) => index.energy.get(key);
   const grownBy = genres.map((g) => byGenre.get(g)!.lines.map((id) => lineGrown(lineTree(index, id, bonds, homeKey), id, energy)));
   const layouts = grownBy.map((g) => shyLayout(g, bookInner));
-  const groveRadius = (extent: number) => Math.max(GROVE_MIN_R, extent + GROVE_MARGIN);
+  // A grove is as wide as its trunks need; its crowns may overhang the road.
+  const groveRadius = (trunks: number) => Math.max(GROVE_MIN_R, trunks + TRUNK_CLEAR);
 
   // The database tree, and a hub wide enough for its crown.
   const home = hubTree(index);
@@ -433,7 +442,7 @@ function buildForest(catalog: ClassCatalog, homeKey: string, bonds: number): For
   for (const person of home.people) if (person.y > 0) crownReach = Math.max(crownReach, Math.hypot(person.x, person.z));
   const hubPlazaR = HUB_PLAZA_R;
   const hubClear = Math.max(HUB_CLEAR, hubPlazaR + 8, crownReach + 6);
-  const wheel = wheelLayout(layouts.map((l) => groveRadius(l.extent)), {
+  const wheel = wheelLayout(layouts.map((l) => groveRadius(l.trunks)), {
     hub: hubClear, setback: GROVE_SETBACK, gap: GROVE_GAP, lane: SPOKE_LANE, spokes: SPOKES,
   });
   // Turn the wheel so a spoke runs out behind home: the drive starts on the road.
@@ -455,7 +464,7 @@ function buildForest(catalog: ClassCatalog, homeKey: string, bonds: number): For
   genres.forEach((genre, gi) => {
     const books = booksBy.get(genre)!;
     const c = groveCenters[gi]!;
-    const radius = groveRadius(layouts[gi]!.extent);
+    const radius = groveRadius(layouts[gi]!.trunks);
     const spots = layouts[gi]!.pts;
     const color = GENRE_PALETTE[gi % GENRE_PALETTE.length]!;
     const family = byGenre.get(genre)!;
@@ -511,7 +520,8 @@ function buildForest(catalog: ClassCatalog, homeKey: string, bonds: number): For
       species,
       x: c.x,
       z: c.z,
-      radius: radius + 6,
+      // Culled by its crowns, which reach past the grove.
+      radius: Math.max(radius, layouts[gi]!.extent) + 6,
       bark: {
         count: bark.pos.length / 3,
         pos: new Float32Array(bark.pos),
