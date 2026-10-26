@@ -1,11 +1,12 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Color, CylinderGeometry, InstancedMesh, MeshStandardMaterial, Object3D, Quaternion, SphereGeometry, Vector3 } from "three";
 import { loadAtoms, loadBond, type AtomsTable, type BondCard } from "./classCatalog";
-import { HUB_PLAQUE_DIR, HUB_PLAQUE_DIST, MONUMENT_PLINTH, MONUMENT_SCALE, moleculeExtent, type Forest, type MoleculeSite } from "./forest";
+import { HUB_PLAQUE_DIR, HUB_PLAQUE_DIST, MONUMENT_PLINTH, MONUMENT_SCALE, type Forest, type MoleculeSite } from "./forest";
 import { bondName } from "./classCards";
 import { ballAndStick, type Ball, type Stick } from "./molecule";
 import { Lectern } from "./Signposts";
 import { useGame, type PlaqueText } from "./store";
+import { UplightFixtures, useNightLamps } from "./Uplights";
 
 const o = new Object3D();
 const up = new Vector3(0, 1, 0);
@@ -150,17 +151,38 @@ export function readHubPlaque(): void {
   if (hubPlaque) useGame.getState().openPlaque(hubPlaque);
 }
 
-/** The home disulfide at monument scale on the hub plaza, with its plaque. */
+/** The home disulfide's lowest atom clears its plinth by this much, m: the brass pin shows between. */
+const MONUMENT_PIN_GAP = 0.25;
+const MONUMENT_PIN_R = 0.045;
+/**
+ * The light on the home disulfide: warm, above it and a little toward the
+ * plaque, so every side is lit and the reader's side most; stronger at night.
+ */
+const MONUMENT_LIGHT = { day: 8, night: 26, distance: 10, out: 0.9, up: 2.2 };
+
+/**
+ * The home disulfide at monument scale on the hub plaza, with its plaque:
+ * held on a brass pin from its plinth, its lowest atom just above it, and lit.
+ */
 export function Monument({ forest }: { forest: Forest }) {
   const base = useGame((s) => s.familyBase);
   const atoms = useAtoms(base);
   const bond = useBond(base, forest.corpusTree.focal);
+  const night = useNightLamps();
   const { x, z, yaw } = forest.monument;
   const drawn = useMemo(() => {
-    if (!atoms || !bond) return null;
-    const y = MONUMENT_PLINTH + moleculeExtent(bond) * MONUMENT_SCALE;
-    return ballAndStick(bond, atoms, { x, y, z, yaw, scale: MONUMENT_SCALE });
+    if (!atoms || !bond?.atoms.length) return null;
+    // Its centroid sits where its lowest atom, ball and all, clears the plinth by the pin's gap.
+    const low = bond.atoms.reduce((a, b) => (b.y < a.y ? b : a));
+    const r = (atoms.radii[low.element] ?? 1) * atoms.bs_scale;
+    const y = MONUMENT_PLINTH + MONUMENT_PIN_GAP + (r - low.y) * MONUMENT_SCALE;
+    const one = ballAndStick(bond, atoms, { x, y, z, yaw, scale: MONUMENT_SCALE });
+    // The pin holds the atom nearest the plinth's axis, rising plumb beneath it.
+    const pin = one.balls.reduce((a, b) => (Math.hypot(b.x - x, b.z - z) < Math.hypot(a.x - x, a.z - z) ? b : a));
+    return { y, pin, ...one };
   }, [atoms, bond, x, z, yaw]);
+  // The light leans out from the molecule toward the plaque, so the face a reader sees is lit most.
+  const toward = Math.atan2(Math.sin(HUB_PLAQUE_DIR) * HUB_PLAQUE_DIST - z, Math.cos(HUB_PLAQUE_DIR) * HUB_PLAQUE_DIST - x);
   const px = Math.cos(HUB_PLAQUE_DIR) * HUB_PLAQUE_DIST;
   const pz = Math.sin(HUB_PLAQUE_DIR) * HUB_PLAQUE_DIST;
   const title = bond ? bondName(bond) : forest.corpusTree.focal;
@@ -171,7 +193,22 @@ export function Monument({ forest }: { forest: Forest }) {
   return (
     <group>
       <Plinth x={x} z={z} top={MONUMENT_PLINTH} r={1.3} />
-      {drawn ? <BallAndStickMesh balls={drawn.balls} sticks={drawn.sticks} /> : null}
+      {drawn ? (
+        <>
+          {/* The pin: from the plinth's top up to the atom it holds. */}
+          <mesh position={[drawn.pin.x, (MONUMENT_PLINTH + drawn.pin.y) / 2, drawn.pin.z]} castShadow>
+            <cylinderGeometry args={[MONUMENT_PIN_R, MONUMENT_PIN_R * 1.4, drawn.pin.y - MONUMENT_PLINTH, 12]} />
+            <meshStandardMaterial color="#b08a3e" metalness={0.6} roughness={0.35} />
+          </mesh>
+          <BallAndStickMesh balls={drawn.balls} sticks={drawn.sticks} />
+          <pointLight color="#ffe2b0" decay={2} distance={MONUMENT_LIGHT.distance}
+            intensity={MONUMENT_LIGHT.day + (MONUMENT_LIGHT.night - MONUMENT_LIGHT.day) * night}
+            position={[x + Math.cos(toward) * MONUMENT_LIGHT.out, drawn.y + MONUMENT_LIGHT.up, z + Math.sin(toward) * MONUMENT_LIGHT.out]} />
+        </>
+      ) : null}
+      <group position={[x, 0, z]}>
+        <UplightFixtures radius={1.55} count={3} pool={2.4} />
+      </group>
       <group position={[px, 0, pz]} rotation={[0, Math.atan2(px, pz), 0]}
         onClick={(e) => { e.stopPropagation(); readHubPlaque(); }}
         onPointerOver={() => { document.body.style.cursor = "pointer"; }}
