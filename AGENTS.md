@@ -87,6 +87,42 @@ Merged on `main`:
   plaque opens to read; octahedral octant beads and aluminum schematic
   limbs; `web/LAYOUT.md` says what the orchard really shows. 165 web
   tests.
+- [#5](https://github.com/Flux-Frontiers/kpress_disulfide/pull/5): both
+  databases re-exported within the cutoffs, the test fixture regenerated,
+  `web/LAYOUT.md` re-measured.
+- [#6](https://github.com/Flux-Frontiers/kpress_disulfide/pull/6): of the
+  Forest's exhibits only the Double Helix; the start screen offers the
+  full database first; the Spirit of Life in a glade of her own, her
+  models copied by `make art`.
+- [#7](https://github.com/Flux-Frontiers/kpress_disulfide/pull/7): the hub
+  limbs family by family, each family one arc, without wander; the view
+  tilts to straight up and down and stays where it is left until the view
+  changes; riding the ring starts from the cart facing ahead; the Spirits'
+  bronze at metalness 0.45, fitted once as loaded.
+- [#8](https://github.com/Flux-Frontiers/kpress_disulfide/pull/8): Eureka,
+  the Spirit of Innovation, in a third glade (`Spirits.tsx` serves both);
+  the Prune setting, which leaves the folded `-other` tips undrawn in
+  place (`ClassTree.reach` keeps every grove where it stands).
+- [#9](https://github.com/Flux-Frontiers/kpress_disulfide/pull/9): the
+  cart view stands on the bed (`CART_EYE` 2.2 m) gazing a little up
+  (`CART_TILT`), a grove's sign at the center and the lantern out of
+  view; `.agentkg/` ignored.
+- [#10](https://github.com/Flux-Frontiers/kpress_disulfide/pull/10): the
+  database tree's wood at 0.6 of its pipe-model girth (`HUB_GIRTH`).
+- [#11](https://github.com/Flux-Frontiers/kpress_disulfide/pull/11): the
+  Spirits drawn from simplified copies (`models/far`, written by `make art`
+  with art_techno's gltf-transform) until within 30 m; lighter atoms.
+- [#12](https://github.com/Flux-Frontiers/kpress_disulfide/pull/12): leaner
+  fir, pine and oak leaves; on Ultra, god's eye drops from 9.9M to 5.9M
+  triangles a frame.
+- [#13](https://github.com/Flux-Frontiers/kpress_disulfide/pull/13): an
+  exhibit opens its plaque when clicked; Look ahead (X, or the target
+  button); raise and lower buttons on a touch screen; settings open at
+  the top on iOS.
+- [#14](https://github.com/Flux-Frontiers/kpress_disulfide/pull/14): the
+  album's ranks from Undergraduate to Doctor of Philosophy; the cart
+  carries a model of each class collected, on stands in two tiers. 159
+  web tests.
 
 Decided by EGS:
 
@@ -104,6 +140,15 @@ Decided by EGS:
   of her own, 10 m tall (2026-10-26; her models via `make art`, CC BY-NC
   4.0, never committed). Her Spirit of Innovation, Eureka, joined her in a
   third glade, 10 m tall (2026-10-26).
+- The hub limbs keep their taper to the tips (blunt limbs were tried and
+  rejected) and are drawn at 0.6 girth (#7, #10).
+- The free look never recenters by itself; it resets when the view
+  changes or the ring is ridden, and Look ahead brings it back (#7, #13).
+- Ultra is the setting to optimize against. Shadows stay, leaves
+  included; the leaves were simplified instead (#12).
+- The ranks run Undergraduate, Research Assistant, Graduate Student, PhD
+  Candidate, Doctor of Philosophy; the cart carries models of the classes
+  collected, in place of albums (#14).
 
 Nothing else is planned. Open with EGS: an app, and publishing.
 
