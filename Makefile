@@ -81,10 +81,11 @@ demos: art
 # The Spirits of Life and Innovation from Art Techno (CC BY-NC 4.0; see
 # PROVENANCE.md), into web/public/models, which is never committed, and a
 # simplified copy of each into models/far, drawn from afar (Spirits.tsx):
-# welded and simplified to SPIRIT_FAR of Art Techno's lighter export, with
-# Art Techno's own gltf-transform.
+# welded and simplified to SPIRIT_FAR of Art Techno's lighter export, its
+# maps cut to SPIRIT_FAR_PX, with Art Techno's own gltf-transform.
 GLTF_TRANSFORM ?= $(ART_TECHNO_DIR)/web/node_modules/.bin/gltf-transform
 SPIRIT_FAR ?= 0.15
+SPIRIT_FAR_PX ?= 512
 SPIRITS = life innovation-eureka
 
 art:
@@ -96,7 +97,8 @@ art:
 	tmp=$$(mktemp -d) && for m in $(SPIRITS); do \
 	  $(GLTF_TRANSFORM) weld web/public/models/mobile/$$m.glb $$tmp/$$m-w.glb && \
 	  $(GLTF_TRANSFORM) simplify $$tmp/$$m-w.glb $$tmp/$$m-s.glb --ratio $(SPIRIT_FAR) --error 0.002 && \
-	  $(GLTF_TRANSFORM) meshopt $$tmp/$$m-s.glb web/public/models/far/$$m.glb || exit 1; \
+	  $(GLTF_TRANSFORM) resize $$tmp/$$m-s.glb $$tmp/$$m-r.glb --width $(SPIRIT_FAR_PX) --height $(SPIRIT_FAR_PX) && \
+	  $(GLTF_TRANSFORM) meshopt $$tmp/$$m-r.glb web/public/models/far/$$m.glb || exit 1; \
 	done; rm -rf $$tmp
 
 gallery:
