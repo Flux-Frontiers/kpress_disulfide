@@ -28,6 +28,39 @@ export function lerp(a: number, b: number, t: number): number {
 }
 
 /**
+ * The smallest circle holding every point: tried on each pair as a diameter
+ * and each triple's circumcircle, which suits the handful of trunks in a grove.
+ *
+ * :param pts: At least one point.
+ * :param through: A point the circle must pass through, by index, or -1.
+ * :returns: The circle's center and radius.
+ */
+export function enclosingCircle(pts: readonly { x: number; z: number }[], through = -1): { x: number; z: number; r: number } {
+  const holds = (c: { x: number; z: number; r: number }) => pts.every((p) => Math.hypot(p.x - c.x, p.z - c.z) <= c.r + 1e-6);
+  let best = { x: pts[0]!.x, z: pts[0]!.z, r: 0 };
+  if (holds(best)) return best;
+  best = { x: 0, z: 0, r: Infinity };
+  const consider = (c: { x: number; z: number; r: number }) => { if (c.r < best.r && holds(c)) best = c; };
+  // With `through`, only circles with that point on their rim.
+  const on = (...ks: number[]) => through < 0 || ks.includes(through);
+  for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
+    const a = pts[i]!, b = pts[j]!;
+    if (on(i, j)) consider({ x: (a.x + b.x) / 2, z: (a.z + b.z) / 2, r: Math.hypot(a.x - b.x, a.z - b.z) / 2 });
+    for (let k = j + 1; k < pts.length; k++) {
+      if (!on(i, j, k)) continue;
+      const c = pts[k]!;
+      const d = 2 * (a.x * (b.z - c.z) + b.x * (c.z - a.z) + c.x * (a.z - b.z));
+      if (Math.abs(d) < 1e-9) continue;
+      const a2 = a.x * a.x + a.z * a.z, b2 = b.x * b.x + b.z * b.z, c2 = c.x * c.x + c.z * c.z;
+      const x = (a2 * (b.z - c.z) + b2 * (c.z - a.z) + c2 * (a.z - b.z)) / d;
+      const z = (a2 * (c.x - b.x) + b2 * (a.x - c.x) + c2 * (b.x - a.x)) / d;
+      consider({ x, z, r: Math.hypot(a.x - x, a.z - z) });
+    }
+  }
+  return best;
+}
+
+/**
  * n points spread evenly (equal area each) over an annulus from `inner`, about
  * `spacing` apart: a sunflower (Vogel) spiral, r = sqrt(inner^2 + c^2 i).
  * Returns the points and the outer radius they reach.

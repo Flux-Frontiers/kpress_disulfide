@@ -3,7 +3,7 @@ import { indexCatalog, type ClassCatalog, type Molecule } from "./classCatalog";
 import { homeTree, lineCard, lineGrown, speciesForGrove, type HomeTree, type LineCard } from "./classForest";
 import { hubTree, lineTree } from "./classTree";
 import { GROW_VERSION, emitBark, emitLeaves, type BarkBuffers, type GrownTree } from "./growTree";
-import { sunflower, wheelLayout } from "./math";
+import { enclosingCircle, sunflower, wheelLayout } from "./math";
 import type { Junction } from "./roads";
 import { groveNarration } from "./narration";
 import { SPECIES } from "./species";
@@ -313,13 +313,17 @@ const CROWN_SPREAD = 3;
 
 /**
  * Place a grove's trees as close to its heart as their crowns allow: largest
- * crown first, at the centre, then each tree takes the innermost spot on a
- * fine sunflower spiral where its trunk keeps MIN_TRUNK_GAP and its crown
- * keeps CROWN_SPREAD of clear ground from every crown already standing.
- * Returns trunk offsets from the grove centre in `grown` order, how far the
- * farthest crown reaches from the centre, and how far the farthest trunk.
+ * crown first, at the origin, then each tree takes the innermost spot behind
+ * it (x >= 0) on a fine sunflower spiral where its trunk keeps MIN_TRUNK_GAP
+ * and its crown keeps CROWN_SPREAD of clear ground from every crown already
+ * standing.
+ * The grove is then centred on the smallest circle round its trunks that has
+ * the largest tree on its rim. Returns
+ * trunk offsets from that centre in `grown` order, how far the farthest crown
+ * reaches from it, how far the farthest trunk, and the bearing of the largest
+ * tree, which the grove turns to face the hub.
  */
-function shyLayout(grown: GrownTree[], inner: number): { pts: { x: number; z: number }[]; extent: number; trunks: number } {
+function shyLayout(grown: GrownTree[], inner: number): { pts: { x: number; z: number }[]; extent: number; trunks: number; front: number } {
   const n = grown.length;
   const reach = grown.map(({ skeleton: { nodes, n: m } }) => {
     let r = 0;
@@ -338,6 +342,8 @@ function shyLayout(grown: GrownTree[], inner: number): { pts: { x: number; z: nu
     for (let ci = 0; !out[i]; ci++) {
       if (ci === cands.length) cands = spiral(cands.length * 2);
       const c = cands[ci]!;
+      // The rest stand behind the largest, so it is on the grove's edge, by the road.
+      if (placed.length && Math.abs(c.z) > c.x) continue;
       const clear = placed.every((p) => {
         const d = Math.hypot(p.x - c.x, p.z - c.z);
         return d >= MIN_TRUNK_GAP && d >= reach[i]! + reach[p.i]! + CROWN_SPREAD;
@@ -347,10 +353,15 @@ function shyLayout(grown: GrownTree[], inner: number): { pts: { x: number; z: nu
       out[i] = c;
     }
   }
+  // The smallest circle round the trunks with the largest tree on its rim.
+  const centre = enclosingCircle(out, order[0]!);
+  const pts = out.map((p) => ({ x: p.x - centre.x, z: p.z - centre.z }));
+  const big = pts[order[0]!]!;
   return {
-    pts: out,
-    extent: Math.max(0, ...out.map((p, i) => Math.hypot(p.x, p.z) + reach[i]!)),
-    trunks: Math.max(0, ...out.map((p, i) => Math.hypot(p.x, p.z) + grown[i]!.trunkRadius)),
+    pts,
+    extent: Math.max(0, ...pts.map((p, i) => Math.hypot(p.x, p.z) + reach[i]!)),
+    trunks: Math.max(0, ...pts.map((p, i) => Math.hypot(p.x, p.z) + grown[i]!.trunkRadius)),
+    front: Math.hypot(big.x, big.z) > 1e-6 ? Math.atan2(big.z, big.x) : 0,
   };
 }
 
@@ -465,7 +476,10 @@ function buildForest(catalog: ClassCatalog, homeKey: string, bonds: number): For
     const books = booksBy.get(genre)!;
     const c = groveCenters[gi]!;
     const radius = groveRadius(layouts[gi]!.trunks);
-    const spots = layouts[gi]!.pts;
+    // Turned so the largest tree stands on the hub side, by the ring road.
+    const turnBy = Math.atan2(-c.z, -c.x) - layouts[gi]!.front;
+    const tc = Math.cos(turnBy), ts = Math.sin(turnBy);
+    const spots = layouts[gi]!.pts.map((p) => ({ x: p.x * tc - p.z * ts, z: p.x * ts + p.z * tc }));
     const color = GENRE_PALETTE[gi % GENRE_PALETTE.length]!;
     const family = byGenre.get(genre)!;
     groves.push({
