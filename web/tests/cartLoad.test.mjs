@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
-const { cartLoad, cartBoxHalfExtents, leather, STAND_PARTS, BED_FLOOR, CART_SLOTS, CART_CAPACITY, LOAD_CAP, MODEL_SCALE } =
+const { cartLoad, cartBoxHalfExtents, leather, STAND_PARTS, BED_FLOOR, CART_SLOTS, CART_CAPACITY, LOAD_CAP, MODEL_SCALE, PIN_GAP, TIER_LIFT } =
   require(`${process.env.FOREST_TEST_BUILD}/cartLoad.js`);
 
 // A database has 32 binary classes; past that the cart drops lines.
@@ -46,11 +46,21 @@ test("the cart holds every binary class and drops lines past that", () => {
   assert.equal(load.seats.length, CART_SLOTS);
 });
 
-test("a stand wears its line's grove color as stain under a brass post and plate", () => {
+test("a stand wears its line's grove color as stain under a brass plate", () => {
   const { boxes } = cartLoad(slugs.slice(0, 10), colorOf);
   for (let k = 0; k < 10; k++) {
-    assert.deepEqual(boxes.slice(k * STAND_PARTS, (k + 1) * STAND_PARTS).map((b) => b.color), [leather(colorOf(slugs[k])), "#b08a3e", "#b08a3e"]);
+    assert.deepEqual(boxes.slice(k * STAND_PARTS, (k + 1) * STAND_PARTS).map((b) => b.color), [leather(colorOf(slugs[k])), "#b08a3e"]);
   }
+});
+
+test("the models ride on pins, low and high in a checkerboard; the stands all sit on the bed", () => {
+  const { boxes, seats } = cartLoad(slugs, colorOf);
+  seats.forEach((s, k) => {
+    assert.ok(Math.abs(s.base - bounds(boxes[k * STAND_PARTS + 1]).y1) < 1e-9, "the pin stands on its plate");
+    const high = (k % 4 + Math.floor(k / 4)) % 2 === 1;
+    assert.ok(Math.abs(s.floor - (s.base + PIN_GAP + (high ? TIER_LIFT : 0))) < 1e-9, `model ${k} ${high ? "high" : "low"}`);
+  });
+  assert.equal(new Set(boxes.map((b) => bounds(b).y0.toFixed(6))).size, 2, "a block on the bed and a plate on the block, the same in every stand");
 });
 
 test("adding one more line adds one model and moves none", () => {
@@ -75,9 +85,6 @@ test("every stand and model sits inside the bed, the stands on the floor, the mo
     assert.ok(r.y0 >= BED_FLOOR - 1e-9 && r.y1 <= LOAD_CAP, `y ${r.y0.toFixed(3)}..${r.y1.toFixed(3)}`);
   }
   assert.ok(Math.abs(bounds(boxes[0]).y0 - BED_FLOOR) < 1e-9, "the first stand stands on the floor");
-  for (let k = 0; k < seats.length; k++) {
-    assert.ok(Math.abs(seats[k].floor - bounds(boxes[k * STAND_PARTS + 2]).y1) < 1e-9, "a model rests on its plate");
-  }
 });
 
 test("the view from the seat and from behind is clear: nothing stands in 1.3 to 1.65 m", () => {

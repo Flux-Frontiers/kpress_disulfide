@@ -1,18 +1,19 @@
 /**
  * The lantern cart's cargo: one model disulfide for each class the rider has
  * added to the album, its binary class's consensus model in ball and stick,
- * standing on a small stand in its grove's color in the bed.
+ * held on a brass pin above a small stand in its grove's color in the bed.
  *
  * Pure layout, no React or three, so the tests can run it. Slot k belongs to
  * the k-th line added, and depends only on k and that line's slug, so adding
  * one more line adds one model and never moves the others.
  *
- * A stand is a block in the grove's color, a brass post and a brass plate,
- * three boxes, so the cart draws every stand as one InstancedMesh
- * (Cart.tsx). Its model is drawn by the caller at the seat this layout gives
- * it (Player.tsx). The stands alternate low and high in a checkerboard, so a
- * model only has to clear its diagonal neighbors at its own height: twice
- * the room of a flat grid.
+ * A stand is a block in the grove's color under a brass plate, two boxes, so
+ * the cart draws every stand as one InstancedMesh (Cart.tsx). Its model is
+ * drawn by the caller at the seat this layout gives it, on a brass pin from
+ * the plate to one of its atoms, as the home disulfide stands (Player.tsx).
+ * The models ride low and high in a checkerboard, so a model only has to
+ * clear its diagonal neighbors at its own height: twice the room of a flat
+ * grid.
  *
  * The cart's local frame has forward as +z and the bed floor at y = 0.53. The
  * bed runs 1.04 m between the side rails and from the tailboard to the front
@@ -42,8 +43,10 @@ export type CartBox = {
 export type CartSeat = {
   /** The line whose model this is. */
   slug: string;
-  /** The center of the stand's top, m: the model's lowest atom rests here. */
+  /** The center of the stand's plate, m, where the pin stands. */
   x: number;
+  base: number;
+  /** Where the model's lowest atom, ball and all, sits, m: the pin's gap above the plate, and the tier's lift. */
   floor: number;
   z: number;
   /** The model's turn about the vertical, radians. */
@@ -65,11 +68,9 @@ const ROW_PITCH = 0.199;
 /** Center of the first row, m: a model's reach clear of the tailboard. */
 const ROW_Z0 = -0.736;
 
-/** A stand's block, square, its brass post and plate, m. */
+/** A stand's block, square, and its brass plate, m. */
 const STAND = 0.13;
 const STAND_H = 0.03;
-const POST = 0.025;
-const POST_H = 0.02;
 const PLATE = 0.11;
 const PLATE_H = 0.006;
 /**
@@ -79,11 +80,13 @@ const PLATE_H = 0.006;
  * under the lamp (1.13 m), and diagonal neighbors at one height clear each other.
  */
 export const MODEL_SCALE = 0.03;
-/** A high stand's post rises this much more than a low one's, m: a low model's height. */
-const TIER_LIFT = 0.27;
+/** A low model's lowest atom clears its plate by this much, m: the pin shows between. */
+export const PIN_GAP = 0.02;
+/** A high model rides this much higher on its pin, m: a low model's height. */
+export const TIER_LIFT = 0.27;
 
 /** Boxes drawn for each stand. */
-export const STAND_PARTS = 3;
+export const STAND_PARTS = 2;
 /** How many models the cart holds; lines added past this are not drawn. */
 export const CART_SLOTS = COLS * ROWS;
 /** How many boxes the cart draws at most. */
@@ -160,17 +163,15 @@ export function cartLoad(slugs: readonly string[], colorOf: (slug: string) => st
     const x = (col - (COLS - 1) / 2) * COL_PITCH;
     // From the front, by the lantern, back toward the tailboard.
     const z = ROW_Z0 + (ROWS - 1 - row) * ROW_PITCH;
-    const post = POST_H + ((col + row) % 2) * TIER_LIFT;
     const box = (y: number, w: number, h: number, color: string): CartBox => ({ x, y, z, w, h, d: w, yaw: 0, lean: 0, color });
-    const top = BED_FLOOR + STAND_H + post;
     boxes.push(
       box(BED_FLOOR + STAND_H / 2, STAND, STAND_H, leather(colorOf(slug))),
-      box(BED_FLOOR + STAND_H + post / 2, POST, post, BRASS),
-      box(top + PLATE_H / 2, PLATE, PLATE_H, BRASS),
+      box(BED_FLOOR + STAND_H + PLATE_H / 2, PLATE, PLATE_H, BRASS),
     );
+    const base = BED_FLOOR + STAND_H + PLATE_H;
     // Each model turned its own way, so the rows do not read as a grid of one shape.
     const yaw = (hashSlug(slug) / 4294967296) * 2 * Math.PI;
-    seats.push({ slug, x, floor: top + PLATE_H, z, yaw, scale: MODEL_SCALE });
+    seats.push({ slug, x, base, floor: base + PIN_GAP + ((col + row) % 2) * TIER_LIFT, z, yaw, scale: MODEL_SCALE });
   }
   return { boxes, seats };
 }
