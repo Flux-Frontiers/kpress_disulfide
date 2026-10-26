@@ -10,8 +10,9 @@ uses [Semantic Versioning](https://semver.org/).
 ### Added
 
 - The web orchard, read from `proteusPy.export_web` databases in
-  `web/public/forests/`: the 5,000-bond subset or the full database of
-  175,277 bonds, chosen on the start screen.
+  `web/public/forests/`: the subset (4,575 bonds) or the full database
+  (158,965 bonds, the published set within proteusPy's Ca and Sg
+  cutoffs), chosen on the start screen.
 - One tree per binary class (32): its quadrant classes the first ring of
   limbs, its octant classes and folded `-other` tips the second, and up to
   12 sampled bonds per octant class on a dome above it. Every class gets
