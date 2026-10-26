@@ -21,6 +21,8 @@ export type Preferences = {
   names: boolean;
   /** Sampled bonds shown per octant class; see BOND_CAP. */
   bonds: BondDetail;
+  /** Draw only the octant classes with their own limb, so the sparse ones show as gaps (lineTree). */
+  prune: boolean;
 };
 
 export type BondDetail = "low" | "medium" | "high" | "ultra";
@@ -53,5 +55,6 @@ export function readPreferences(value?: Partial<Preferences>): Preferences {
     names: typeof value?.names === "boolean" ? value.names : false,
     bonds: value?.bonds && value.bonds in BOND_CAP ? value.bonds
       : typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches ? "low" : "medium",
+    prune: value?.prune === true,
   };
 }

@@ -32,7 +32,7 @@ export function ForestCanvas({ forest, catalog }: { forest: Forest; catalog: Cla
   // Every class's and member's place on its tree: the schematic draws it, and the name plates hang from it in either view.
   const index = useMemo(() => (catalog ? indexCatalog(catalog) : null), [catalog]);
   const layout = useMemo(
-    () => (index ? buildSchematic(index, forest.trees, forest.bonds, forest.corpusTree.focal) : null),
+    () => (index ? buildSchematic(index, forest.trees, forest.bonds, forest.corpusTree.focal, forest.prune) : null),
     [index, forest],
   );
   // The database tree's 32 limbs, where its foliage hangs in either view.

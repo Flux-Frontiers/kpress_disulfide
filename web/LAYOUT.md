@@ -24,6 +24,10 @@ Every class id carries its tier's suffix. Octant `22222o` and binary
 export's `min_members` (2 on the subset, 20 on the full database) gets no
 limb of its own. It is folded, with its count kept, into its quadrant's
 `<quadrant id>-other` tip (465 tips on the subset, 948 on the full).
+The Prune setting leaves those tips undrawn, and any quadrant class with
+nothing else above it. Every class keeps its place, so the sparse octants
+show as gaps in the rings. No tree or grove moves: the groves are laid out
+by each crown's full reach, drawn or not.
 
 The sextant tier is not drawn. It does not nest under the quadrant tier
 (proteusPy issue, fleet sweep item 95).
@@ -343,4 +347,5 @@ FOREST=full`; the full export takes about 11 s and writes 52 MB.
 | `FOREST_MEMBERS` | `make forest` | 12 | Bonds sampled per drawn octant class, lowest energy first |
 | `FOREST_HOME` | `make forest` | the lowest-energy bond | The monument's disulfide |
 | Bond complexity | the app's settings | Medium (3), Low on a touch screen | How many of each sample are drawn |
+| Prune sparse octants | the app's settings | off | Leaves the `-other` tips, and quadrants with only those, undrawn |
 | `?home=`, "Make this the home disulfide" | the URL, the reader | | The monument's disulfide for this visit or this device |

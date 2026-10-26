@@ -74,6 +74,9 @@ export function PauseOverlay() {
             <option value="high">High · 6</option><option value="ultra">Ultra · every sampled bond</option>
           </select>
         </label>
+        <label className="flex items-center justify-between gap-4">Prune sparse octants · only those with their own limb
+          <input type="checkbox" checked={prefs.prune} onChange={(e) => setPreferences({ prune: e.target.checked })} />
+        </label>
         <label className="flex items-center justify-between gap-4">Shadows & forest floor detail
           <input type="checkbox" checked={prefs.detail} onChange={(e) => setPreferences({ detail: e.target.checked })} />
         </label>

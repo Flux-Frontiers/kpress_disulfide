@@ -84,6 +84,8 @@ art:
 	mkdir -p web/public/models/mobile
 	cp $(ART_TECHNO_DIR)/web/public/models/life.glb web/public/models/life.glb
 	cp $(ART_TECHNO_DIR)/web/public/models/mobile/life.glb web/public/models/mobile/life.glb
+	cp $(ART_TECHNO_DIR)/web/public/models/innovation-eureka.glb web/public/models/innovation-eureka.glb
+	cp $(ART_TECHNO_DIR)/web/public/models/mobile/innovation-eureka.glb web/public/models/mobile/innovation-eureka.glb
 
 gallery:
 	cd web && node scripts/gallery.mjs

@@ -30,7 +30,7 @@ builds.
 |---|---|
 | `classCatalog.ts` | Types for the export, the class index, and the loaders |
 | `classTree.ts` | The layout: line trees and the database tree, the class hierarchy as wood |
-| `SpiritOfLife.tsx` | Art Techno's Spirit of Life in her exhibit glade, from `public/models` (`make art`) |
+| `Spirits.tsx` | Art Techno's Spirits of Life and Innovation, each in her exhibit glade, from `public/models` (`make art`) |
 | `classForest.ts` | Line cards, line trees as the renderer's trees, the database tree, energy colors |
 | `forest.ts` | The orchard: groves by class family, the hub, roads, the tour loop, representatives |
 | `molecule.ts`, `Molecules.tsx` | Ball-and-stick disulfides: representatives, foot plates, the monument |

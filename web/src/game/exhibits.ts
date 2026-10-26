@@ -31,12 +31,15 @@ export type Exhibit = ExhibitSpec & {
 
 // Of the Forest's exhibits only the Double Helix, a molecule, stays; the
 // Mysterium Cosmographicum and the armillary sundial were dropped, and Art
-// Techno's Spirit of Life came in (EGS, 2026-10-26).
+// Techno's Spirit of Life came in (EGS, 2026-10-26), then her Spirit of
+// Innovation, Eureka.
 export const EXHIBITS: ExhibitSpec[] = [
   // The Double Helix (WindSculptures.tsx): a narrow plinth, but a spinning helix that needs open air.
   { id: "dna", label: "Double Helix", obstacle: 1.8, treeClearance: 8 },
-  // The Spirit of Life (SpiritOfLife.tsx): 10 m tall on a slab about 5 by 4 m.
+  // The Spirit of Life (Spirits.tsx): 10 m tall on a slab about 5 by 4 m.
   { id: "life", label: "Spirit of Life", obstacle: 3.4, treeClearance: 10 },
+  // The Spirit of Innovation (Spirits.tsx): 10 m tall, in mid-stride on a plinth about 7 by 6 m.
+  { id: "innovation", label: "Spirit of Innovation", obstacle: 4.6, treeClearance: 12 },
 ];
 
 /** Keep exhibits out from under the redwood's crown and apart from one another. */

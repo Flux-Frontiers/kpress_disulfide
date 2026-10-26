@@ -112,6 +112,7 @@ export function lineGrown(tree: ClassTree, key: string, energy: (member: string)
     step: 0.6 * tree.scale,
     trunkHeight: tree.trunkHeight,
     trunkRadius: tree.skeleton.radii[1] ?? 0.2,
+    reach: tree.reach,
   };
 }
 

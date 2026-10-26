@@ -52,8 +52,9 @@ is the export's lowest-energy bond (`2q7q_75D_140D` on the full database).
 12), and `FOREST_MIN_MEMBERS` how many an octant class needs for its own
 limb.
 
-`make art` copies Art Techno's Spirit of Life (`ART_TECHNO_DIR`, default
-`../art_techno`), who stands in her own exhibit glade; her models are CC
+`make art` copies Art Techno's Spirits of Life and Innovation
+(`ART_TECHNO_DIR`, default `../art_techno`), each in her own exhibit glade;
+their models are CC
 BY-NC 4.0 and not committed here (see [PROVENANCE.md](PROVENANCE.md)).
 
 `?forest=<slug>` opens that database; otherwise the one chosen last on this

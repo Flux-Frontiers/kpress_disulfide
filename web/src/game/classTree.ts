@@ -101,6 +101,11 @@ export type ClassTree = {
   scale: number;
   /** Edges not drawn because their target was already placed; 0 in a strict partition. */
   skipped: number;
+  /**
+   * The crown's reach from the trunk, m, over every class's place, drawn or
+   * pruned: the groves are laid out by it, so pruning never moves a tree.
+   */
+  reach: number;
 };
 
 type P3 = [number, number, number];
@@ -112,9 +117,11 @@ class Builder {
   people: TreePerson[] = [];
   placed = new Set<string>();
   skipped = 0;
+  reach = 0;
 
   add(p: P3, parent: number, id: string | null, generation = 0, flow = 0, member = false): number {
     const node = this.points.length;
+    this.reach = Math.max(this.reach, Math.hypot(p[0], p[2]));
     this.points.push(p);
     this.parents.push(parent);
     this.flow.push(flow);
@@ -149,6 +156,8 @@ type Shape = {
   members: (id: string) => string[];
   /** Bonds through the node, over min_members: its flow into the pipe model. */
   flow: (id: string) => number;
+  /** A class that keeps its place on its ring but is not drawn, nor anything beyond it (prune). */
+  hidden?: (id: string) => boolean;
 };
 
 /**
@@ -255,14 +264,18 @@ function ringsOf(tiers: Map<number, { count: number; arc: number }>, f: Frame, w
   return rings;
 }
 
-/** The crown above `node`: a radial tidy tree, wedges by `weigh`, members on a dome over each octant class. */
+/**
+ * The crown above `node`: a radial tidy tree, wedges by `weigh`, members on a
+ * dome over each octant class. A hidden class (`node` -1) and everything above
+ * it take their places, for the reach and the rows, but nothing is drawn.
+ */
 function placeCanopy(
   shape: Shape, b: Builder, f: Frame, rings: Map<number, Ring>, weigh: (id: string, tier: number) => number,
   id: string, node: number, gen: number, start: number, span: number,
 ): void {
-  const here = b.points[node]!;
-  const members = shape.members(id);
+  const members = node < 0 ? [] : shape.members(id);
   if (members.length) {
+    const here = b.points[node]!;
     const mid = start + span / 2;
     // Equal areas of the cap, lowest energy at the top, spiralling down and out.
     const rim = 1 - Math.cos(MEMBER_CAP);
@@ -284,7 +297,9 @@ function placeCanopy(
     c0 += kidSpan;
     // In rows, classes take turns, outermost first, round the ring.
     const r = ring.radius - (ring.placed++ % ring.rows) * ROW_GAP;
-    const n = b.add(polar(r * spanReach(kidSpan), angle, ring.y), node, k, gen + 1, shape.flow(k));
+    const at = polar(r * spanReach(kidSpan), angle, ring.y);
+    b.reach = Math.max(b.reach, Math.hypot(at[0], at[2]));
+    const n = node < 0 || shape.hidden?.(k) ? -1 : b.add(at, node, k, gen + 1, shape.flow(k));
     placeCanopy(shape, b, f, rings, weigh, k, n, gen + 1, angle - kidSpan / 2, kidSpan);
   });
 }
@@ -367,7 +382,7 @@ function finish(b: Builder, key: string, f: Frame, tipRadius: number): ClassTree
   }
   const skeleton: Skeleton = { nodes: Float32Array.from(pts), parents: parentArr, radii, n };
   const people = b.people.map((p) => ({ ...p, node: map[p.node]! }));
-  return { skeleton, people, trunkHeight: f.trunkHeight, scale: f.scale, skipped: b.skipped };
+  return { skeleton, people, trunkHeight: f.trunkHeight, scale: f.scale, skipped: b.skipped, reach: b.reach };
 }
 
 function grow(shape: Shape, root: string, key: string, f: Frame, tipRadius: number): ClassTree {
@@ -409,15 +424,24 @@ function flowOf(index: ClassIndex): (id: string) => number {
  * :param bonds: Members shown per octant class, lowest energy first. The
  *   classes stand where they would with every member, so this never moves one.
  * :param keep: A member shown whatever `bonds` is: the home disulfide.
+ * :param prune: Draw only the octant classes with their own limb: no `other`
+ *   tips (the sparse octants folded together), and no quadrant class left
+ *   with nothing above it. Every class keeps its place, so the gaps show.
  * :throws: For an unknown line.
  */
-export function lineTree(index: ClassIndex, lineId: string, bonds = Infinity, keep?: string): ClassTree {
+export function lineTree(index: ClassIndex, lineId: string, bonds = Infinity, keep?: string, prune = false): ClassTree {
   if (!index.line.has(lineId)) throw new Error(`no such line: ${lineId}`);
   const all = (id: string) => (index.cls.get(id)?.members ?? []).map((m) => m.key);
+  const sparse = (id: string): boolean => {
+    const c = index.cls.get(id);
+    if (c?.level === "other") return true;
+    return c?.level === "quadrant" && (index.children.get(id) ?? []).every(sparse);
+  };
   const shape: Shape = {
     kids: (id) => index.children.get(id) ?? [],
     members: (id) => all(id).filter((key, j) => j < bonds || key === keep),
     flow: flowOf(index),
+    hidden: prune ? sparse : undefined,
   };
   const population = weightOf({ ...shape, members: all }, lineId, new Map());
   const scale = sizeScale(population);

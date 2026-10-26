@@ -191,6 +191,8 @@ export type Forest = {
   trees: TreeSite[];
   /** Sampled bonds shown per octant class, and so on every tree, its schematic and its home marks. */
   bonds: number;
+  /** Only the octant classes with their own limb drawn, the rest left as gaps (lineTree's prune). */
+  prune: boolean;
   /** Arcs between lines, by index into trees: always empty here, the Family's marriage arcs. */
   links: ForestLink[];
   groves: Grove[];
@@ -263,11 +265,12 @@ function cellKey(cx: number, cz: number): string {
  * :param catalog: As `proteusPy.export_web` wrote it.
  * :param home: The home disulfide's key.
  * :param bonds: Sampled bonds shown per octant class (preferences.BOND_CAP).
+ * :param prune: Draw only the octant classes with their own limb (preferences.prune).
  */
-export function getForest(catalog: ClassCatalog, home: string, bonds = Infinity): Forest {
-  const key = `${GROW_VERSION}:${catalog.meta.generated}:${catalog.meta.database.bonds}:${home}:${bonds}`;
+export function getForest(catalog: ClassCatalog, home: string, bonds = Infinity, prune = false): Forest {
+  const key = `${GROW_VERSION}:${catalog.meta.generated}:${catalog.meta.database.bonds}:${home}:${bonds}:${prune}`;
   if (cached && cachedVersion === key) return cached;
-  cached = buildForest(catalog, home, bonds);
+  cached = buildForest(catalog, home, bonds, prune);
   cachedVersion = key;
   return cached;
 }
@@ -325,7 +328,8 @@ const CROWN_SPREAD = 3;
  */
 function shyLayout(grown: GrownTree[], inner: number): { pts: { x: number; z: number }[]; extent: number; trunks: number; front: number } {
   const n = grown.length;
-  const reach = grown.map(({ skeleton: { nodes, n: m } }) => {
+  const reach = grown.map(({ skeleton: { nodes, n: m }, reach: known }) => {
+    if (known !== undefined) return known;
     let r = 0;
     for (let k = 0; k < m; k++) r = Math.max(r, Math.hypot(nodes[k * 3]!, nodes[k * 3 + 2]!));
     return r;
@@ -424,7 +428,7 @@ function roundTurns(path: [number, number][], r: number): [number, number][] {
   return out.filter((p, k) => k === 0 || Math.hypot(p[0] - out[k - 1]![0], p[1] - out[k - 1]![1]) > 1e-6);
 }
 
-function buildForest(catalog: ClassCatalog, homeKey: string, bonds: number): Forest {
+function buildForest(catalog: ClassCatalog, homeKey: string, bonds: number, prune: boolean): Forest {
   const index = indexCatalog(catalog);
   // One grove per class family, holding each of its binary classes. The
   // unnamed classes take the inner tier and the named families, with the
@@ -442,7 +446,7 @@ function buildForest(catalog: ClassCatalog, homeKey: string, bonds: number): For
   // hub-and-spoke wheel around the database tree (wheelLayout).
   const bookInner = 6.5;
   const energy = (key: string) => index.energy.get(key);
-  const grownBy = genres.map((g) => byGenre.get(g)!.lines.map((id) => lineGrown(lineTree(index, id, bonds, homeKey), id, energy)));
+  const grownBy = genres.map((g) => byGenre.get(g)!.lines.map((id) => lineGrown(lineTree(index, id, bonds, homeKey, prune), id, energy)));
   const layouts = grownBy.map((g) => shyLayout(g, bookInner));
   // A grove is as wide as its trunks need; its crowns may overhang the road.
   const groveRadius = (trunks: number) => Math.max(GROVE_MIN_R, trunks + TRUNK_CLEAR);
@@ -736,6 +740,7 @@ function buildForest(catalog: ClassCatalog, homeKey: string, bonds: number): For
   return {
     trees,
     bonds,
+    prune,
     links,
     groves,
     roads,

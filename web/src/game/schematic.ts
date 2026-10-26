@@ -107,14 +107,16 @@ function addTree(
  * :param trees: The forest's trees, in order: each line's slug, trunk position and grove color.
  * :param bonds: Sampled bonds shown per octant class, as the forest grew them.
  * :param keep: The home disulfide, shown whatever `bonds` is.
+ * :param prune: Only the octant classes with their own limb, as the forest grew them.
  */
 export function buildSchematic(
   index: ClassIndex, trees: readonly { line: { slug: string }; x: number; z: number; color?: string }[], bonds = Infinity, keep?: string,
+  prune = false,
 ): Schematic {
   const out: Schematic = { beads: [], limbs: [], bars: [] };
   const energy = (id: string) => index.energy.get(id);
   const family = new Map(trees.map((t) => [t.line.slug, t.color]));
-  trees.forEach((t, i) => addTree(lineTree(index, t.line.slug, bonds, keep), i, t.x, t.z, out, energy, () => undefined));
+  trees.forEach((t, i) => addTree(lineTree(index, t.line.slug, bonds, keep, prune), i, t.x, t.z, out, energy, () => undefined));
   addTree(hubTree(index), -1, 0, 0, out, energy, (id) => family.get(id));
   return out;
 }

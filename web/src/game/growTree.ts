@@ -24,6 +24,8 @@ export type GrownTree = {
   step: number;
   trunkHeight: number;
   trunkRadius: number;
+  /** The crown's reach, m, if the tree knows it better than its wood does (ClassTree.reach). */
+  reach?: number;
 };
 
 /** Bump when the geometry changes so the forest cache rebuilds. */
