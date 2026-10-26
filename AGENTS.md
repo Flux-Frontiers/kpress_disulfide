@@ -100,7 +100,9 @@ Decided by EGS:
   (2026-10-26; proteusPy#63).
 - The database tree keeps its redwood bark; the 18 groves stand; both
   databases are offered, the full one first; of the Forest's exhibits only
-  the Double Helix stays (2026-10-26).
+  the Double Helix stays, and Art Techno's Spirit of Life stands in a glade
+  of her own, 10 m tall (2026-10-26; her models via `make art`, CC BY-NC
+  4.0, never committed).
 
 Nothing else is planned. Open with EGS: an app, and publishing.
 

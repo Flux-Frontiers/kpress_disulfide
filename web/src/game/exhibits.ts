@@ -29,11 +29,14 @@ export type Exhibit = ExhibitSpec & {
   spur: [number, number][];
 };
 
-// The Double Helix alone: a molecule, at home in this orchard. The Forest's
-// Mysterium Cosmographicum and armillary sundial were dropped (EGS, 2026-10-26).
+// Of the Forest's exhibits only the Double Helix, a molecule, stays; the
+// Mysterium Cosmographicum and the armillary sundial were dropped, and Art
+// Techno's Spirit of Life came in (EGS, 2026-10-26).
 export const EXHIBITS: ExhibitSpec[] = [
   // The Double Helix (WindSculptures.tsx): a narrow plinth, but a spinning helix that needs open air.
   { id: "dna", label: "Double Helix", obstacle: 1.8, treeClearance: 8 },
+  // The Spirit of Life (SpiritOfLife.tsx): 10 m tall on a slab about 5 by 4 m.
+  { id: "life", label: "Spirit of Life", obstacle: 3.4, treeClearance: 10 },
 ];
 
 /** Keep exhibits out from under the redwood's crown and apart from one another. */

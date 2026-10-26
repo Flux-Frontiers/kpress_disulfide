@@ -36,7 +36,7 @@ from. The exports are not committed. `make forest` drives the export from a
 sibling proteusPy checkout (`PROTEUSPY_DIR`, default `../proteusPy`):
 
 ```bash
-make demos                    # the subset that ships with proteusPy: 4,575 bonds
+make demos                    # the subset that ships with proteusPy: 4,575 bonds, and make art
 make forest FOREST=full       # the full database: 158,965 bonds, about 11 s and 52 MB
 make web-dev
 ```
@@ -51,6 +51,10 @@ is the export's lowest-energy bond (`2q7q_75D_140D` on the full database).
 `FOREST_MEMBERS` sets how many bonds are sampled per octant class (default
 12), and `FOREST_MIN_MEMBERS` how many an octant class needs for its own
 limb.
+
+`make art` copies Art Techno's Spirit of Life (`ART_TECHNO_DIR`, default
+`../art_techno`), who stands in her own exhibit glade; her models are CC
+BY-NC 4.0 and not committed here (see [PROVENANCE.md](PROVENANCE.md)).
 
 `?forest=<slug>` opens that database; otherwise the one chosen last on this
 device, or the first. Each database keeps its own album and home

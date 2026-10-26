@@ -15,6 +15,7 @@ import { CorpusRedwood } from "./CorpusRedwood";
 import { Cart } from "./Cart";
 import { Molecules, Monument } from "./Molecules";
 import { Signposts } from "./Signposts";
+import { SpiritOfLife } from "./SpiritOfLife";
 import { SEASONS, type SeasonName } from "./seasons";
 import { sim } from "./sim";
 import { useGame } from "./store";
@@ -28,6 +29,7 @@ const CLEAR = { fogDensity: 0, cloud: 0, kind: "clear" as const };
 
 const EXHIBIT_VIEWS: Record<string, ComponentType<{ exhibit: Exhibit }>> = {
   dna: DnaSculpture,
+  life: SpiritOfLife,
 };
 const TRAIL_N = 20;
 

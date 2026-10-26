@@ -43,6 +43,20 @@ The orchard reads the disulfide database (`web/src/game/classCatalog.ts`,
 written by proteusPy's `proteusPy.export_web`; `make forest`). The reader
 is class and bond cards (`ClassReader.tsx`, `classCards.ts`), and the HUD,
 tour, album ranks and About speak of classes and bonds. Nothing user-facing
-is still the Family's; the world (sky, weather, roads, cart, exhibits) is
-shared with it and The Forest, and code comments may still name people,
-lines and generations where the shared renderers kept the Family's terms.
+is still the Family's; the world (sky, weather, roads, cart, the Double
+Helix) is shared with it and The Forest, and code comments may still name
+people, lines and generations where the shared renderers kept the Family's
+terms. Of the Forest's exhibits only the Double Helix was kept.
+
+## The Spirit of Life, from Art Techno
+
+The statue in the second exhibit glade (`web/src/game/SpiritOfLife.tsx`) is
+the Spirit of Life from
+[art_techno](https://github.com/Flux-Frontiers/art_techno) ("The Gilded
+Circuit"), by Eric G. Suchanek: its models `web/public/models/life.glb` and
+`web/public/models/mobile/life.glb`, its name, and its plaque text, adapted
+from art_techno's `web/src/spirits.ts`. Art Techno's art is licensed
+[CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) (art_techno's
+`LICENSE-ART`), not under this repository's Elastic License 2.0. The models are
+not committed here: `make art` copies them from `ART_TECHNO_DIR` (default
+`../art_techno`), and without them the glade shows only her plaque.

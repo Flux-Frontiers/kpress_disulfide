@@ -60,6 +60,7 @@ web/public/families/
 .demo/
 # The disulfide orchards written by proteusPy's web export (make forest).
 web/public/forests/
+web/public/models/
 
 # Local stills for review; not committed
 renders/

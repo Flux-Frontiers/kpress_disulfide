@@ -57,6 +57,9 @@ uses [Semantic Versioning](https://semver.org/).
 - Name plates (N), off by default: shown only near a tree and laid out so
   none covers another.
 - `web/LAYOUT.md`, describing how the orchard represents the database.
+- The Spirit of Life from Art Techno, 10 m tall in her own exhibit glade
+  beside the Double Helix, floodlit at night; `make art` copies her
+  models (CC BY-NC 4.0, not committed).
 - Bond complexity in settings: 1, 3, 6 or every sampled bond per octant
   class, without moving a class; the home disulfide always shows.
 - A click on a limb of the database tree takes the cart to that binary
