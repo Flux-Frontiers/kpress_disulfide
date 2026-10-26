@@ -47,6 +47,12 @@ uses [Semantic Versioning](https://semver.org/).
   classes as octahedra, colored by tier, bonds as spheres colored by
   energy, on straight brushed-aluminum limbs.
 - R and F raise and lower the view, up to 60 m.
+- T, or "Whole tree" on a tree's card, looks down on the nearest tree whole;
+  T again or driving comes back.
+- The cart cruises faster out on the rings, up to 2.2 times, so a lap of
+  any ring takes about as long as the inner one.
+- The hub plaque opens to read in a panel, from its lectern or the hub
+  card.
 - Name plates (N), off by default: shown only near a tree and laid out so
   none covers another.
 - `web/LAYOUT.md`, describing how the orchard represents the database.
