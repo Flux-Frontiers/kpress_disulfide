@@ -159,8 +159,11 @@ machine, including the ones EGS keeps running for other editions.
 
 ## Rules
 
-- No publish target, no Pages workflow, no release, no version bump, no
-  tag, until EGS says so. The repo is private.
+- No release, no version bump and no tag until EGS says so. The repo is
+  public (2026-10-26). The Pages site deploys from `main` (web.yml); its
+  databases and models come from the draft `web-data` release, which only
+  `make web-data-publish` updates, and only when EGS says what should be
+  live.
 - Work on a branch and open a PR. Never merge. No stacked PRs: a follow-up
   waits until the earlier PR merges.
 - Commit messages and PR bodies are written to a file first and passed

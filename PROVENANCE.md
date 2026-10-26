@@ -63,4 +63,7 @@ not committed here: `make art` copies them from `ART_TECHNO_DIR` (default
 `../art_techno`), and without one its glade shows only its plaque. `make
 art` also writes a simplified copy of each, `web/public/models/far/`, with
 art_techno's own gltf-transform; those are derived from the same models,
-under the same license, and are not committed either.
+under the same license, and are not committed either. The Pages site
+serves all of them, unaltered but for the simplified copies, under CC BY-NC
+4.0 with this attribution, from the draft `web-data` release that `make
+web-data-publish` writes; the site is free and non-commercial.

@@ -7,6 +7,13 @@ uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- The orchard on GitHub Pages, https://flux-frontiers.github.io/kpress_disulfide/,
+  built and deployed from `main`. Its databases and the Spirits' models
+  come from the draft `web-data` release; `make web-data-publish` uploads
+  them and redeploys.
+
 ## [0.1.0] - 2026-10-26
 
 ### Added
