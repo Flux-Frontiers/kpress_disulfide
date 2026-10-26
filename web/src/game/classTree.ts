@@ -359,19 +359,23 @@ function flowOf(index: ClassIndex): (id: string) => number {
 
 /**
  * A line's tree: its binary class at the trunk top, quadrant and octant
- * classes above, members as twigs.
+ * classes above, members on domes.
  *
  * :param lineId: A binary class id, such as `00000b`.
+ * :param bonds: Members shown per octant class, lowest energy first. The
+ *   classes stand where they would with every member, so this never moves one.
+ * :param keep: A member shown whatever `bonds` is: the home disulfide.
  * :throws: For an unknown line.
  */
-export function lineTree(index: ClassIndex, lineId: string): ClassTree {
+export function lineTree(index: ClassIndex, lineId: string, bonds = Infinity, keep?: string): ClassTree {
   if (!index.line.has(lineId)) throw new Error(`no such line: ${lineId}`);
+  const all = (id: string) => (index.cls.get(id)?.members ?? []).map((m) => m.key);
   const shape: Shape = {
     kids: (id) => index.children.get(id) ?? [],
-    members: (id) => (index.cls.get(id)?.members ?? []).map((m) => m.key),
+    members: (id) => all(id).filter((key, j) => j < bonds || key === keep),
     flow: flowOf(index),
   };
-  const population = weightOf(shape, lineId, new Map());
+  const population = weightOf({ ...shape, members: all }, lineId, new Map());
   const scale = sizeScale(population);
   // The reach shrinks with the population, as the Family's does, until its
   // rings must widen to fit their classes.

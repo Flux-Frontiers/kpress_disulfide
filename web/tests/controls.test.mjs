@@ -135,6 +135,9 @@ test("old or malformed preferences have usable defaults and bounded sensitivity"
   // Name plates are off unless turned on: a class tree's ids crowd the view.
   assert.equal(readPreferences().names, false);
   assert.equal(readPreferences({ names: true }).names, true);
+  // Bond complexity reads back, and an unknown level falls back to a default.
+  assert.equal(readPreferences({ bonds: "ultra" }).bonds, "ultra");
+  assert.ok(["low", "medium"].includes(readPreferences({ bonds: "lots" }).bonds));
   // A saved god's-eye view survives a reload.
   assert.equal(readPreferences({ camera: "god" }).camera, "god");
   assert.equal(readPreferences({ camera: "cart" }).camera, "cart");

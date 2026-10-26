@@ -19,7 +19,14 @@ export type Preferences = {
   schematic: boolean;
   /** Class ids and bond keys over the tree nearest the cart (NamePlates.tsx); off unless turned on. */
   names: boolean;
+  /** Sampled bonds shown per octant class; see BOND_CAP. */
+  bonds: BondDetail;
 };
+
+export type BondDetail = "low" | "medium" | "high" | "ultra";
+
+/** Sampled bonds shown on each octant class's dome, lowest energy first; ultra shows every one the export sampled. */
+export const BOND_CAP: Record<BondDetail, number> = { low: 1, medium: 3, high: 6, ultra: Infinity };
 
 
 export type FogLevel = "clear" | "light" | "normal" | "heavy";
@@ -44,5 +51,7 @@ export function readPreferences(value?: Partial<Preferences>): Preferences {
     narrate: value?.narrate === true,
     schematic: value?.schematic === true,
     names: typeof value?.names === "boolean" ? value.names : false,
+    bonds: value?.bonds && value.bonds in BOND_CAP ? value.bonds
+      : typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches ? "low" : "medium",
   };
 }

@@ -68,6 +68,12 @@ export function PauseOverlay() {
         <label className="flex items-center justify-between gap-4">Show geometry & frame rate
           <input type="checkbox" checked={prefs.stats} onChange={(e) => setPreferences({ stats: e.target.checked })} />
         </label>
+        <label className="flex items-center justify-between gap-4">Bond complexity
+          <select value={prefs.bonds} onChange={(e) => setPreferences({ bonds: e.target.value as typeof prefs.bonds })} className="rounded-md border border-border bg-bg p-2">
+            <option value="low">Low · 1 bond per octant</option><option value="medium">Medium · 3</option>
+            <option value="high">High · 6</option><option value="ultra">Ultra · every sampled bond</option>
+          </select>
+        </label>
         <label className="flex items-center justify-between gap-4">Shadows & forest floor detail
           <input type="checkbox" checked={prefs.detail} onChange={(e) => setPreferences({ detail: e.target.checked })} />
         </label>

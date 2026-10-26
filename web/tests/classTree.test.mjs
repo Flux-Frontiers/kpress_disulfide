@@ -155,3 +155,20 @@ test("the database shown: the URL's, else the last chosen, else the first", () =
   assert.equal(chooseForest(forests, "nothing", "full").slug, "full");
   assert.equal(chooseForest(forests, null, null).slug, "subset");
 });
+
+test("the bond cap thins each dome without moving a class, and keeps the home bond", () => {
+  const line = [...SUBSET.lines].sort((a, b) => b.count - a.count)[0].id;
+  const full = lineTree(index, line);
+  const one = lineTree(index, line, 1);
+  const at = (t) => new Map(t.people.filter((p) => !p.member).map((p) => [p.id, [p.x, p.y, p.z]]));
+  assert.deepEqual(at(one), at(full), "every class stands where it does with every bond");
+  const perOctant = new Map();
+  for (const p of one.people.filter((q) => q.member)) perOctant.set(index.memberOf.get(p.id), (perOctant.get(index.memberOf.get(p.id)) ?? 0) + 1);
+  assert.ok([...perOctant.values()].every((n) => n === 1));
+  // A member past the cap is shown when it is the home disulfide.
+  const octant = SUBSET.classes.find((c) => c.line === line && (c.members?.length ?? 0) > 1);
+  const home = octant.members.at(-1).key;
+  const kept = lineTree(index, line, 1, home);
+  assert.ok(kept.people.some((p) => p.id === home));
+  assert.ok(!one.people.some((p) => p.id === home));
+});

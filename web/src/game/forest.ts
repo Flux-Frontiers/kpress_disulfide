@@ -185,6 +185,8 @@ export type ForestLink = { family: string; a: number; b: number; married: string
 
 export type Forest = {
   trees: TreeSite[];
+  /** Sampled bonds shown per octant class, and so on every tree, its schematic and its home marks. */
+  bonds: number;
   /** Arcs between lines, by index into trees; empty until neighbor arcs are drawn. */
   links: ForestLink[];
   groves: Grove[];
@@ -256,11 +258,12 @@ function cellKey(cx: number, cz: number): string {
  *
  * :param catalog: As `proteusPy.export_web` wrote it.
  * :param home: The home disulfide's key.
+ * :param bonds: Sampled bonds shown per octant class (preferences.BOND_CAP).
  */
-export function getForest(catalog: ClassCatalog, home: string): Forest {
-  const key = `${GROW_VERSION}:${catalog.meta.generated}:${catalog.meta.database.bonds}:${home}`;
+export function getForest(catalog: ClassCatalog, home: string, bonds = Infinity): Forest {
+  const key = `${GROW_VERSION}:${catalog.meta.generated}:${catalog.meta.database.bonds}:${home}:${bonds}`;
   if (cached && cachedVersion === key) return cached;
-  cached = buildForest(catalog, home);
+  cached = buildForest(catalog, home, bonds);
   cachedVersion = key;
   return cached;
 }
@@ -402,7 +405,7 @@ function roundTurns(path: [number, number][], r: number): [number, number][] {
   return out.filter((p, k) => k === 0 || Math.hypot(p[0] - out[k - 1]![0], p[1] - out[k - 1]![1]) > 1e-6);
 }
 
-function buildForest(catalog: ClassCatalog, homeKey: string): Forest {
+function buildForest(catalog: ClassCatalog, homeKey: string, bonds: number): Forest {
   const index = indexCatalog(catalog);
   // One grove per class family, holding each of its binary classes. Groves
   // are seated in order of occupancy, so the tour meets the most populous
@@ -417,7 +420,7 @@ function buildForest(catalog: ClassCatalog, homeKey: string): Forest {
   // occupancy order so the tour loop meets them most populous first.
   const bookInner = 6.5;
   const energy = (key: string) => index.energy.get(key);
-  const grownBy = genres.map((g) => byGenre.get(g)!.lines.map((id) => lineGrown(lineTree(index, id), id, energy)));
+  const grownBy = genres.map((g) => byGenre.get(g)!.lines.map((id) => lineGrown(lineTree(index, id, bonds, homeKey), id, energy)));
   const layouts = grownBy.map((g) => shyLayout(g, bookInner));
   const groveRadius = (extent: number) => Math.max(GROVE_MIN_R, extent + GROVE_MARGIN);
 
@@ -701,6 +704,7 @@ function buildForest(catalog: ClassCatalog, homeKey: string): Forest {
 
   return {
     trees,
+    bonds,
     links,
     groves,
     roads,
