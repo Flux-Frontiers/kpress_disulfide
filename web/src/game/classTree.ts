@@ -151,8 +151,11 @@ type Shape = {
   flow: (id: string) => number;
 };
 
-/** `ring`: reach per tier, m, before the scale; a ring widens past it to fit its classes. */
-type Frame = { scale: number; trunkHeight: number; ring: number };
+/**
+ * `ring`: reach per tier, m, before the scale; a ring widens past it to fit its classes.
+ * `jitter`: sideways wander on each edge, as a fraction of it (EDGE_JITTER if absent).
+ */
+type Frame = { scale: number; trunkHeight: number; ring: number; jitter?: number };
 
 /** One tier's ring: its radius and height. */
 /**
@@ -328,7 +331,7 @@ function finish(b: Builder, key: string, f: Frame, tipRadius: number): ClassTree
     for (let k = 1; k <= EDGE_SUBDIVISIONS; k++) {
       const t = k / (EDGE_SUBDIVISIONS + 1);
       const a = (1 - t) ** 2, c = 2 * (1 - t) * t, e = t * t;
-      const off = normal(rng) * EDGE_JITTER * length * Math.sin(Math.PI * t);
+      const off = normal(rng) * (f.jitter ?? EDGE_JITTER) * length * Math.sin(Math.PI * t);
       pts.push(
         a * start[0] + c * ctrl[0] + e * end[0] + sx * off,
         a * start[1] + c * ctrl[1] + e * end[1],
@@ -426,16 +429,17 @@ export function lineTree(index: ClassIndex, lineId: string, bonds = Infinity, ke
 
 /**
  * The database tree at the hub: every bond in the trunk and the 32 binary
- * classes as its limbs, most populous first. No finer tiers, no members and
- * no roots.
+ * classes as its limbs, family by family as the catalog lists them, so each
+ * family's color holds one arc of the ring. No finer tiers, no members and
+ * no roots, and no wander: 32 limbs from one fork cross each other with it.
  */
 export function hubTree(index: ClassIndex): ClassTree {
-  const lines = [...index.catalog.lines].sort((a, b) => b.count - a.count || a.id.localeCompare(b.id)).map((l) => l.id);
+  const lines = index.catalog.groves.flatMap((g) => g.lines);
   const shape: Shape = {
     kids: (id) => (id === HUB_ROOT ? lines : []),
     members: () => [],
     flow: flowOf(index),
   };
-  const f: Frame = { scale: 1, trunkHeight: HUB_TRUNK, ring: HUB_RING };
+  const f: Frame = { scale: 1, trunkHeight: HUB_TRUNK, ring: HUB_RING, jitter: 0 };
   return grow(shape, HUB_ROOT, "hub", f, TIP_RADIUS);
 }

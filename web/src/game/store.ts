@@ -430,6 +430,8 @@ export const useGame = create<GameStore>((set, get) => ({
   setTourNote: (tourNote) => { if (get().tourNote !== tourNote) set({ tourNote }); },
   toggleCircuit: () => {
     const next = get().travelMode === "circuit" ? "free" : "circuit";
+    // The ring is ridden from the cart's seat, facing ahead (Player resets the look and height).
+    if (next === "circuit") get().setPreferences({ camera: "cart" });
     set({
       travelMode: next,
       ...(next === "free" ? { selectedGrove: null } : {}),

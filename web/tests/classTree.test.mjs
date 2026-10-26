@@ -110,6 +110,14 @@ test("the database tree: every bond at the trunk and the binary classes as its l
   }
 });
 
+test("the database tree's limbs go round family by family, each family one arc", () => {
+  const limbs = hubTree(index).people.filter((p) => p.generation === 1);
+  const round = limbs.map((p) => ({ grove: index.line.get(p.id).grove, a: Math.atan2(p.z, p.x) })).sort((u, v) => u.a - v.a);
+  let changes = 0;
+  for (let i = 0; i < round.length; i++) if (round[i].grove !== round[(i + 1) % round.length].grove) changes++;
+  assert.equal(changes, SUBSET.groves.length);
+});
+
 test("limbs are as thick as the bonds they carry", () => {
   const trunkR = (t) => t.skeleton.radii[1];
   const lines = [...SUBSET.lines].sort((a, b) => b.count - a.count);
