@@ -46,9 +46,10 @@ test("a class bead's color is its tier, a member's its energy, a hub limb its gr
   assert.notEqual(generationColor(0), generationColor(1));
 });
 
-test("a member is a sphere, a class a cube, the database's trunk a diamond", () => {
+test("a member is a sphere, a binary or quadrant class a cube, an octant class an octahedron, the trunk a diamond", () => {
   for (const b of schematic.beads) {
-    const shape = index.memberOf.has(b.id) ? "round" : b.id === HUB_ROOT ? "diamond" : "square";
+    const octant = index.cls.get(b.id)?.level === "octant" || index.cls.get(b.id)?.level === "other";
+    const shape = index.memberOf.has(b.id) ? "round" : b.id === HUB_ROOT ? "diamond" : octant ? "octa" : "square";
     assert.equal(b.shape, shape, b.id);
   }
 });

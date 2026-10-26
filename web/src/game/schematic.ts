@@ -10,7 +10,7 @@ import type { ClassIndex } from "./classCatalog";
 import { ENERGY_COLORS, energyTint } from "./classForest";
 import { HUB_ROOT, hubTree, lineTree, type ClassTree } from "./classTree";
 
-export type BeadShape = "round" | "square" | "diamond";
+export type BeadShape = "round" | "square" | "octa" | "diamond";
 
 export type SchematicBead = {
   id: string;
@@ -50,9 +50,14 @@ export function generationColor(g: number): string {
   return GENERATION_COLORS[((g % n) + n) % n]!;
 }
 
-/** A class is a cube, a member a sphere, the database tree's trunk a diamond. */
+/**
+ * A binary or quadrant class is a cube, an octant class or folded tip an
+ * octahedron, a member a sphere, and the database tree's trunk a large diamond.
+ */
 function shapeOf(id: string, member: boolean): BeadShape {
-  return member ? "round" : id === HUB_ROOT ? "diamond" : "square";
+  if (member) return "round";
+  if (id === HUB_ROOT) return "diamond";
+  return /o$|-other$/.test(id) ? "octa" : "square";
 }
 
 /**

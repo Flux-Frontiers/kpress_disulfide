@@ -60,7 +60,8 @@ const SHAPES: Record<BeadShape, () => SphereGeometry | BoxGeometry | OctahedronG
   // A member's bead is half a class's: they cluster on a dome over their class.
   round: () => new SphereGeometry(BEAD_R * 0.5, 16, 12),
   square: () => new BoxGeometry(BEAD_R * 1.6, BEAD_R * 1.6, BEAD_R * 1.6),
-  diamond: () => new OctahedronGeometry(BEAD_R * 1.25),
+  octa: () => new OctahedronGeometry(BEAD_R * 1.15),
+  diamond: () => new OctahedronGeometry(BEAD_R * 1.6),
 };
 
 /** Each bead glows faintly in its own color (the instance color), so the diagram reads at dusk and by night. */
@@ -114,7 +115,7 @@ export function SchematicOrchard({ schematic, picker }: {
   schematic: Schematic; picker: RefObject<((ray: Ray, maxDist: number) => SchematicBead | null) | null>;
 }) {
   const byShape = useMemo(() => {
-    const out: Record<BeadShape, SchematicBead[]> = { round: [], square: [], diamond: [] };
+    const out: Record<BeadShape, SchematicBead[]> = { round: [], square: [], octa: [], diamond: [] };
     for (const b of schematic.beads) out[b.shape].push(b);
     return out;
   }, [schematic]);
@@ -141,7 +142,7 @@ export function SchematicOrchard({ schematic, picker }: {
     <group>
       <SegmentMesh segments={schematic.limbs} radius={limbRadius} material={limbMat} sides={8} />
       <SegmentMesh segments={schematic.bars} radius={barRadius} material={brassMat} sides={8} />
-      {(["round", "square", "diamond"] as const).map((shape) => <BeadMesh key={shape} beads={byShape[shape]} shape={shape} />)}
+      {(["round", "square", "octa", "diamond"] as const).map((shape) => <BeadMesh key={shape} beads={byShape[shape]} shape={shape} />)}
     </group>
   );
 }
