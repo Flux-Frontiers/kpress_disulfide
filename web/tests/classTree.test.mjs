@@ -180,3 +180,27 @@ test("the bond cap thins each dome without moving a class, and keeps the home bo
   assert.ok(kept.people.some((p) => p.id === home));
   assert.ok(!one.people.some((p) => p.id === home));
 });
+
+test("prune draws only the octant classes with their own limb, each where it stood", () => {
+  const sparse = (id) => {
+    const c = index.cls.get(id);
+    return c?.level === "other" || (c?.level === "quadrant" && (index.children.get(id) ?? []).every(sparse));
+  };
+  let hidden = 0;
+  for (const line of SUBSET.lines) {
+    const full = lineTree(index, line.id), pruned = lineTree(index, line.id, Infinity, undefined, true);
+    const at = new Map(full.people.map((p) => [p.id, p]));
+    const shown = new Set(pruned.people.map((p) => p.id));
+    for (const p of full.people) {
+      const quiet = sparse(p.id) || (p.member && sparse(index.memberOf.get(p.id)));
+      assert.equal(shown.has(p.id), !quiet, `${line.id}: ${p.id}`);
+      if (quiet) hidden++;
+    }
+    for (const p of pruned.people) {
+      const q = at.get(p.id);
+      assert.deepEqual([p.x, p.y, p.z], [q.x, q.y, q.z], `${line.id}: ${p.id} moved`);
+    }
+    assert.equal(pruned.reach, full.reach, `${line.id}: reach`);
+  }
+  assert.ok(hidden > 0, "the fixture has sparse classes to prune");
+});

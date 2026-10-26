@@ -131,3 +131,12 @@ test("the double helix is B-DNA: right-handed, 10.5 pairs a turn, minor groove n
   const gap = ((bearing(pairs[0].b) - bearing(pairs[0].a)) + 2 * Math.PI) % (2 * Math.PI);
   assert.ok(Math.abs(gap - DNA.minorGroove * 2 * Math.PI) < 1e-9 && gap < Math.PI);
 });
+
+test("pruning moves no tree, grove or exhibit", () => {
+  const { getForest } = require(`${process.env.FOREST_TEST_BUILD}/forest.js`);
+  const [catalog, home] = orchardArgs();
+  const full = getForest(catalog, home), pruned = getForest(catalog, home, Infinity, true);
+  assert.equal(pruned.prune, true);
+  assert.deepEqual(pruned.trees.map((t) => [t.x, t.z]), full.trees.map((t) => [t.x, t.z]));
+  assert.deepEqual(pruned.exhibits.map((e) => [e.x, e.z]), full.exhibits.map((e) => [e.x, e.z]));
+});

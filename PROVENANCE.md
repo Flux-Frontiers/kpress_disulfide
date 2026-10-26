@@ -48,15 +48,16 @@ Helix) is shared with it and The Forest, and code comments may still name
 people, lines and generations where the shared renderers kept the Family's
 terms. Of the Forest's exhibits only the Double Helix was kept.
 
-## The Spirit of Life, from Art Techno
+## The Spirits of Life and Innovation, from Art Techno
 
-The statue in the second exhibit glade (`web/src/game/SpiritOfLife.tsx`) is
-the Spirit of Life from
+The statues in two exhibit glades (`web/src/game/Spirits.tsx`) are the
+Spirit of Life and the Spirit of Innovation (Eureka) from
 [art_techno](https://github.com/Flux-Frontiers/art_techno) ("The Gilded
-Circuit"), by Eric G. Suchanek: its models `web/public/models/life.glb` and
-`web/public/models/mobile/life.glb`, its name, and its plaque text, adapted
+Circuit"), by Eric G. Suchanek: their models `life.glb` and
+`innovation-eureka.glb` in `web/public/models/` and
+`web/public/models/mobile/`, their names, and their plaque text, adapted
 from art_techno's `web/src/spirits.ts`. Art Techno's art is licensed
 [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) (art_techno's
 `LICENSE-ART`), not under this repository's Elastic License 2.0. The models are
 not committed here: `make art` copies them from `ART_TECHNO_DIR` (default
-`../art_techno`), and without them the glade shows only her plaque.
+`../art_techno`), and without one its glade shows only its plaque.

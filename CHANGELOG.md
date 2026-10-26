@@ -60,8 +60,13 @@ uses [Semantic Versioning](https://semver.org/).
 - The Spirit of Life from Art Techno, 10 m tall in her own exhibit glade
   beside the Double Helix, floodlit at night; `make art` copies her
   models (CC BY-NC 4.0, not committed).
+- Art Techno's Spirit of Innovation, Eureka, 10 m tall in a third
+  exhibit glade, by the same treatment.
 - Bond complexity in settings: 1, 3, 6 or every sampled bond per octant
   class, without moving a class; the home disulfide always shows.
+- Prune sparse octants in settings: only the octant classes with their own
+  limb are drawn, and the folded `-other` tips and any quadrant left with
+  nothing else are left as gaps, without moving a class or a tree.
 - A click on a limb of the database tree takes the cart to that binary
   class's tree.
 

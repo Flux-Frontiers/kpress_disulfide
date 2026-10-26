@@ -102,7 +102,8 @@ Decided by EGS:
   databases are offered, the full one first; of the Forest's exhibits only
   the Double Helix stays, and Art Techno's Spirit of Life stands in a glade
   of her own, 10 m tall (2026-10-26; her models via `make art`, CC BY-NC
-  4.0, never committed).
+  4.0, never committed). Her Spirit of Innovation, Eureka, joined her in a
+  third glade, 10 m tall (2026-10-26).
 
 Nothing else is planned. Open with EGS: an app, and publishing.
 

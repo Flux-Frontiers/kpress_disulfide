@@ -35,6 +35,7 @@ export function ForestApp() {
   const home = useGame((s) => s.home);
   // Sampled bonds shown per octant class: the orchard regrows when this changes.
   const bonds = useGame((s) => BOND_CAP[s.preferences.bonds]);
+  const prune = useGame((s) => s.preferences.prune);
   const index = useMemo(() => (catalog ? indexCatalog(catalog) : null), [catalog]);
   const focal = useMemo(() => {
     if (!catalog || !index) return "";
@@ -113,12 +114,12 @@ export function ForestApp() {
       w.onmessage = (e: MessageEvent<{ id: number; forest: Forest }>) => {
         if (e.data.id === request.current) apply(e.data.forest);
       };
-      w.postMessage({ id, catalog, home: focal, bonds });
+      w.postMessage({ id, catalog, home: focal, bonds, prune });
       return;
     }
-    const t = window.setTimeout(() => apply(getForest(catalog, focal, bonds)), 0);
+    const t = window.setTimeout(() => apply(getForest(catalog, focal, bonds, prune)), 0);
     return () => window.clearTimeout(t);
-  }, [catalog, focal, bonds, GROW_VERSION]);
+  }, [catalog, focal, bonds, prune, GROW_VERSION]);
 
   // `?tree=<slug>` opens the drive beside that book's tree instead of at home.
   const linked = useMemo(() => (forest ? treeFromSearch(window.location.search, forest.trees) : undefined), [forest]);
