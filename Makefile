@@ -26,9 +26,13 @@
 #                         Ca and Sg cutoffs: the subset that ships with
 #                         proteusPy is 4,575 of its 5,000; full is the
 #                         published set, 158,965 (about 11 s and 52 MB)
-#   make demos         -- the subset
+#   make demos         -- the subset, and `make art`
+#   make art           -- copy the Spirit of Life's models from
+#                         $(ART_TECHNO_DIR) (Art Techno, CC BY-NC 4.0)
 
 PROTEUSPY_DIR ?= ../proteusPy
+# Art Techno, whose Spirit of Life stands in an exhibit glade (`make art`).
+ART_TECHNO_DIR ?= ../art_techno
 FOREST ?= subset
 FOREST_TITLE ?= $(if $(filter full,$(FOREST)),The full database,The subset)
 # The disulfide the monument opens on; empty lets the export pick the lowest-energy bond.
@@ -38,7 +42,7 @@ FOREST_HOME ?=
 FOREST_MEMBERS ?= 12
 FOREST_MIN_MEMBERS ?=
 
-.PHONY: web-install web-dev web-test web-build web-preview web-kill forest demos gallery
+.PHONY: web-install web-dev web-test web-build web-preview web-kill forest demos art gallery
 
 web-install:
 	cd web && npm install
@@ -71,8 +75,15 @@ forest:
 	printf '{"title": "%s", "home": "%s"}\n' "$(FOREST_TITLE)" "$(FOREST_HOME)" > web/public/forests/$(FOREST)/about.json
 	cd web && node scripts/forests.mjs
 
-demos:
+demos: art
 	$(MAKE) forest FOREST=subset
+
+# The Spirit of Life's models from Art Techno (CC BY-NC 4.0; see
+# PROVENANCE.md), into web/public/models, which is never committed.
+art:
+	mkdir -p web/public/models/mobile
+	cp $(ART_TECHNO_DIR)/web/public/models/life.glb web/public/models/life.glb
+	cp $(ART_TECHNO_DIR)/web/public/models/mobile/life.glb web/public/models/mobile/life.glb
 
 gallery:
 	cd web && node scripts/gallery.mjs

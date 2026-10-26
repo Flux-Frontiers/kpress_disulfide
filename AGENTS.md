@@ -97,14 +97,14 @@ Decided by EGS:
   the tour still meets the named families first (#4).
 - No neighbor arcs for now (2026-10-26).
 - The orchard shows the published set, within proteusPy's cutoffs
-  (2026-10-26; the export change is proteusPy `feat/export-cutoffs`).
+  (2026-10-26; proteusPy#63).
+- The database tree keeps its redwood bark; the 18 groves stand; both
+  databases are offered, the full one first; of the Forest's exhibits only
+  the Double Helix stays, and Art Techno's Spirit of Life stands in a glade
+  of her own, 10 m tall (2026-10-26; her models via `make art`, CC BY-NC
+  4.0, never committed).
 
-Nothing else is planned. Open with EGS, decided from stills, not by an
-agent:
-
-- Whether the database tree keeps its redwood bark or takes a species.
-- Grove count (18 is the default), which database ships, whether the
-  exhibits beyond the Double Helix stay, an app, and publishing.
+Nothing else is planned. Open with EGS: an app, and publishing.
 
 Stills for review go in `renders/` (gitignored). The Family's approach
 works: a puppeteer-core script against `make web-dev` on a port of its

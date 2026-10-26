@@ -14,9 +14,8 @@ import { disc, fillets, ribbon, RING_W, SPOKE_W, SPUR_W, type FlatMesh } from ".
 import { CorpusRedwood } from "./CorpusRedwood";
 import { Cart } from "./Cart";
 import { Molecules, Monument } from "./Molecules";
-import { Mysterium } from "./Mysterium";
 import { Signposts } from "./Signposts";
-import { Sundial } from "./Sundial";
+import { SpiritOfLife } from "./SpiritOfLife";
 import { SEASONS, type SeasonName } from "./seasons";
 import { sim } from "./sim";
 import { useGame } from "./store";
@@ -29,9 +28,8 @@ const gray = new Color();
 const CLEAR = { fogDensity: 0, cloud: 0, kind: "clear" as const };
 
 const EXHIBIT_VIEWS: Record<string, ComponentType<{ exhibit: Exhibit }>> = {
-  mysterium: Mysterium,
   dna: DnaSculpture,
-  sundial: Sundial,
+  life: SpiritOfLife,
 };
 const TRAIL_N = 20;
 

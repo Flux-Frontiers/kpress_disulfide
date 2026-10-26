@@ -10,7 +10,7 @@ monument. [LAYOUT.md](LAYOUT.md) describes the representation in full.
 
 ```bash
 make web-install                         # once
-make demos                               # the subset, through proteusPy.export_web
+make demos                               # the subset, through proteusPy.export_web, and make art
 make web-dev                             # http://localhost:5173
 ```
 
@@ -30,6 +30,7 @@ builds.
 |---|---|
 | `classCatalog.ts` | Types for the export, the class index, and the loaders |
 | `classTree.ts` | The layout: line trees and the database tree, the class hierarchy as wood |
+| `SpiritOfLife.tsx` | Art Techno's Spirit of Life in her exhibit glade, from `public/models` (`make art`) |
 | `classForest.ts` | Line cards, line trees as the renderer's trees, the database tree, energy colors |
 | `forest.ts` | The orchard: groves by class family, the hub, roads, the tour loop, representatives |
 | `molecule.ts`, `Molecules.tsx` | Ball-and-stick disulfides: representatives, foot plates, the monument |
@@ -42,7 +43,7 @@ builds.
 | `growTree.ts` | Pipe-model radii, the bark sweep and the leaves |
 
 The world itself (sky, stars, planets, weather, seasons, roads, the cart, the
-guided tour, and the Cosmographium, Double Helix and sundial exhibits) comes
+guided tour, and the Double Helix exhibit) comes
 from The Knowledge Press: The Forest by way of The Family; see
 `../PROVENANCE.md`.
 
