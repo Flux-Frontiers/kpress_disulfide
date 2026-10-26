@@ -191,11 +191,11 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
     wasBlocked.current = blocked;
     if (jump) {
       teleportSim(jump.x, jump.z, jump.yaw);
-      look.current = 0;
+      // A jump, Home among them, lands facing ahead, level, at the view's own height.
+      look.current = pitch.current = lift.current = 0;
       useGame.getState().clearJump();
       if (game.flight) {
         // A dive from god's eye: the cart is already there, and the camera flies down to it.
-        pitch.current = 0;
         flightFrom.current = { cam: state.camera.position.clone(), look: lookAt.clone() };
         flightT.current = 0;
       } else {
