@@ -41,6 +41,14 @@ cutoffs and the unfiltered count (`meta.database`), and
 `--ca-cutoff`/`--sg-cutoff` -1 turns them off. Everything below is
 measured on the filtered set.
 
+The constants are the 95th percentiles of the full database's Cα and Sγ
+distances (6.7052 and 2.1218 Å), rounded. proteusPy's other way to
+filter, `DisulfideLoader(percentile=95)`, uses them unrounded and keeps
+158,938 bonds in 35,375 structures, the counts in its analysis notebooks;
+the export uses the constants so that it matches the published set. The
+chapter's text gives the Sγ cutoff as 2.52 Å, which would keep 164,030
+bonds, so its published counts come from 2.12 Å.
+
 ### How a bond gets its classes
 
 Each torsion is reduced to one digit per tier
