@@ -9,9 +9,9 @@ const KEYS: [string, string][] = [
   ["A / D", "steer"],
   ["Drag, or arrows", "look around; the view eases back to ahead when you let go, the tilt stays"],
   ["Shift / Space", "hurry / brake"],
-  ["E", "add the nearest tree's line to your album"],
-  ["G / B / L", "the grove atlas, every line, your album"],
-  ["H / Q", "home to the home tree / the guided tour"],
+  ["E", "add the nearest tree's class to your album"],
+  ["G / B / L", "the grove atlas, every class, your album"],
+  ["H / Q", "home to the hub / the guided tour"],
   ["C", "camera: behind, high, in the cart, god's eye"],
   ["?", "this page"],
   ["Esc", "close a panel; with none open, settings"],
@@ -20,8 +20,8 @@ const KEYS: [string, string][] = [
 const TOUCH: [string, string][] = [
   ["Stick, bottom left", "drive: up forward, down reverse, sideways to steer"],
   ["Drag anywhere else", "look around; the view eases back to ahead when you let go"],
-  ["Add", "the nearest tree's line to your album, once you are close"],
-  ["Guided tour", "the cart drives the ring and stops at each grove, oldest family first"],
+  ["Add", "the nearest tree's class to your album, once you are close"],
+  ["Guided tour", "the cart drives the ring and stops at each grove, the named families first, largest first"],
   ["Three-dot menu", "time of day, silent mode, screenshot, settings, this page"],
 ];
 
@@ -51,7 +51,7 @@ export function About() {
       <div className="p-6">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs tracking-[0.2em] text-primary uppercase">The Knowledge Press: The Family</p>
+          <p className="text-xs tracking-[0.2em] text-primary uppercase">The Knowledge Press: The Disulfides</p>
           <h2 id="about-title" className="mt-1 font-display text-3xl">About the orchard</h2>
         </div>
         <button ref={close} type="button" aria-label="Close" onClick={toggle}
@@ -60,17 +60,20 @@ export function About() {
 
       <div className="about-body mt-4 text-sm leading-relaxed text-muted">
         <p className="text-base text-fg">
-          The orchard is a picture of a family. Each family line, the people born with one surname, is one tree,
-          and the tree is the line itself: its founder is the trunk, every limb runs from a parent to a child, and
-          each person is a tuft of leaves. A spouse who married in hangs as a twig at the fork.
+          The orchard is a picture of the disulfide bonds in the Protein Data Bank, classified by the signs and
+          sectors of their five side-chain torsions. Each binary class is one tree: the class is the trunk, its
+          quadrant classes the first limbs and their octant classes the second, every limb as thick as the bonds
+          it carries. A sample of each octant class's bonds hang as tufts of leaves, cool for relaxed bonds and
+          warm for strained ones. Open a tree's reader for any class or sampled bond.
         </p>
 
-        <h3>A surname is a grove</h3>
+        <h3>A class family is a grove</h3>
         <p>
-          The lines of a surname stand together in a grove, and each surname grows as one species. The groves ring
-          the home tree at the hub: one person's whole family, their descendants as the crown and their ancestors
-          as the roots, seen through the glass floor of the pit below it. Overhead, gold arcs join the trees of
-          lines that married.
+          The sign variants of a named family, the left- and right-handed spirals, hooks and staples, stand
+          together in a grove, and each family grows as one species; each unnamed class has a grove of its own.
+          At every grove's stop stands its representative, the model disulfide built from its largest class's
+          consensus torsions, and every tree has its own model at its foot. The groves ring the hub, where the
+          whole database grows as one tree beside the home disulfide on its monument.
         </p>
 
         <h3>The sky</h3>
@@ -97,9 +100,9 @@ export function About() {
 
         <h3>How it was made</h3>
         <p>
-          The family comes from a GEDCOM file, indexed by GenealogyKG, with people who may be living withheld. Each
-          tree is laid out in code from the family's own kinship, and every limb is as thick as the family it
-          carries. The orchard is built with three.js and React. The astronomy is SunCalc's; the stars are the Yale
+          The database, its classes, their consensus torsions and energies, and the models are proteusPy's, written
+          for the web by its export_web; every bond comes from the Protein Data Bank. Each tree is laid out in code
+          from the class hierarchy, binary to quadrant to octant. The orchard is built with three.js and React. The astronomy is SunCalc's; the stars are the Yale
           Bright Star Catalogue (Hoffleit &amp; Warren, 1991); the planets follow JPL's approximate Keplerian elements
           (Standish) with magnitudes from Mallama &amp; Hilton (2018); the moon is NASA's Lunar Reconnaissance
           Orbiter color mosaic.

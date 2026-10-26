@@ -3,7 +3,7 @@
 // times bs_scale, each bond two half cylinders colored by the atom at each
 // end. The colors, radii and scale come from the export's atoms.json, so the
 // orchard cannot drift from proteusPy. One builder serves the stop-plaza
-// representatives, the trees' foot plates, the hub's monument and, later,
+// representatives, the trees' foot plates, the hub's monument and
 // the reader's drawing.
 //
 // Pure, no React or three, so the tests can run it.

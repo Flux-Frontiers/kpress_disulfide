@@ -173,7 +173,7 @@ export function CorpusRedwood({ forest, season, wood = true }: { forest: Forest;
   useLayoutEffect(() => {
     const mesh = ref.current;
     if (!mesh) return;
-    const { pos, scale, quat, shade, count } = c.foliage;
+    const { pos, scale, quat, shade, color: family, count } = c.foliage;
     const o = new Object3D();
     const base = new Color(FOLIAGE[season]);
     const color = new Color();
@@ -183,7 +183,8 @@ export function CorpusRedwood({ forest, season, wood = true }: { forest: Forest;
       o.quaternion.set(quat[i * 4]!, quat[i * 4 + 1]!, quat[i * 4 + 2]!, quat[i * 4 + 3]!);
       o.updateMatrix();
       mesh.setMatrixAt(i, o.matrix);
-      mesh.setColorAt(i, color.copy(base).offsetHSL(0, 0, (shade[i]! - 3.5) * 0.012));
+      // The family's color, a touch toward the season's.
+      mesh.setColorAt(i, color.set(family[i]!).lerp(base, 0.2).offsetHSL(0, 0, (shade[i]! - 3.5) * 0.012));
     }
     mesh.count = count;
     mesh.instanceMatrix.needsUpdate = true;

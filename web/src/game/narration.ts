@@ -1,10 +1,10 @@
-import type { LineCard } from "./classForest";
+import { percent, type LineCard } from "./classForest";
 
 /**
  * What the guided tour says at each grove: a short summary generated from the
- * catalog, so a new book changes it with nothing written by hand. It names the
- * grove, how many books it holds and by whom, its longest book, and for
- * diaries the years their entries span.
+ * catalog, so a new export changes it with nothing written by hand. It names
+ * the class family, its binary classes and the bonds they hold, its function,
+ * and the largest class's mean torsional energy.
  */
 
 /** Catalog authors whose Project Gutenberg form reads badly aloud. */
@@ -61,27 +61,27 @@ function list(items: string[]): string {
 }
 
 /**
- * The grove's summary, a few sentences to show and to speak: how many lines
- * bear the surname, how many people were born into them, the years they span,
- * and who founded the largest.
+ * The grove's summary, a few sentences to show and to speak: how many binary
+ * classes the family has and how many bonds they hold, its function if it has
+ * one, and the mean torsional energy of its largest class.
  *
- * :param label: The surname.
- * :param lines: The grove's lines.
+ * :param label: The class family's name.
+ * :param lines: The grove's binary classes.
  */
 export function groveNarration(label: string, lines: LineCard[]): string {
   if (!lines.length) return `${label}.`;
-  const people = lines.reduce((n, l) => n + l.members, 0);
+  const bonds = lines.reduce((n, l) => n + l.members, 0);
+  const share = lines.reduce((p, l) => p + l.percentage, 0);
   const largest = [...lines].sort((a, b) => b.members - a.members || a.slug.localeCompare(b.slug))[0]!;
-  const years = lines.flatMap((l) => (l.span ? l.span.split("-").map(Number) : [])).filter((y) => Number.isInteger(y) && y > 0);
   const out: string[] = [];
-  const born = people === 1 ? "one person" : `${people} people`;
-  out.push(lines.length === 1
-    ? `${label}: ${born} born a ${label}.`
-    : `${label}: ${lines.length} lines, ${born} born a ${label}.`);
-  if (years.length) {
-    const lo = Math.min(...years), hi = Math.max(...years);
-    out.push(lo === hi ? `Born in ${lo}.` : `Born from ${lo} to ${hi}.`);
+  const held = bonds === 1 ? "one bond" : `${bonds.toLocaleString("en-US")} bonds`;
+  const classes = lines.length === 1 ? "one binary class" : `${lines.length} binary classes`;
+  out.push(`${label}: ${classes}, ${held}, ${percent(share)} of the database.`);
+  const functions = [...new Set(lines.map((l) => l.function).filter(Boolean))];
+  if (functions.length) out.push(`Function: ${list(functions)}.`);
+  if (largest.energy !== null) {
+    const who = lines.length === 1 ? "Its bonds average" : `The largest, ${largest.title}, averages`;
+    out.push(`${who} ${largest.energy.toFixed(1)} kilocalories per mole of torsional energy.`);
   }
-  out.push(`${lines.length === 1 ? "The line" : "The largest line"} begins with ${largest.founders}.`);
   return out.join(" ");
 }

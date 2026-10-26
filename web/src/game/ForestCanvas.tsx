@@ -2,7 +2,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, type RefObject } from "react";
 import { ACESFilmicToneMapping, PerspectiveCamera, Raycaster, Vector2, type Ray } from "three";
 import { indexCatalog, type ClassCatalog } from "./classCatalog";
-import { openPerson } from "./FamilyReader";
+import { openRecord } from "./ClassReader";
 import { COARSE_POINTER, EXPOSURE, PHONE } from "./Environment";
 import { pickTree, type Forest, type TreeSite } from "./forest";
 import { forestGodLimits, godPose, zoomGodView } from "./godEye";
@@ -48,12 +48,12 @@ export function ForestCanvas({ forest, catalog }: { forest: Forest; catalog: Cla
         else if (s.libraryOpen) s.toggleLibrary();
         else if (s.atlasOpen) s.toggleAtlas();
         else {
-          // In schematic mode a bead opens its tree's page.
+          // In schematic mode a bead opens its class's or bond's page.
           if (schematic && beadPicker.current) {
             aim(e);
             const bead = beadPicker.current(raycaster.ray, 200);
             const line = bead ? index?.lineOf.get(bead.id) : undefined;
-            if (line && forest.trees.some((t) => t.line.slug === line)) { openPerson(line, bead!.id); return; }
+            if (line && forest.trees.some((t) => t.line.slug === line)) { openRecord(line, bead!.id); return; }
           }
           // Clicking a tree pins its card, silent mode or not; clicking open ground clears it.
           const tree = picker.current?.(e);

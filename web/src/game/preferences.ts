@@ -17,7 +17,7 @@ export type Preferences = {
   narrate: boolean;
   /** Draw every tree as a family diagram: beads, straight limbs, marriage bars (schematic.ts). */
   schematic: boolean;
-  /** Name plates over the people of the tree nearest the cart (NamePlates.tsx). */
+  /** Class ids and bond keys over the tree nearest the cart (NamePlates.tsx); off unless turned on. */
   names: boolean;
 };
 
@@ -43,6 +43,6 @@ export function readPreferences(value?: Partial<Preferences>): Preferences {
     weather: value?.weather === true,
     narrate: value?.narrate === true,
     schematic: value?.schematic === true,
-    names: typeof value?.names === "boolean" ? value.names : true,
+    names: typeof value?.names === "boolean" ? value.names : false,
   };
 }

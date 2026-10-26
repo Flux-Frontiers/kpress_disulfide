@@ -14,8 +14,8 @@ import { mulberry32, seedFromKey } from "./math";
 export const LEAVES_PER_PERSON = 7;
 /** How far a member's tuft spreads around its node, m. */
 const TUFT_RADIUS = 0.45;
-/** Foliage sprays per class on the database tree. */
-const SPRAYS_PER_PERSON = 4;
+/** Foliage sprays per binary class on the database tree. */
+const SPRAYS_PER_PERSON = 16;
 
 /**
  * Torsional energy (kcal/mol) at which a leaf's tint steps up: a member
@@ -23,6 +23,12 @@ const SPRAYS_PER_PERSON = 4;
  * the warmest. Leaf tint is the one place the data colors a tree.
  */
 export const ENERGY_STEPS = [1, 1.5, 2, 2.5, 3, 4, 6];
+
+/**
+ * The color of each energy tint, coolest first: blue for a relaxed bond
+ * through yellow to red for a strained one. Data, so it holds in every season.
+ */
+export const ENERGY_COLORS = ["#2c7bb6", "#00a6ca", "#00ccbc", "#90eb9d", "#ffff8c", "#f9d057", "#f29e2e", "#d7191c"];
 
 /** A leaf's tint for a member's energy: 0 relaxed to 7 strained. */
 export function energyTint(energy: number): number {
@@ -126,6 +132,12 @@ export type LineCard = {
   founders: string;
   /** Bonds in the class. */
   members: number;
+  /** The class's share of the database, percent. */
+  percentage: number;
+  /** "Allosteric", "Catalytic", or "". */
+  function: string;
+  /** The class's mean torsional energy, kcal/mol, when the export gives one. */
+  energy: number | null;
   span: string;
   summary: string;
   /** The sampled members' keys. */
@@ -137,12 +149,12 @@ export type LineCard = {
 };
 
 /** The album's ranks, lowest first. */
-export const ALBUM_RANKS = ["Reader", "Clerk", "Registrar", "Archivist", "Keeper of the Line"] as const;
+export const ALBUM_RANKS = ["Reader", "Modeler", "Refiner", "Curator", "Keeper of the Classes"] as const;
 
 /**
- * The rank an album of `count` lines earns out of `total`: Reader for the
- * first line, Clerk at a tenth, Registrar at a quarter, Archivist at half,
- * Keeper of the Line with every line. Null for an empty album.
+ * The rank an album of `count` classes earns out of `total`: Reader for the
+ * first class, Modeler at a tenth, Refiner at a quarter, Curator at half,
+ * Keeper of the Classes with every class. Null for an empty album.
  */
 export function albumRank(count: number, total: number): string | null {
   const need = [1, Math.ceil(total / 10), Math.ceil(total / 4), Math.ceil(total / 2), total];
@@ -174,6 +186,9 @@ export function lineCard(index: ClassIndex, line: ClassLine): LineCard {
     grove: line.grove,
     founders: `${percent(line.percentage)} of the database`,
     members: line.count,
+    percentage: line.percentage,
+    function: line.function,
+    energy: line.energy?.mean ?? null,
     span: "",
     summary: `${bonds}, ${percent(line.percentage)} of the database, in ${quadrants} quadrant and ${octants} octant classes.`
       + (line.function ? ` Function: ${line.function}.` : ""),
@@ -189,18 +204,17 @@ export type HomeTree = CorpusTree & {
   focal: string;
   /** The database's name for the plaque. */
   focalName: string;
-  /** Always false: a class tree has no ancestors to turn over. */
-  ancestors: boolean;
 };
 
 /**
  * The database tree as the hub tree the renderer draws: bark from the class
- * wood and a foliage spray per class.
+ * wood and foliage sprays at each binary class, in its family's color.
  *
  * :param home: The home disulfide's key.
  * :param lines: Binary classes, for the plaque.
+ * :param colorOf: A binary class's grove color.
  */
-export function homeTree(tree: ClassTree, home: string, lines: number, name: string): HomeTree {
+export function homeTree(tree: ClassTree, home: string, lines: number, name: string, colorOf: (line: string) => string): HomeTree {
   const { nodes, radii, n } = tree.skeleton;
   let height = 0;
   for (let i = 0; i < n; i++) height = Math.max(height, nodes[i * 3 + 1]!);
@@ -214,6 +228,7 @@ export function homeTree(tree: ClassTree, home: string, lines: number, name: str
   const scale = new Float32Array(count * 3);
   const quat = new Float32Array(count * 4);
   const shade = new Uint8Array(count);
+  const color: string[] = [];
   let k = 0;
   for (const p of crown) {
     for (let j = 0; j < SPRAYS_PER_PERSON; j++, k++) {
@@ -224,6 +239,7 @@ export function homeTree(tree: ClassTree, home: string, lines: number, name: str
       const cy = Math.cos(yaw / 2), sy = Math.sin(yaw / 2), ct = Math.cos(tilt / 2), st = Math.sin(tilt / 2);
       quat.set([cy * st, sy * ct, -sy * st, cy * ct], k * 4);
       shade[k] = Math.min(7, Math.abs(p.generation) + Math.floor(rng() * 2));
+      color.push(colorOf(p.id));
     }
   }
 
@@ -241,9 +257,8 @@ export function homeTree(tree: ClassTree, home: string, lines: number, name: str
       uv: new Float32Array(bark.uv),
       index: new Uint32Array(bark.index),
     },
-    foliage: { count, pos, scale, quat, shade },
+    foliage: { count, pos, scale, quat, shade, color },
     focal: home,
     focalName: name,
-    ancestors: false,
   };
 }

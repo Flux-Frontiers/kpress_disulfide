@@ -7,6 +7,7 @@
 // Pure, no React or three, so the tests can run it.
 
 import type { ClassIndex } from "./classCatalog";
+import { ENERGY_COLORS, energyTint } from "./classForest";
 import { HUB_ROOT, hubTree, lineTree, type ClassTree } from "./classTree";
 
 export type BeadShape = "round" | "square" | "diamond";
@@ -57,9 +58,14 @@ function shapeOf(id: string, member: boolean): BeadShape {
 /**
  * One tree's beads and limbs, placed at (ox, oz). Each node's limb runs to
  * it from the nearest node below it in the wood, or from the ground point
- * for the trunk.
+ * for the trunk. A class's bead is colored by its tier, a member's by its
+ * energy, as its leaves are, and a binary class on the database tree by its
+ * family's grove.
  */
-function addTree(t: ClassTree, tree: number, ox: number, oz: number, out: Schematic): void {
+function addTree(
+  t: ClassTree, tree: number, ox: number, oz: number, out: Schematic,
+  energy: (id: string) => number | undefined, family: (id: string) => string | undefined,
+): void {
   const byNode = new Map(t.people.map((p) => [p.node, p]));
   const at = new Map(t.people.map((p) => [p.id, { x: ox + p.x, y: p.y, z: oz + p.z }]));
   const below = (node: number) => {
@@ -79,7 +85,7 @@ function addTree(t: ClassTree, tree: number, ox: number, oz: number, out: Schema
       ...here,
       generation: p.generation,
       shape: shapeOf(p.id, p.member),
-      color: generationColor(p.generation),
+      color: p.member ? ENERGY_COLORS[energyTint(energy(p.id) ?? 0)]! : (tree < 0 ? family(p.id) : undefined) ?? generationColor(p.generation),
       living: false,
       marriedIn: false,
       tree,
@@ -93,12 +99,14 @@ function addTree(t: ClassTree, tree: number, ox: number, oz: number, out: Schema
  * The whole orchard as a schematic: every line tree where the forest stands
  * it, and the database tree at the hub.
  *
- * :param trees: The forest's trees, in order: each line's slug and trunk position.
+ * :param trees: The forest's trees, in order: each line's slug, trunk position and grove color.
  */
-export function buildSchematic(index: ClassIndex, trees: readonly { line: { slug: string }; x: number; z: number }[]): Schematic {
+export function buildSchematic(index: ClassIndex, trees: readonly { line: { slug: string }; x: number; z: number; color?: string }[]): Schematic {
   const out: Schematic = { beads: [], limbs: [], bars: [] };
-  trees.forEach((t, i) => addTree(lineTree(index, t.line.slug), i, t.x, t.z, out));
-  addTree(hubTree(index), -1, 0, 0, out);
+  const energy = (id: string) => index.energy.get(id);
+  const family = new Map(trees.map((t) => [t.line.slug, t.color]));
+  trees.forEach((t, i) => addTree(lineTree(index, t.line.slug), i, t.x, t.z, out, energy, () => undefined));
+  addTree(hubTree(index), -1, 0, 0, out, energy, (id) => family.get(id));
   return out;
 }
 
@@ -124,4 +132,28 @@ export function pickBead(
     if (d2 <= radius * radius) { best = b; bestT = t; }
   }
   return best;
+}
+
+/** A name plate on screen, in normalized device coordinates: its center and half its width and height. */
+export type PlateRect = { x: number; y: number; hw: number; hh: number };
+
+/**
+ * The plates to show so that none covers another: taken in the order given,
+ * the coarser tiers first, each kept only if it overlaps no plate already
+ * kept. A null is a plate off screen.
+ *
+ * :param rects: The plates' screen rectangles, in priority order.
+ * :returns: The indexes of the plates kept.
+ */
+export function declutter(rects: readonly (PlateRect | null)[]): number[] {
+  const kept: number[] = [];
+  rects.forEach((r, i) => {
+    if (!r) return;
+    const clear = kept.every((k) => {
+      const o = rects[k]!;
+      return Math.abs(r.x - o.x) >= r.hw + o.hw || Math.abs(r.y - o.y) >= r.hh + o.hh;
+    });
+    if (clear) kept.push(i);
+  });
+  return kept;
 }

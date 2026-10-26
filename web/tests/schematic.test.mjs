@@ -31,9 +31,14 @@ test("every class and member on every tree is a bead where the organic layout pu
   assert.equal(schematic.beads.filter((b) => b.tree === -1).length, hubTree(index).people.length);
 });
 
-test("a bead's color is its tier and its plate reads its id, suffix and all", () => {
+test("a class bead's color is its tier, a member's its energy, a hub limb its grove's; its plate reads its id", () => {
+  const { ENERGY_COLORS, energyTint } = require(`${process.env.FOREST_TEST_BUILD}/classForest.js`);
+  const grove = new Map(forest.trees.map((t) => [t.line.slug, t.color]));
   for (const b of schematic.beads) {
-    assert.equal(b.color, generationColor(b.generation));
+    const member = index.memberOf.has(b.id);
+    const want = member ? ENERGY_COLORS[energyTint(index.energy.get(b.id))]
+      : b.tree === -1 && b.generation === 1 ? grove.get(b.id) : generationColor(b.generation);
+    assert.equal(b.color, want, b.id);
     assert.equal(b.name, b.id);
     assert.equal(b.living, false);
   }
@@ -64,4 +69,14 @@ test("a ray picks the nearest bead it passes through, and misses past them all",
   const origin = { x: b.x, y: b.y + 0.6, z: b.z };
   assert.equal(pickBead(schematic.beads, origin, { x: 0, y: -1, z: 0 }, 0.45, 200)?.id, b.id);
   assert.equal(pickBead(schematic.beads, { x: 0, y: 500, z: 0 }, { x: 0, y: 1, z: 0 }, 0.45, 200), null);
+});
+
+test("plates are kept in priority order, and one that would cover a kept plate is left out", () => {
+  const { declutter } = require(`${process.env.FOREST_TEST_BUILD}/schematic.js`);
+  const r = (x, y) => ({ x, y, hw: 0.1, hh: 0.02 });
+  // The trunk's plate claims its place; a quadrant's overlapping it goes, one clear of it stays.
+  assert.deepEqual(declutter([r(0, 0), r(0.05, 0.01), r(0.5, 0), null, r(0, 0.05)]), [0, 2, 4]);
+  // Touching edges do not overlap.
+  assert.deepEqual(declutter([r(0, 0), r(0.2, 0)]), [0, 1]);
+  assert.deepEqual(declutter([]), []);
 });

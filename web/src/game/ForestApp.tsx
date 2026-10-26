@@ -9,7 +9,7 @@ import { installControlsTest } from "./controlsTest";
 import { treeFromSearch } from "./deepLink";
 import { commonFrame, portraitPose, shotSlug, treeExtent, type Extent, type Frame } from "./portrait";
 import { chooseForest, indexCatalog, loadForestCatalog, loadForestIndex, type ClassCatalog, type ForestEntry } from "./classCatalog";
-import { ASSET_ROOT } from "./FamilyReader";
+import { ASSET_ROOT } from "./ClassReader";
 import { savedForest } from "./forestChoice";
 import { getForest, treeApproach, type Forest } from "./forest";
 import { GROW_VERSION } from "./growTree";
@@ -32,14 +32,14 @@ export function ForestApp() {
   // the export's, its lowest-energy bond. A home must be a sampled member,
   // whose bond card the export wrote, or the export's own.
   const home = useGame((s) => s.home);
+  const index = useMemo(() => (catalog ? indexCatalog(catalog) : null), [catalog]);
   const focal = useMemo(() => {
-    if (!catalog) return "";
-    const index = indexCatalog(catalog);
+    if (!catalog || !index) return "";
     const has = (key: string | null) => key !== null && (index.memberOf.has(key) || key === catalog.home);
     const asked = new URLSearchParams(window.location.search).get("home");
     const named = entry?.home ?? null;
     return has(asked) ? asked! : has(home) ? home! : has(named) ? named! : catalog.home;
-  }, [catalog, home, entry?.home]);
+  }, [catalog, index, home, entry?.home]);
   const playing = useGame((s) => s.playing);
   const play = useGame((s) => s.play);
   const setToast = useGame((s) => s.setToast);
@@ -225,7 +225,7 @@ export function ForestApp() {
       ) : null}
       {playing && forest && !shot ? (
         <>
-          <HUD forest={forest} />
+          <HUD forest={forest} index={index} />
           <TouchControls />
           <PauseOverlay />
         </>

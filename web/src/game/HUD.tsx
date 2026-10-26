@@ -9,13 +9,14 @@ import { SPECIES, speciesFor } from "./species";
 import { saveScreenshot } from "./screenshot";
 import { SEASONS } from "./seasons";
 import { wrapAngle, yawToward } from "./sim";
-import { FamilyReader } from "./FamilyReader";
+import { ClassReader } from "./ClassReader";
+import type { ClassIndex } from "./classCatalog";
 import { READ_RANGE, useGame, type PlaqueText } from "./store";
 import type { TimeMode } from "./sky";
 
 const TIME_NAME = { dawn: "Dawn", day: "Day", dusk: "Dusk", night: "Night" } as const;
 
-export function HUD({ forest }: { forest: Forest }) {
+export function HUD({ forest, index }: { forest: Forest; index: ClassIndex | null }) {
   const season = useGame((s) => s.season);
   const timeMode = useGame((s) => s.timeMode);
   const sunEvent = useGame((s) => s.sunEvent);
@@ -113,7 +114,7 @@ export function HUD({ forest }: { forest: Forest }) {
       <header className="pointer-events-none flex items-start justify-between gap-3 p-3 sm:p-4">
         {clean ? null : (
           <div className="rounded-lg border border-border bg-surface/90 px-3 py-2">
-            <p className="font-display text-lg leading-none">The Family</p>
+            <p className="font-display text-lg leading-none">The Disulfides</p>
             <p className="mt-1 text-xs text-muted">
               {forest.trees.length} trees · {SEASONS[season].label}
               {" · "}
@@ -170,7 +171,7 @@ export function HUD({ forest }: { forest: Forest }) {
                 type="button"
                 onClick={() => { jumpHome(forest); (document.activeElement as HTMLElement | null)?.blur(); }}
                 className="grid size-11 place-items-center rounded-md border border-border bg-surface"
-                aria-label="Home: back to the home tree" title="Home · H"
+                aria-label="Home: back to the hub" title="Home · H"
               >
                 <House className="size-4" strokeWidth={1.75} />
               </button>
@@ -181,8 +182,8 @@ export function HUD({ forest }: { forest: Forest }) {
                   "inline-flex min-h-11 items-center gap-2 rounded-md border px-3 text-sm " +
                   (browsing ? "border-primary bg-primary text-primary-fg" : "border-border bg-surface")
                 }
-                aria-label={`Browse the groves, every line and your album (${library.length} collected)`}
-                title="Groves · G, Lines · B, Album · L"
+                aria-label={`Browse the groves, every class and your album (${library.length} collected)`}
+                title="Groves · G, Classes · B, Album · L"
               >
                 <Library className="size-4" strokeWidth={1.75} />
                 <span className="hidden sm:inline">Browse</span>
@@ -262,7 +263,7 @@ export function HUD({ forest }: { forest: Forest }) {
                 />
               </p>
             ) : (
-              <p className="mt-1 text-xs text-faint">Tap a grove for its lines</p>
+              <p className="mt-1 text-xs text-faint">Tap a grove for its classes</p>
             )}
           </div>
         </div>
@@ -280,7 +281,7 @@ export function HUD({ forest }: { forest: Forest }) {
                 if (e.key === "Enter" && results[0]) jumpToTree(results[0]);
                 if (e.key === "Escape") e.currentTarget.blur();
               }}
-              placeholder="Search names, places, years: boston 1917"
+              placeholder="Search PDB ids, classes, names: 1xr9, 22222o"
               className="min-h-7 w-full bg-transparent text-sm text-fg outline-none placeholder:text-faint"
             />
             {query ? (
@@ -326,15 +327,15 @@ export function HUD({ forest }: { forest: Forest }) {
                 <span className="inline-block size-2 rounded-full" style={{ background: touring.color }} />
                 On the ring
               </p>
-              <h2 className="font-display mt-0.5 text-xl leading-tight sm:text-2xl">{touring.label}</h2>
+              <h2 className="font-display mt-0.5 text-xl leading-tight lining-nums sm:text-2xl">{touring.label}</h2>
               {forest.homeLine?.genre === touring.genre ? (
                 <p className="mt-0.5 flex items-center gap-1.5 text-sm text-[#f3d27a]">
-                  <House className="size-3.5" strokeWidth={2} /> {forest.corpusTree.focalName}'s own line, gilded on the tree
+                  <House className="size-3.5" strokeWidth={2} /> The home disulfide's class, gilded on the tree
                 </p>
               ) : null}
               {/* The heading already names the grove; the spoken text starts with it. */}
               <p className="mt-2 text-sm leading-relaxed text-fg/90">{touring.narration.replace(`${touring.label}: `, "").replace(/^./, (c) => c.toUpperCase())}</p>
-              {/* The stop's actions, so no second card is needed: the one line's album and records, or the grove's lines. */}
+              {/* The stop's actions, so no second card is needed: the one class's album and reader, or the grove's classes. */}
               {(() => {
                 const lines = forest.trees.filter((t) => forest.chunks[t.chunk]?.genre === touring.genre);
                 const one = lines.length === 1 ? lines[0]! : null;
@@ -352,13 +353,13 @@ export function HUD({ forest }: { forest: Forest }) {
                     )) : (
                       <button type="button" onClick={() => openCatalog(touring.genre)}
                         className="min-h-11 rounded-md bg-primary px-4 text-sm text-primary-fg">
-                        {lines.length} lines in this grove
+                        {lines.length} classes in this grove
                       </button>
                     )}
                     {one ? (
                       <button type="button" onClick={() => openReader(one.line.slug)}
                         className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-border px-4 text-sm text-fg">
-                        <BookOpen className="size-4" strokeWidth={1.75} /> Open the records
+                        <BookOpen className="size-4" strokeWidth={1.75} /> Open the reader
                       </button>
                     ) : null}
                   </div>
@@ -381,23 +382,18 @@ export function HUD({ forest }: { forest: Forest }) {
                 <X className="size-5" strokeWidth={1.75} />
               </button>
               <p className="text-xs tracking-wide text-muted uppercase">The hub</p>
-              <h2 className="font-display mt-0.5 text-xl leading-tight sm:text-2xl">{forest.corpusTree.focalName}</h2>
+              <h2 className="font-display mt-0.5 text-xl leading-tight lining-nums sm:text-2xl">{forest.corpusTree.focalName}</h2>
               <p className="text-sm text-muted tabular-nums">
-                {forest.corpusTree.totalChunks.toLocaleString("en-US")} people · {forest.trees.length} lines · {Math.round(forest.corpusTree.height)} m
+                {forest.trees.reduce((n, t) => n + t.line.members, 0).toLocaleString("en-US")} bonds · {forest.trees.length} binary classes · {Math.round(forest.corpusTree.height)} m
               </p>
               <p className="card-extra mt-2 hidden text-sm leading-relaxed text-fg/90 sm:block">
-                {forest.corpusTree.ancestors
-                  ? "Their ancestors, rising as the crown: parents, then grandparents, doubling as they go."
-                  : "The home tree: ancestors as roots under the glass, descendants as the crown. Browse every line and jump to any one."}
+                The database tree: every bond in the trunk, the 32 binary classes as its limbs in their families'
+                colors. Each grows as its own tree in the groves. Browse every class and jump to any one.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button type="button" onClick={toggleCatalog}
                   className="min-h-11 rounded-md bg-primary px-4 text-sm text-primary-fg">
-                  Browse every line · B
-                </button>
-                <button type="button" onClick={() => useGame.getState().toggleAncestors()}
-                  className="min-h-11 rounded-md border border-border px-4 text-sm text-primary">
-                  {forest.corpusTree.ancestors ? "Show the whole family" : "Show ancestors"}
+                  Browse every class · B
                 </button>
               </div>
             </article>
@@ -412,10 +408,10 @@ export function HUD({ forest }: { forest: Forest }) {
                 <X className="size-5" strokeWidth={1.75} />
               </button>
               <p className="text-xs tracking-wide text-muted uppercase">{nearby.line.surname}</p>
-              <h2 className="font-display mt-0.5 text-xl leading-tight sm:text-2xl">{nearby.line.title}</h2>
+              <h2 className="font-display mt-0.5 text-xl leading-tight lining-nums sm:text-2xl">{nearby.line.title}</h2>
               <p className="text-sm text-muted">{nearby.line.founders}</p>
               <p className="card-extra mt-1 hidden text-xs text-faint tabular-nums sm:block">
-                {nearby.line.members.toLocaleString()} {nearby.line.members === 1 ? "person" : "people"}{nearby.line.span ? ` · ${nearby.line.span}` : ""}
+                {nearby.line.members.toLocaleString("en-US")} {nearby.line.members === 1 ? "bond" : "bonds"}{nearby.line.span ? ` · ${nearby.line.span}` : ""}
               </p>
               <p className="card-extra mt-2 hidden text-sm leading-relaxed text-fg/90 sm:block">{nearby.line.summary}</p>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -432,7 +428,7 @@ export function HUD({ forest }: { forest: Forest }) {
                 )}
                 <button type="button" onClick={() => openReader(nearby.line.slug)}
                   className="inline-flex min-h-11 items-center gap-1.5 rounded-md border border-border px-4 text-sm text-fg">
-                  <BookOpen className="size-4" strokeWidth={1.75} /> Open the records
+                  <BookOpen className="size-4" strokeWidth={1.75} /> Open the reader
                 </button>
                 {godEye ? (
                   <button type="button" onClick={() => flyToTree(nearby)}
@@ -459,7 +455,7 @@ export function HUD({ forest }: { forest: Forest }) {
         </div>
 
         <p className="key-hints absolute bottom-3 left-1/2 hidden -translate-x-1/2 text-xs text-faint sm:block">
-          WASD drive · Drag or arrows look · Space brake · E album · B lines · C camera · V schematic · N names · Esc settings · ? about
+          WASD drive · Drag or arrows look · Space brake · E album · B classes · C camera · V schematic · N names · Esc settings · ? about
         </p>
       </>)}
 
@@ -471,7 +467,7 @@ export function HUD({ forest }: { forest: Forest }) {
 
       {browsing ? <BrowsePanel forest={forest} /> : null}
       {plaque ? <PlaquePanel plaque={plaque} /> : null}
-      {reading ? <FamilyReader key={reading.line.slug} line={reading.line} home={forest.corpusTree.focal} /> : null}
+      {reading && index ? <ClassReader key={reading.line.slug} index={index} line={reading.line.slug} home={forest.corpusTree.focal} /> : null}
     </div>
   );
 }
@@ -519,7 +515,7 @@ function flyToTree(t: TreeSite) {
 
 function jumpHome(forest: Forest) {
   useGame.getState().selectGrove(null);
-  useGame.getState().requestJump(forest.home, "Home · the home tree");
+  useGame.getState().requestJump(forest.home, "Home · the hub");
 }
 
 function jumpToExhibit(e: Exhibit) {
@@ -545,7 +541,7 @@ function Minimap({ forest, x, z, yaw, pins, picked }: {
         type="button"
         className="absolute size-2 rounded-full bg-fg/70"
         style={{ left: "50%", top: "50%", transform: "translate(-50%, -50%)" }}
-        aria-label="Home: back to the home tree"
+        aria-label="Home: back to the hub"
         onClick={() => jumpHome(forest)}
       />
       {forest.exhibits.map((e) => {
@@ -576,13 +572,13 @@ function Minimap({ forest, x, z, yaw, pins, picked }: {
               transform: "translate(-50%, -50%)",
               boxShadow: on ? `0 0 0 2px var(--color-fg)` : "none",
             }}
-            title={`${g.label}: its lines`}
-            aria-label={`${g.label}: list its lines`}
+            title={`${g.label}: its classes`}
+            aria-label={`${g.label}: list its classes`}
             onClick={() => useGame.getState().openCatalog(g.genre)}
           />
         );
       })}
-      {/* The grove of the home person's own line. */}
+      {/* The grove of the home disulfide's class. */}
       {forest.homeLine ? (() => {
         const g = forest.groves.find((gr) => gr.genre === forest.homeLine!.genre)!;
         const c = to(g.x, g.z);
@@ -617,7 +613,7 @@ function Minimap({ forest, x, z, yaw, pins, picked }: {
   );
 }
 
-/** The groves, every line and the album as tabs of one panel; G, B and L open their tabs. */
+/** The groves, every class and the album as tabs of one panel; G, B and L open their tabs. */
 function BrowsePanel({ forest }: { forest: Forest }) {
   const atlasOpen = useGame((s) => s.atlasOpen);
   const libraryOpen = useGame((s) => s.libraryOpen);
@@ -626,7 +622,7 @@ function BrowsePanel({ forest }: { forest: Forest }) {
   const close = () => useGame.setState({ atlasOpen: false, catalogOpen: false, libraryOpen: false });
   const tabs = [
     { id: "groves", label: "Groves", open: () => useGame.getState().toggleAtlas() },
-    { id: "books", label: "Lines", open: () => useGame.getState().openCatalog(null) },
+    { id: "books", label: "Classes", open: () => useGame.getState().openCatalog(null) },
     { id: "press", label: `Album · ${library.length}`, open: () => useGame.getState().toggleLibrary() },
   ] as const;
 
@@ -733,7 +729,7 @@ function PressTab({ forest }: { forest: Forest }) {
     </p>
     <ul className="mt-3 min-h-0 flex-1 space-y-2 overflow-auto">
       {collected.length === 0 ? (
-        <li className="text-sm text-faint">Drive to a tree and press E to add its line.</li>
+        <li className="text-sm text-faint">Drive to a tree and press E to add its class.</li>
       ) : (
         collected.map((t) => (
           <li key={t.line.slug} className="flex items-start justify-between gap-3 border-b border-border pb-2">
@@ -764,14 +760,14 @@ function PressTab({ forest }: { forest: Forest }) {
     </ul>
     {collected.length > 0 && (
       <button type="button" className="mt-3 min-h-11 w-full rounded-md border border-border text-sm text-muted"
-        onClick={() => { if (window.confirm("Empty the album? Every line comes out.")) useGame.getState().emptyPress(); }}>
+        onClick={() => { if (window.confirm("Empty the album? Every class comes out.")) useGame.getState().emptyPress(); }}>
         Empty the album
       </button>
     )}
   </>);
 }
 
-/** Every line in the family, grouped by grove: filter, then jump to its tree. */
+/** Every binary class in the database, grouped by grove: filter, then jump to its tree. */
 function BooksTab({ forest }: { forest: Forest }) {
   const library = useGame((s) => s.library);
   const genre = useGame((s) => s.catalogGenre);
@@ -799,12 +795,12 @@ function BooksTab({ forest }: { forest: Forest }) {
         </button>
         <button type="button" onClick={() => useGame.getState().openCatalog(null)}
           className="min-h-11 rounded-md border border-border bg-bg px-4 text-sm">
-          All {forest.trees.length} lines
+          All {forest.trees.length} classes
         </button>
       </div>
     </>) : (
       <p className="mt-2 text-sm text-muted tabular-nums">
-        {q ? `${shown} of ${forest.trees.length}` : `${forest.trees.length} lines`} · {forest.trees.reduce((n, t) => n + t.line.members, 0).toLocaleString("en-US")} people. Pick one to jump to its tree.
+        {q ? `${shown} of ${forest.trees.length}` : `${forest.trees.length} classes`} · {forest.trees.reduce((n, t) => n + t.line.members, 0).toLocaleString("en-US")} bonds. Pick one to jump to its tree.
       </p>
     )}
     <label className="mt-3 flex items-center gap-2 rounded-md border border-border bg-bg px-3 py-2">
@@ -817,12 +813,12 @@ function BooksTab({ forest }: { forest: Forest }) {
           const first = sections[0]?.trees[0];
           if (e.key === "Enter" && first) jumpToTree(first);
         }}
-        placeholder="Filter by title, author, genre"
+        placeholder="Filter by class, name, function, PDB id"
         className="min-h-7 w-full bg-transparent text-sm text-fg outline-none placeholder:text-faint"
       />
     </label>
     <div className="mt-3 min-h-0 flex-1 overflow-auto">
-      {sections.length === 0 ? <p className="px-1 text-sm text-faint">No line matches.</p> : null}
+      {sections.length === 0 ? <p className="px-1 text-sm text-faint">No class matches.</p> : null}
       {sections.map(({ grove, trees }) => (
         <section key={grove.genre} className="mb-3">
           <h3 className="sticky top-0 bg-surface px-1 py-1 text-xs tracking-wide text-muted uppercase">
@@ -843,7 +839,7 @@ function BooksTab({ forest }: { forest: Forest }) {
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm leading-snug">{t.line.title}</span>
                     <span className="block truncate text-xs text-muted">
-                      {t.line.founders} · {t.line.members.toLocaleString("en-US")} {t.line.members === 1 ? "person" : "people"}{library.includes(t.line.slug) ? " · in the album" : ""}
+                      {t.line.founders} · {t.line.members.toLocaleString("en-US")} {t.line.members === 1 ? "bond" : "bonds"}{library.includes(t.line.slug) ? " · in the album" : ""}
                     </span>
                   </span>
                   <span className="shrink-0 text-xs text-primary">Jump</span>

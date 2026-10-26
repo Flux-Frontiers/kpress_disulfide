@@ -12,7 +12,7 @@ const KEYS: [string[], string][] = [
   [["Drag"], "look"],
   [["E"], "album"],
   [["Q"], "tour"],
-  [["B"], "lines"],
+  [["B"], "classes"],
   [["C"], "camera"],
   [["?"], "about"],
   [["Esc"], "settings"],
@@ -101,7 +101,7 @@ export function StartScreen({
         <p className="mt-4 text-sm text-muted">
           {SEASONS[season].label} by the calendar, under your sky right now.
           {opensAt ? <> Opens beside <span className="text-fg">{opensAt}</span>.</> : null}
-          {library.length > 0 ? <> {library.length} line{library.length === 1 ? "" : "s"} already in your album.</> : null}
+          {library.length > 0 ? <> {library.length} class{library.length === 1 ? "" : "es"} already in your album.</> : null}
         </p>
       </div>
     </div>
