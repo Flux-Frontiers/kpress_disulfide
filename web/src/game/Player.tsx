@@ -34,6 +34,8 @@ const DRAG_LOOK = 0.0042;
 /** R and F raise and lower the ground view this fast, m/s, up to LIFT_MAX above its own height. */
 const LIFT_RATE = 6;
 const LIFT_MAX = 60;
+/** The view tilts up to straight up or down, short of the pole where lookAt loses its bearing. */
+const PITCH_MAX = Math.PI / 2 - 0.02;
 /** Within this far of a grove's stop, m, the cart keeps its ordinary top speed. */
 const CRUISE_STOP_CLEAR = 15;
 /** A press that moves farther than this, in pixels, is a drag, not a click. */
@@ -68,6 +70,10 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
   const lapSaid = useRef(false);
   /** The god's-eye view was on last frame. */
   const wasGod = useRef(false);
+  /** The camera view the look and tilt were set in: switching views resets them. */
+  const lookView = useRef<string | null>(null);
+  /** Riding the ring last frame: getting on resets the look, tilt and height. */
+  const onRing = useRef(false);
   /** A dive under way: where it left from, and how long it has been going. */
   const flightFrom = useRef<{ cam: Vec3; look: Vec3 } | null>(null);
   const flightT = useRef(0);
@@ -277,11 +283,10 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
       const cruise = st.cardSlug || st.pinnedSlug || atStop ? 1 : cruiseFactor(forest, sim.x, sim.z);
       stepVehicle(forest, throttle, steer, a.boost, dt, { ...preferences, brake: a.brake || tourBrake, cruise });
       // A drag turns the view with the hand, as a mouse look does: right looks right, down looks down.
-      pitch.current = clamp(pitch.current + a.pitch * 1.1 * dt - a.dragY * DRAG_LOOK, -0.45, 0.75);
+      pitch.current = clamp(pitch.current + a.pitch * 1.1 * dt - a.dragY * DRAG_LOOK, -PITCH_MAX, PITCH_MAX);
       lift.current = clamp(lift.current + a.lift * LIFT_RATE * dt, 0, LIFT_MAX);
-      // Held arrows or a drag pan up to ~110° either way; let go, the view eases back ahead.
+      // Held arrows or a drag pan up to ~110° either way, and the view stays where it is left.
       look.current = clamp(look.current + a.look * 1.6 * dt - a.dragX * DRAG_LOOK, -1.9, 1.9);
-      if (!a.look && !a.dragging) look.current *= Math.exp(-3 * dt);
 
       if (a.interact) {
         const near = treesNear(forest, sim.x, sim.z, 6.8);
@@ -303,6 +308,12 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
     const v = forwardOf(sim.yaw + look.current);
     const inCart = preferences.camera === "cart";
     const godEye = preferences.camera === "god";
+    const ring = game.travelMode === "circuit";
+    if (lookView.current !== preferences.camera || (ring && !onRing.current)) {
+      lookView.current = preferences.camera;
+      look.current = pitch.current = lift.current = 0;
+    }
+    onRing.current = ring;
     const cam = state.camera as PerspectiveCamera;
     const flight = game.flight;
     const flying = Boolean(flight && flightFrom.current);
@@ -425,7 +436,7 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
     if (playing && !godEye && !flying) {
       // On a portrait screen the level chase view is half road and cart; rest it tilted up a little.
       const rest = (preferences.camera === "follow" && cam.aspect < 1 ? PORTRAIT_TILT : 0) + (preferences.camera === "follow" ? crown.current.tilt : 0);
-      lookAt.y += Math.hypot(lookAt.x - state.camera.position.x, lookAt.z - state.camera.position.z) * Math.tan(pitch.current + rest);
+      lookAt.y += Math.hypot(lookAt.x - state.camera.position.x, lookAt.z - state.camera.position.z) * Math.tan(clamp(pitch.current + rest, -PITCH_MAX, PITCH_MAX));
       cam.far = GROUND_FAR;
       cam.near = GROUND_NEAR;
     }

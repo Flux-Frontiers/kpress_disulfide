@@ -23,7 +23,7 @@ export type Actions = {
   interactDown: boolean;
   /** Camera tilt rate, -1 (down) to 1 (up). */
   pitch: number;
-  /** Camera pan, -1 (right) to 1 (left), like steer; the view eases back to ahead on release. */
+  /** Camera pan, -1 (right) to 1 (left), like steer; the view stays turned on release. */
   look: number;
   /** Raise (1, R) or lower (-1, F) the view. */
   lift: number;
@@ -125,7 +125,7 @@ export function addDragLook(dx: number, dy: number) {
   dragY += dy;
 }
 
-/** Whether a drag is holding the view; once let go, the pan eases back to ahead. */
+/** Whether a drag is holding the view; once let go, the pan stays. */
 export function setDragging(on: boolean) {
   dragging = on;
 }

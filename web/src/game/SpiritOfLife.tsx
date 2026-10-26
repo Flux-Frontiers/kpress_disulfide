@@ -18,6 +18,12 @@ import { UplightFixtures, useUplitMaterials } from "./Uplights";
 export const LIFE_HEIGHT = 10;
 /** The floodlights at her foot: warm, reaching about half her height. */
 const LIFE_GLOW = { strength: 0.35, falloff: 5 };
+/**
+ * Her bronze's metalness, scaling the model's own map: the scene has no
+ * environment map, and at the model's full metalness she has nothing to
+ * reflect and renders nearly black (as WindSculptures.tsx notes).
+ */
+const LIFE_METALNESS = 0.45;
 
 const LIFE_BODY =
   "Life written in code. She holds the double helix as a staff whose strands feed a chip at its " +
@@ -26,46 +32,61 @@ const LIFE_BODY =
   "the machine age: here, among the disulfides, biology meets computation.";
 
 const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
-/** The model, fetched once: Art Techno's lighter export on a touch screen. */
-let model: Promise<Object3D> | null = null;
 
-function useLifeModel(): Object3D | null {
-  const [scene, setScene] = useState<Object3D | null>(null);
+/** The model and its fit to LIFE_HEIGHT, from her own bounds. */
+type Life = { scene: Object3D; scale: number; offset: readonly [number, number, number]; materials: MeshStandardMaterial[] };
+
+/**
+ * Fitted as loaded, before she stands anywhere: Box3.setFromObject measures in
+ * world space, so measured once placed (a remount, a hot reload) the glade's
+ * own position would be fitted away and she would stand off in the wild.
+ */
+function fitLife(scene: Object3D): Life {
+  scene.updateMatrixWorld(true);
+  const box = new Box3().setFromObject(scene);
+  const size = box.getSize(new Vector3()), centre = box.getCenter(new Vector3());
+  const scale = LIFE_HEIGHT / size.y;
+  const materials: MeshStandardMaterial[] = [];
+  scene.traverse((o) => {
+    if (!(o instanceof Mesh)) return;
+    o.castShadow = o.receiveShadow = true;
+    for (const m of [o.material].flat()) {
+      if (!(m instanceof MeshStandardMaterial)) continue;
+      m.metalness = LIFE_METALNESS;
+      materials.push(m);
+    }
+  });
+  return { scene, scale, offset: [-centre.x * scale, -box.min.y * scale, -centre.z * scale], materials };
+}
+
+/** The model, fetched and fitted once: Art Techno's lighter export on a touch screen. */
+let model: Promise<Life> | null = null;
+
+function useLifeModel(): Life | null {
+  const [life, setLife] = useState<Life | null>(null);
   useEffect(() => {
     let live = true;
-    model ??= loader.loadAsync(`${ASSET_ROOT}models/${COARSE_POINTER ? "mobile/" : ""}life.glb`).then((g) => g.scene);
+    model ??= loader.loadAsync(`${ASSET_ROOT}models/${COARSE_POINTER ? "mobile/" : ""}life.glb`).then((g) => fitLife(g.scene));
     // Not there without `make art`: the glade keeps its plaque and no statue.
-    model.then((s) => { if (live) setScene(s); }, () => {});
+    model.then((l) => { if (live) setLife(l); }, () => {});
     return () => { live = false; };
   }, []);
-  return scene;
+  return life;
 }
 
 /** The statue, fitted from her own bounds to LIFE_HEIGHT, standing on the ground, facing the road. */
 export function SpiritOfLife({ exhibit }: { exhibit: Exhibit }) {
-  const scene = useLifeModel();
-  const fit = useMemo(() => {
-    if (!scene) return null;
-    const box = new Box3().setFromObject(scene);
-    const size = box.getSize(new Vector3()), centre = box.getCenter(new Vector3());
-    const scale = LIFE_HEIGHT / size.y;
-    const materials: MeshStandardMaterial[] = [];
-    scene.traverse((o) => {
-      if (!(o instanceof Mesh)) return;
-      o.castShadow = o.receiveShadow = true;
-      for (const m of [o.material].flat()) if (m instanceof MeshStandardMaterial) materials.push(m);
-    });
-    return { scale, offset: [-centre.x * scale, -box.min.y * scale, -centre.z * scale] as const, materials };
-  }, [scene]);
-  useUplitMaterials(fit?.materials ?? [], "#ffe2b0", LIFE_GLOW.strength, LIFE_GLOW.falloff);
+  const fit = useLifeModel();
+  const none = useMemo<MeshStandardMaterial[]>(() => [], []);
+  useUplitMaterials(fit?.materials ?? none, "#ffe2b0", LIFE_GLOW.strength, LIFE_GLOW.falloff);
   const facing = Math.atan2(exhibit.roadX - exhibit.x, exhibit.roadZ - exhibit.z);
   return (
     <group position={[exhibit.x, 0, exhibit.z]}>
       <ExhibitPlaque exhibit={exhibit} title="Spirit of Life" byline="Art Techno · Biology meets computation" body={LIFE_BODY} />
-      {scene && fit ? (
+      {fit ? (
         <group rotation={[0, facing, 0]}>
           <group position={fit.offset} scale={fit.scale}>
-            <primitive object={scene} />
+            <primitive object={fit.scene} />
           </group>
           <UplightFixtures radius={exhibit.obstacle} count={4} pool={3} />
         </group>

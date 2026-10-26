@@ -7,13 +7,13 @@ import { useGame } from "./store";
 const KEYS: [string, string][] = [
   ["W / S", "drive forward, reverse"],
   ["A / D", "steer"],
-  ["Drag, or arrows", "look around; the view eases back to ahead when you let go, the tilt stays"],
+  ["Drag, or arrows", "look around, straight up and straight down too; the view stays where you leave it until you change views or ride the ring"],
   ["Shift / Space", "hurry / brake"],
   ["E", "add the nearest tree's class to your album"],
   ["G / B / L", "the grove atlas, every class, your album"],
-  ["H / Q", "home to the hub / the guided tour"],
+  ["H / Q", "home to the hub / the guided tour, ridden from the cart facing ahead"],
   ["C", "camera: behind, high, in the cart, god's eye"],
-  ["R / F", "raise / lower the view"],
+  ["R / F", "raise / lower the view, until you change views or ride the ring"],
   ["T", "look down on the nearest tree whole; T again or drive to come back"],
   ["?", "this page"],
   ["Esc", "close a panel; with none open, settings"],
@@ -21,7 +21,7 @@ const KEYS: [string, string][] = [
 
 const TOUCH: [string, string][] = [
   ["Stick, bottom left", "drive: up forward, down reverse, sideways to steer"],
-  ["Drag anywhere else", "look around; the view eases back to ahead when you let go"],
+  ["Drag anywhere else", "look around; the view stays where you leave it until you change views or ride the ring"],
   ["Add", "the nearest tree's class to your album, once you are close"],
   ["Guided tour", "the cart drives the ring and stops at each grove, the named families first, largest first"],
   ["Three-dot menu", "time of day, silent mode, screenshot, settings, this page"],
