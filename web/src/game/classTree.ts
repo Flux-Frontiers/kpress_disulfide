@@ -34,13 +34,13 @@ const RING = 1.0;
  * Least arc between two classes on one ring, m, whatever the tree's scale: a
  * crowded tier widens rather than packing its classes shoulder to shoulder.
  */
-const MIN_LEAF_ARC = 1.2;
+const MIN_LEAF_ARC = 1.0;
 /**
  * An octant class's members hang on a dome above it, this far from the class
  * node, m, whatever the tree's scale: a fan of twigs at the class's height
  * crowded into its neighbours on the ring.
  */
-const MEMBER_DOME = 1.0;
+const MEMBER_DOME = 0.8;
 /** The dome's rim, radians from straight up: the members fill the cap within it. */
 const MEMBER_CAP = 1.2;
 /** Turn between successive members round the dome: the golden angle, so none line up. */
@@ -155,7 +155,17 @@ type Shape = {
 type Frame = { scale: number; trunkHeight: number; ring: number };
 
 /** One tier's ring: its radius and height. */
-type Ring = { radius: number; y: number };
+/**
+ * A crowded ring is split into two rows this far apart, m: its classes take
+ * turns, so neighbours stand in different rows and the ring needs half the
+ * circumference. A dome is 1.5 m across; this keeps neighbouring domes apart.
+ */
+const ROW_GAP = 2.4;
+/** Two rows only when they save at least this much reach, m: a small ring's inner row would crowd the trunk. */
+const ROW_SAVING = 2;
+
+/** One tier's ring: its outer radius and height, its rows (1 or 2), and how many classes are placed so far. */
+type Ring = { radius: number; y: number; rows: number; placed: number };
 
 /** Nodes drawn at and below `id`, counting itself: a tree's population, for its scale. */
 function weightOf(shape: Shape, id: string, cache: Map<string, number>): number {
@@ -186,8 +196,12 @@ function tierNeeds(shape: Shape, root: string): Map<number, { count: number; arc
   return tiers;
 }
 
-function ringRadius(tier: number, arc: number, f: Frame): number {
-  return Math.max(tier * f.ring * f.scale, arc / (2 * Math.PI));
+/** A ring's outer radius and rows: one row round the classes' arcs, or two when that is ROW_SAVING tighter. */
+function ringRadius(tier: number, arc: number, f: Frame): { radius: number; rows: number } {
+  const reach = tier * f.ring * f.scale;
+  const one = Math.max(reach, arc / (2 * Math.PI));
+  const two = Math.max(reach, arc / (4 * Math.PI) + ROW_GAP);
+  return two < one - ROW_SAVING ? { radius: two, rows: 2 } : { radius: one, rows: 1 };
 }
 
 /**
@@ -201,24 +215,28 @@ function angleOf(shape: Shape, rings: Map<number, Ring>, id: string, tier: numbe
   let below = 0;
   for (const k of shape.kids(id)) below += angleOf(shape, rings, k, tier + 1, cache);
   const ring = rings.get(tier);
-  const a = Math.max(ring ? arcOf(shape, id) / ring.radius : 0, below);
+  // In two rows a class shares its arc with its neighbour in the other row, on the inner row's circle.
+  const room = !ring ? 0 : ring.rows === 2 ? 2 * (ring.radius - ROW_GAP) : ring.radius;
+  const a = Math.max(ring ? arcOf(shape, id) / room : 0, below);
   cache.set(id, a);
   return a;
 }
 
 /**
  * Every tier's ring above the trunk, MIN_LEAF_ARC or DOME_ARC per class
- * round it. A tier rises at LIMB_PITCH over its reach past the ring below,
+ * round it, in two rows when that needs less reach, every ring widened by
+ * `widen`. A tier rises at LIMB_PITCH over its reach past the ring below,
  * held to MIN_RISE..MAX_RISE.
  */
-function ringsOf(tiers: Map<number, { count: number; arc: number }>, f: Frame): Map<number, Ring> {
+function ringsOf(tiers: Map<number, { count: number; arc: number }>, f: Frame, widen = 1): Map<number, Ring> {
   const rings = new Map<number, Ring>();
   let y = f.trunkHeight, inner = 0;
   for (let tier = 1; tiers.has(tier); tier++) {
-    const radius = ringRadius(tier, tiers.get(tier)!.arc, f);
+    const fit = ringRadius(tier, tiers.get(tier)!.arc, f);
+    const radius = fit.radius * widen, rows = fit.rows;
     y += Math.min(MAX_RISE, Math.max(MIN_RISE, Math.tan(LIMB_PITCH) * (radius - inner)));
     inner = radius;
-    rings.set(tier, { radius, y });
+    rings.set(tier, { radius, y, rows, placed: 0 });
   }
   return rings;
 }
@@ -250,7 +268,9 @@ function placeCanopy(
     const kidSpan = (span * kidWeights[j]!) / total;
     const angle = c0 + kidSpan / 2;
     c0 += kidSpan;
-    const n = b.add(polar(ring.radius * spanReach(kidSpan), angle, ring.y), node, k, gen + 1, shape.flow(k));
+    // Two rows: classes take turns, outer then inner, round the ring.
+    const r = ring.rows === 2 && ring.placed++ % 2 ? ring.radius - ROW_GAP : ring.radius;
+    const n = b.add(polar(r * spanReach(kidSpan), angle, ring.y), node, k, gen + 1, shape.flow(k));
     placeCanopy(shape, b, f, rings, weigh, k, n, gen + 1, angle - kidSpan / 2, kidSpan);
   });
 }
@@ -337,8 +357,18 @@ function finish(b: Builder, key: string, f: Frame, tipRadius: number): ClassTree
 }
 
 function grow(shape: Shape, root: string, key: string, f: Frame, tipRadius: number): ClassTree {
-  const rings = ringsOf(tierNeeds(shape, root), f);
-  const angles = new Map<string, number>();
+  // Each ring fits its own classes, but a class's wedge is the larger of its
+  // own arc and its children's, and those can sum past the circle: widen the
+  // rings until the trunk's wedges fit in one turn.
+  const tiers = tierNeeds(shape, root);
+  let widen = 1, rings = ringsOf(tiers, f), angles = new Map<string, number>();
+  for (let it = 0; it < 8; it++) {
+    const total = shape.kids(root).reduce((a, k) => a + angleOf(shape, rings, k, 1, angles), 0);
+    if (total <= 2 * Math.PI * 1.001) break;
+    widen *= total / (2 * Math.PI);
+    rings = ringsOf(tiers, f, widen);
+    angles = new Map();
+  }
   const weigh = (id: string, tier: number) => angleOf(shape, rings, id, tier, angles);
   const b = new Builder();
   const ground = b.add([0, 0, 0], -1, null);
