@@ -183,7 +183,7 @@ export function DnaSculpture({ exhibit }: { exhibit: Exhibit }) {
   const ends = [pairs[0]!, pairs[pairs.length - 1]!];
   return (
     <group position={[exhibit.x, 0, exhibit.z]}>
-      <ExhibitPlaque exhibit={exhibit} title="Double Helix" byline="After Watson, Crick and Franklin · 1953" body={DNA_BODY} />
+      <ExhibitPlaque exhibit={exhibit} title="Double Helix" byline="After Watson, Crick and Franklin · 1953" body={DNA_BODY} pick={top + 1.3} />
       <Plinth r={exhibit.obstacle} stone={m.stone} />
       {/* The spike: a steel column the helix turns on, drawn to a point above it. */}
       <Rod y0={PLINTH_TOP} y1={top + 0.6} r={0.06} material={m.steel} />

@@ -14,7 +14,7 @@ import { savedForest } from "./forestChoice";
 import { getForest, treeApproach, type Forest } from "./forest";
 import { BOND_CAP } from "./preferences";
 import { GROW_VERSION } from "./growTree";
-import { bindInput, isInputTarget } from "./input";
+import { bindInput, isInputTarget, lookAhead } from "./input";
 import { requestPlace } from "./location";
 import { resetSim } from "./sim";
 import { unlockSpeechOnGesture } from "./speech";
@@ -202,6 +202,7 @@ export function ForestApp() {
         st.requestJump(forest.home, "Home · the hub");
       }
       if (e.code === "KeyT" && forest) viewWholeTree(forest);
+      if (e.code === "KeyX") lookAhead();
     }
     window.addEventListener("keydown", onKey);
     function onBlur() {

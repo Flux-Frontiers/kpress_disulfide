@@ -287,6 +287,8 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
       lift.current = clamp(lift.current + a.lift * LIFT_RATE * dt, 0, LIFT_MAX);
       // Held arrows or a drag pan up to ~110° either way, and the view stays where it is left.
       look.current = clamp(look.current + a.look * 1.6 * dt - a.dragX * DRAG_LOOK, -1.9, 1.9);
+      if (a.ahead) look.current = pitch.current = 0;
+      useGame.getState().setLookTurned(Math.abs(look.current) > 0.05 || Math.abs(pitch.current) > 0.05);
 
       if (a.interact) {
         const near = treesNear(forest, sim.x, sim.z, 6.8);

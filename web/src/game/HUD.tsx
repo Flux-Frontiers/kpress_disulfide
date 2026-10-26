@@ -1,4 +1,5 @@
 import { Bell, BellOff, BookOpen, Camera, Check, Clock, Compass, Ellipsis, Eye, EyeOff, House, Info, Library, LogOut, MapPin, Moon, Settings2, Search, Sun, Sunrise, Sunset, X } from "lucide-react";
+import { lookAhead } from "./input";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { COARSE_POINTER } from "./Environment";
 import { exhibitApproach, type Exhibit } from "./exhibits";
@@ -56,6 +57,7 @@ export function HUD({ forest, index }: { forest: Forest; index: ClassIndex | nul
   const selectedGrove = useGame((s) => s.selectedGrove);
   const travelMode = useGame((s) => s.travelMode);
   const toggleCircuit = useGame((s) => s.toggleCircuit);
+  const lookTurned = useGame((s) => s.lookTurned);
   const catalogOpen = useGame((s) => s.catalogOpen);
   const toggleCatalog = useGame((s) => s.toggleCatalog);
   const openCatalog = useGame((s) => s.openCatalog);
@@ -453,6 +455,12 @@ export function HUD({ forest, index }: { forest: Forest; index: ClassIndex | nul
         </div>
 
         <div className="season-dock pointer-events-auto absolute right-3 bottom-24 hidden flex-col gap-1 sm:flex">
+          {lookTurned ? (
+            <button type="button" onClick={() => { lookAhead(); (document.activeElement as HTMLElement | null)?.blur(); }}
+              className="rounded-sm border border-border bg-surface px-2 py-1 text-xs text-muted">
+              Look ahead · X
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => { toggleCircuit(); (document.activeElement as HTMLElement | null)?.blur(); }}

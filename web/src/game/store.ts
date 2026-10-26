@@ -130,6 +130,9 @@ export type GameStore = {
   toast: string | null;
   /** Last sampled render stats, when preferences.stats is on. */
   stats: { tris: number; calls: number; fps: number } | null;
+  /** The ground view is turned or tilted off straight ahead (Player.tsx): the Look ahead button shows. */
+  lookTurned: boolean;
+  setLookTurned: (lookTurned: boolean) => void;
   setStats: (stats: { tris: number; calls: number; fps: number } | null) => void;
   libraryOpen: boolean;
   helpOpen: boolean;
@@ -293,6 +296,8 @@ export const useGame = create<GameStore>((set, get) => ({
   toast: null,
   stats: null,
   setStats: (stats) => set({ stats }),
+  lookTurned: false,
+  setLookTurned: (lookTurned) => { if (get().lookTurned !== lookTurned) set({ lookTurned }); },
   libraryOpen: false,
   helpOpen: false,
   lastReadSlug: null,

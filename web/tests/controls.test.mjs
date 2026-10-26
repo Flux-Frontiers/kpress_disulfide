@@ -99,8 +99,17 @@ test("input reset clears held keyboard, touch axes, look and interaction edges",
   assert.deepEqual([dragged.dragX, dragged.dragY, dragged.dragging], [15, -3, true], "a drag adds up between frames");
   assert.deepEqual([input.sampleActions().dragX, input.sampleActions().dragY], [0, 0], "and is used once");
   input.addDragLook(5, 5);
+  input.setTouchLift(1);
+  input.lookAhead();
   input.resetInput();
-  assert.deepEqual(input.sampleActions(), { throttle: 0, steer: 0, boost: false, brake: false, interact: false, interactDown: false, pitch: 0, look: 0, lift: 0, dragX: 0, dragY: 0, dragging: false });
+  assert.deepEqual(input.sampleActions(), { throttle: 0, steer: 0, boost: false, brake: false, interact: false, interactDown: false, pitch: 0, look: 0, lift: 0, ahead: false, dragX: 0, dragY: 0, dragging: false });
+  // The touch buttons raise and lower while held; Look ahead is used once.
+  input.setTouchLift(-1);
+  assert.equal(input.sampleActions().lift, -1);
+  input.setTouchLift(0);
+  input.lookAhead();
+  assert.equal(input.sampleActions().ahead, true);
+  assert.equal(input.sampleActions().ahead, false);
   // R raises the view, F lowers it.
   input.setInjectedKeys(["KeyR"]);
   assert.equal(input.sampleActions().lift, 1);

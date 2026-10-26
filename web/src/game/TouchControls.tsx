@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { setTouchAxes, stickAxes } from "./input";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { lookAhead, setTouchAxes, setTouchLift, stickAxes } from "./input";
 import { useGame } from "./store";
 
 export function TouchControls() {
@@ -10,10 +11,12 @@ export function TouchControls() {
   const blocked = useGame((s) => s.paused || s.libraryOpen || s.atlasOpen || s.catalogOpen);
   const toggleCircuit = useGame((s) => s.toggleCircuit);
   const travelMode = useGame((s) => s.travelMode);
+  const lookTurned = useGame((s) => s.lookTurned);
 
   useEffect(() => {
     setTouchAxes(0, 0);
-    return () => setTouchAxes(0, 0);
+    setTouchLift(0);
+    return () => { setTouchAxes(0, 0); setTouchLift(0); };
   }, [blocked]);
 
   if (blocked) return null;
@@ -23,6 +26,18 @@ export function TouchControls() {
         onMove={(x, y) => { const a = stickAxes(x, y); setTouchAxes(a.throttle, a.steer); }}
         onRelease={() => setTouchAxes(0, 0)} />
       {/* No look stick: a drag anywhere else on the forest looks around (Player.tsx). */}
+      {/* The view's own controls, on the right edge halfway up, clear of the
+          search field and the cards at the bottom: R and F held raise or lower
+          it, and Look ahead shows while it is turned. */}
+      <div className="pointer-events-auto fixed top-1/2 right-3 flex -translate-y-1/2 flex-col items-end gap-2">
+        <HoldButton label="Raise the view" lift={1}><ChevronUp className="size-5" /></HoldButton>
+        <HoldButton label="Lower the view" lift={-1}><ChevronDown className="size-5" /></HoldButton>
+        {lookTurned ? (
+          <button type="button" className="min-h-11 rounded-full border border-border bg-surface px-3 text-xs" onClick={lookAhead}>
+            Look ahead
+          </button>
+        ) : null}
+      </div>
       <div className="pointer-events-auto flex flex-col items-end gap-2">
         <button type="button" className="min-h-11 rounded-full border border-border bg-surface px-4 text-sm" onClick={toggleCircuit}>
           {travelMode === "circuit" ? "End tour" : "Guided tour"}
@@ -34,6 +49,20 @@ export function TouchControls() {
         </button>
       </div>
     </div>
+  );
+}
+
+/** Raises or lowers the view while held, as R and F do. */
+function HoldButton({ label, lift, children }: { label: string; lift: number; children: React.ReactNode }) {
+  const stop = () => setTouchLift(0);
+  return (
+    <button type="button" aria-label={label}
+      className="grid size-11 place-items-center rounded-full border border-border bg-surface touch-none select-none"
+      onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); setTouchLift(lift); }}
+      onPointerUp={stop} onPointerCancel={stop} onLostPointerCapture={stop}
+      onContextMenu={(e) => e.preventDefault()}>
+      {children}
+    </button>
   );
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { AdditiveBlending, CanvasTexture, Color, DoubleSide, LinearFilter, SRGBColorSpace } from "three";
+import type { ThreeEvent } from "@react-three/fiber";
 import type { Exhibit } from "./exhibits";
 import { groveByGenre, type Forest, type Grove } from "./forest";
 import { percent } from "./classForest";
@@ -434,21 +435,34 @@ export function Lectern({ title, byline, body }: { title: string; byline: string
  * An exhibit's plaque: between the piece and the road, facing the road, so it
  * reads with the piece behind it. `aside` swings it round the plinth by that
  * many radians, still facing the end of the spur, to leave the view up the
- * spur clear for a piece the plaque would hide.
+ * spur clear for a piece the plaque would hide. `pick`, the piece's height,
+ * makes the piece open the plaque too, through an unseen cylinder over its
+ * plinth: picking the piece itself would test every triangle of a statue on
+ * each pointer move.
  */
-export function ExhibitPlaque({ exhibit: e, title, byline, body, aside = 0 }: {
-  exhibit: Exhibit; title: string; byline: string; body: string; aside?: number;
+export function ExhibitPlaque({ exhibit: e, title, byline, body, aside = 0, pick }: {
+  exhibit: Exhibit; title: string; byline: string; body: string; aside?: number; pick?: number;
 }) {
   const a = Math.atan2(e.roadZ - e.z, e.roadX - e.x) + aside;
   const x = Math.cos(a) * (e.obstacle + 1.9), z = Math.sin(a) * (e.obstacle + 1.9);
-  // Tapping the plaque opens its text full size (HUD PlaquePanel).
+  // Tapping the plaque, or the piece, opens its text full size (HUD PlaquePanel).
+  const open = {
+    onClick: (ev: ThreeEvent<MouseEvent>) => { ev.stopPropagation(); useGame.getState().openPlaque({ title, byline, body }); },
+    onPointerOver: () => { document.body.style.cursor = "pointer"; },
+    onPointerOut: () => { document.body.style.cursor = ""; },
+  };
   return (
-    <group position={[x, 0, z]} rotation={[0, Math.atan2(e.roadX - e.x - x, e.roadZ - e.z - z), 0]}
-      onClick={(ev) => { ev.stopPropagation(); useGame.getState().openPlaque({ title, byline, body }); }}
-      onPointerOver={() => { document.body.style.cursor = "pointer"; }}
-      onPointerOut={() => { document.body.style.cursor = ""; }}>
-      <Lectern title={title} byline={byline} body={body} />
-    </group>
+    <>
+      <group position={[x, 0, z]} rotation={[0, Math.atan2(e.roadX - e.x - x, e.roadZ - e.z - z), 0]} {...open}>
+        <Lectern title={title} byline={byline} body={body} />
+      </group>
+      {pick ? (
+        <mesh position={[0, pick / 2, 0]} {...open}>
+          <cylinderGeometry args={[e.obstacle, e.obstacle, pick, 12, 1]} />
+          <meshBasicMaterial colorWrite={false} depthWrite={false} />
+        </mesh>
+      ) : null}
+    </>
   );
 }
 
