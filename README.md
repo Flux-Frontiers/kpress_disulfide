@@ -4,6 +4,7 @@
 [![Data: proteusPy](https://img.shields.io/badge/data-proteusPy-blue.svg)](https://github.com/suchanek/proteusPy)
 [![CI](https://github.com/Flux-Frontiers/kpress_disulfide/actions/workflows/ci.yml/badge.svg)](https://github.com/Flux-Frontiers/kpress_disulfide/actions/workflows/ci.yml)
 [![Web](https://github.com/Flux-Frontiers/kpress_disulfide/actions/workflows/web.yml/badge.svg)](https://github.com/Flux-Frontiers/kpress_disulfide/actions/workflows/web.yml)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.23679104-blue.svg)](https://doi.org/10.5281/zenodo.23679104)
 
 # The Knowledge Press: The Disulfides
 
@@ -92,7 +93,7 @@ The tests run against a trimmed subset export committed under
 
 If you use The Disulfides in your research or project, please cite it:
 
-> Suchanek, E. G. (2026). *The Knowledge Press: The Disulfides* (Version 0.1.0) [Software]. Flux-Frontiers. https://github.com/Flux-Frontiers/kpress_disulfide
+> Suchanek, E. G. (2026). *The Knowledge Press: The Disulfides* (Version 0.1.0) [Software]. Flux-Frontiers. https://doi.org/10.5281/zenodo.23679104
 
 ```bibtex
 @software{suchanek_kpress_disulfide,
@@ -101,6 +102,7 @@ If you use The Disulfides in your research or project, please cite it:
   version   = {0.1.0},
   year      = {2026},
   publisher = {Flux-Frontiers},
+  doi       = {10.5281/zenodo.23679104},
   url       = {https://github.com/Flux-Frontiers/kpress_disulfide},
 }
 ```
