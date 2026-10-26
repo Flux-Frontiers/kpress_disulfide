@@ -54,8 +54,9 @@ limb.
 
 `make art` copies Art Techno's Spirits of Life and Innovation
 (`ART_TECHNO_DIR`, default `../art_techno`), each in her own exhibit glade;
-their models are CC
-BY-NC 4.0 and not committed here (see [PROVENANCE.md](PROVENANCE.md)).
+it also writes simplified copies drawn from afar, with art_techno's
+gltf-transform (`npm install` in `../art_techno/web` first). Their models
+are CC BY-NC 4.0 and not committed here (see [PROVENANCE.md](PROVENANCE.md)).
 
 `?forest=<slug>` opens that database; otherwise the one chosen last on this
 device, or the first. Each database keeps its own album and home

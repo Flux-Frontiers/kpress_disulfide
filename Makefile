@@ -78,14 +78,26 @@ forest:
 demos: art
 	$(MAKE) forest FOREST=subset
 
-# The Spirit of Life's models from Art Techno (CC BY-NC 4.0; see
-# PROVENANCE.md), into web/public/models, which is never committed.
+# The Spirits of Life and Innovation from Art Techno (CC BY-NC 4.0; see
+# PROVENANCE.md), into web/public/models, which is never committed, and a
+# simplified copy of each into models/far, drawn from afar (Spirits.tsx):
+# welded and simplified to SPIRIT_FAR of Art Techno's lighter export, with
+# Art Techno's own gltf-transform.
+GLTF_TRANSFORM ?= $(ART_TECHNO_DIR)/web/node_modules/.bin/gltf-transform
+SPIRIT_FAR ?= 0.15
+SPIRITS = life innovation-eureka
+
 art:
-	mkdir -p web/public/models/mobile
+	mkdir -p web/public/models/mobile web/public/models/far
 	cp $(ART_TECHNO_DIR)/web/public/models/life.glb web/public/models/life.glb
 	cp $(ART_TECHNO_DIR)/web/public/models/mobile/life.glb web/public/models/mobile/life.glb
 	cp $(ART_TECHNO_DIR)/web/public/models/innovation-eureka.glb web/public/models/innovation-eureka.glb
 	cp $(ART_TECHNO_DIR)/web/public/models/mobile/innovation-eureka.glb web/public/models/mobile/innovation-eureka.glb
+	tmp=$$(mktemp -d) && for m in $(SPIRITS); do \
+	  $(GLTF_TRANSFORM) weld web/public/models/mobile/$$m.glb $$tmp/$$m-w.glb && \
+	  $(GLTF_TRANSFORM) simplify $$tmp/$$m-w.glb $$tmp/$$m-s.glb --ratio $(SPIRIT_FAR) --error 0.002 && \
+	  $(GLTF_TRANSFORM) meshopt $$tmp/$$m-s.glb web/public/models/far/$$m.glb || exit 1; \
+	done; rm -rf $$tmp
 
 gallery:
 	cd web && node scripts/gallery.mjs

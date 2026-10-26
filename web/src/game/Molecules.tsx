@@ -43,7 +43,8 @@ export function BallAndStickMesh({ balls, sticks }: { balls: Ball[]; sticks: Sti
   const ballRef = useRef<InstancedMesh>(null);
   const stickRef = useRef<InstancedMesh>(null);
   const geoms = useMemo(() => ({
-    ball: new SphereGeometry(1, 20, 14),
+    // 14 by 10: 252 triangles an atom, round at a plaque's reading distance; 20 by 14 cost twice that over some 500 atoms.
+    ball: new SphereGeometry(1, 14, 10),
     // A unit cylinder along y, from y = 0 to y = 1: a stick is a scale and a turn.
     stick: new CylinderGeometry(1, 1, 1, 12, 1, true).translate(0, 0.5, 0),
   }), []);
