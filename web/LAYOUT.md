@@ -39,27 +39,31 @@ Each of the 32 binary classes is one tree (`classTree.ts`, `lineTree`):
   (`--members-per-class`), lowest torsional energy first. The Bond
   complexity setting shows 1, 3, 6 or all of them per octant class; the
   classes stand in the same place at every setting, and the home
-  disulfide always shows. They sit on a
-  dome of radius 1 m above their octant class, spiralling down from the
-  top at the golden angle. In the wood view each bond is a tuft of 7
+  disulfide always shows. They sit on a dome of radius 0.8 m above their
+  octant class, spiralling down from the top at the golden angle. In the wood view each bond is a tuft of 7
   leaves. In the schematic it is a small sphere. Either way it opens that
   bond's card in the reader.
 
 ### Where a class stands on its ring
 
 The layout is a radial tidy tree, as the Family's kinship trees were.
-Each class needs an arc on its own ring: 1.2 m, or 2.2 m for an octant
-class with sampled bonds, to clear its dome (`DOME_ARC`). Each ring's
-radius is the larger of two values (`ringRadius`):
+Each class needs an arc on its own ring: 1.0 m, or about 1.9 m for an
+octant class with sampled bonds, to clear its dome (`DOME_ARC`). Each
+ring's radius is the larger of two values (`ringRadius`):
 
 - the tier's own reach, 1 m per tier times the tree's scale;
 - the sum of its classes' arcs, around the circle.
 
+A crowded ring splits into two rows 2.4 m apart when that saves at least
+2 m of reach: its classes take turns, outer row then inner, so neighbors
+stand in different rows and the ring needs half the circumference.
+
 Going up a tier, a class's wedge is split among its children by what
 each needs: the larger of its own arc on its ring and the wedges of its
-children on theirs (`angleOf`). So no class gets less than its arc. A
-child stands at its wedge's bearing, and its distance from the axis falls
-as its wedge widens (`spanReach`).
+children on theirs (`angleOf`). Those can sum past a full turn, so all
+the rings widen together until the trunk's wedges fit one. No class gets
+less than its arc. A child stands at its wedge's bearing, and its
+distance from the axis falls as its wedge widens (`spanReach`).
 
 The tree's scale is `sqrt(200 / nodes)`, clamped to 0.6 through 2.0. It
 shrinks the tier reach of large trees and grows that of small ones,
@@ -89,8 +93,9 @@ parent's direction and then reaches out, with a little seeded jitter.
 - **Class beads** in the schematic are colored by tier on a line tree:
   gold for the binary class, orange for its quadrant classes, red for its
   octant classes. On the database tree each binary class takes its
-  family's grove color. Classes are cubes, bonds spheres, and the
-  database tree's trunk is a gold diamond (`schematic.ts`). The
+  family's grove color. Binary and quadrant classes are cubes, octant
+  classes and folded tips octahedra, bonds spheres, and the database
+  tree's trunk a large gold diamond (`schematic.ts`). The
   schematic's straight limbs are brushed aluminum.
 - **Bark** takes the season's wood color.
 - **Species** is set by class family (`classForest.speciesForGrove`):
@@ -106,16 +111,18 @@ hold their 3 or 4 sign variants: -LHSpiral `00000b`, +LHSpiral and so on.
 Each of the 12 unnamed binary classes is a grove of its own, for 18
 groves.
 
-Within a grove, trees are seated largest crown first (`shyLayout`): the
-largest at the grove's center, then each takes the innermost spot on a
-sunflower spiral where its trunk stands at least 7.5 m from every other
-trunk, and its crown keeps 3 m of clear ground, seen from above, from
-every crown already standing.
+Within a grove, trees are seated largest crown first (`shyLayout`). The
+largest stands at the origin; each of the rest takes the innermost spot
+within 45 degrees behind it on a sunflower spiral, where its trunk stands
+at least 7.5 m from every other trunk and its crown keeps 3 m of clear
+ground, seen from above, from every crown already standing.
 
-A grove is as wide as its trunks need, plus 3 m (`TRUNK_CLEAR`). Its
-crowns, which start well above the cart, may reach past it and over the
-road, so a trunk stands near the road rather than a crown's reach from
-it.
+The grove is then centered on the smallest circle round its trunks
+(`enclosingCircle`), which, with the rest behind it, has the largest tree
+on its rim, and turned so that tree faces the hub. A grove is as wide as
+its trunks need, plus 3 m (`TRUNK_CLEAR`). Its crowns, which start well
+above the cart, may reach past it and over the road, so each grove's
+largest tree stands by the ring road.
 
 Groves stand on a hub-and-spoke wheel of ring roads around the hub
 (`wheelLayout`), seated in occupancy order: the named families first,
@@ -171,13 +178,14 @@ Measured from the exports in `public/forests/` with the current code.
 | Bonds | 5,000 in 1,038 PDB entries | 175,277 in 36,968 PDB entries |
 | `min_members` | 2 | 20 |
 | Sampled bonds (leaves) | 2,413 | 11,196 |
-| Largest tree | `00000b`, 1,158 bonds, 582 nodes, 14.6 m tall, reach 31.0 m | `00000b`, 40,943 bonds, 1,677 nodes, 14.8 m tall, reach 50.6 m |
-| Smallest tree | `20202b`, 12 bonds, 16 nodes, 6.9 m tall, reach 4.1 m | `20202b`, 538 bonds, 120 nodes, 7.9 m tall, reach 7.6 m |
-| Line tree height | 6.8 to 14.6 m | 7.7 to 14.8 m |
+| Largest tree | `00000b`, 1,158 bonds, 582 nodes, 12.6 m tall, reach 19.5 m | `00000b`, 40,943 bonds, 1,677 nodes, 14.8 m tall, reach 29.7 m |
+| Smallest tree | `20202b`, 12 bonds, 16 nodes, 6.7 m tall, reach 4.0 m | `20202b`, 538 bonds, 120 nodes, 7.7 m tall, reach 7.6 m |
+| Line tree height | 6.7 to 12.6 m | 7.5 to 14.8 m |
 | Database tree | 33 nodes, 9.8 m tall, reach 8.0 m | 33 nodes, 9.8 m tall, reach 8.0 m |
-| LHSpiral grove radius | 49.6 m | 77.4 m |
-| Trunk to nearest road | median 14 m, at most 49 m | median 10 m, at most 79 m |
-| Orchard radius (outermost grove edge) | 147 m | 220 m |
+| LHSpiral grove radius | 19.7 m | 31.8 m |
+| Largest tree of each grove to nearest road | 5 to 6 m | 5 to 28 m |
+| Any trunk to nearest road | median 6 m, at most 22 m | median 6 m, at most 32 m |
+| Orchard radius (outermost grove edge) | 77 m | 107 m |
 | Home disulfide | `1xr9_203A_259A`, 0.49 kcal/mol | `2q7q_75D_140D`, 0.49 kcal/mol |
 
 Build either with `make forest FOREST=subset` or `make forest

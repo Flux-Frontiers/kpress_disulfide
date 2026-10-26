@@ -15,12 +15,14 @@ uses [Semantic Versioning](https://semver.org/).
 - One tree per binary class (32): its quadrant classes the first ring of
   limbs, its octant classes and folded `-other` tips the second, and up to
   12 sampled bonds per octant class on a dome above it. Every class gets
-  the arc it needs on its ring, and limbs climb at one pitch.
+  the arc it needs on its ring, crowded rings split into two rows, and
+  limbs climb at one pitch.
 - Leaves and bond beads colored by torsional energy on a fixed ramp, blue
   for relaxed to red for strained.
 - One grove per class family: the six named families and each unnamed
   binary class, 18 in all, seated by occupancy, with a species per family.
-  A grove is sized by its trunks; its crowns reach over the road.
+  A grove is sized by its trunks, with its largest tree by the ring road
+  and its crowns reaching over the road.
 - Model disulfides drawn ball-and-stick with proteusPy's colors and radii:
   each grove's representative at its stop, each tree's own model at its
   foot, and the home disulfide on the hub's monument, from its real
@@ -39,8 +41,10 @@ uses [Semantic Versioning](https://semver.org/).
   energy.
 - The album, with ranks: Reader, Modeler, Refiner, Curator and Keeper of
   the Classes.
-- Schematic mode (V): classes as cubes colored by tier, bonds as spheres
-  colored by energy, on straight brushed-aluminum limbs.
+- Schematic mode (V): binary and quadrant classes as cubes and octant
+  classes as octahedra, colored by tier, bonds as spheres colored by
+  energy, on straight brushed-aluminum limbs.
+- R and F raise and lower the view, up to 60 m.
 - Name plates (N), off by default: shown only near a tree and laid out so
   none covers another.
 - `web/LAYOUT.md`, describing how the orchard represents the database.
