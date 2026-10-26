@@ -138,7 +138,8 @@ const MONUMENT_BODY =
   "The home disulfide, drawn ball-and-stick from its own coordinates in the Protein Data Bank, one " +
   "angstrom to 35 cm. Behind it stands the database tree: every bond in the trunk and the 32 binary " +
   "classes as its limbs, each as thick as the bonds it carries and leafed in its family's color. Each " +
-  "binary class grows as its own tree out in the groves. Click the tree or press B to browse every class.";
+  "binary class grows as its own tree out in the groves. Click a limb to go to its tree, or press B to " +
+  "browse every class.";
 
 /** The home disulfide at monument scale on the hub plaza, with its plaque. */
 export function Monument({ forest }: { forest: Forest }) {

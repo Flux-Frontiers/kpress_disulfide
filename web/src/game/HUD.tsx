@@ -388,7 +388,7 @@ export function HUD({ forest, index }: { forest: Forest; index: ClassIndex | nul
               </p>
               <p className="card-extra mt-2 hidden text-sm leading-relaxed text-fg/90 sm:block">
                 The database tree: every bond in the trunk, the 32 binary classes as its limbs in their families'
-                colors. Each grows as its own tree in the groves. Browse every class and jump to any one.
+                colors. Each grows as its own tree in the groves: click a limb to go to it, or browse every class.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <button type="button" onClick={toggleCatalog}
@@ -496,7 +496,7 @@ function jumpToGrove(g: Grove) {
   useGame.getState().requestJump({ x: wp.x, z: wp.z, yaw: wp.yaw }, `${g.label} grove`);
 }
 
-function jumpToTree(t: TreeSite) {
+export function jumpToTree(t: TreeSite) {
   const s = useGame.getState();
   s.selectGrove(null);
   s.pickSearch(t.line.slug);
@@ -506,7 +506,7 @@ function jumpToTree(t: TreeSite) {
 }
 
 /** From god's eye: put the cart at the tree and dive the camera down to it. */
-function flyToTree(t: TreeSite) {
+export function flyToTree(t: TreeSite) {
   const s = useGame.getState();
   s.selectGrove(null);
   s.pinTree(t.line.slug);
