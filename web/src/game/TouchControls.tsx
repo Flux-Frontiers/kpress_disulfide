@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, LocateFixed } from "lucide-react";
 import { lookAhead, setTouchAxes, setTouchLift, stickAxes } from "./input";
 import { useGame } from "./store";
 
@@ -26,17 +26,18 @@ export function TouchControls() {
         onMove={(x, y) => { const a = stickAxes(x, y); setTouchAxes(a.throttle, a.steer); }}
         onRelease={() => setTouchAxes(0, 0)} />
       {/* No look stick: a drag anywhere else on the forest looks around (Player.tsx). */}
-      {/* The view's own controls, on the right edge halfway up, clear of the
-          search field and the cards at the bottom: R and F held raise or lower
-          it, and Look ahead shows while it is turned. */}
-      <div className="pointer-events-auto fixed top-1/2 right-3 flex -translate-y-1/2 flex-col items-end gap-2">
-        <HoldButton label="Raise the view" lift={1}><ChevronUp className="size-5" /></HoldButton>
-        <HoldButton label="Lower the view" lift={-1}><ChevronDown className="size-5" /></HoldButton>
+      {/* The view's own controls, in the bottom row between the stick and the
+          tour, where no card or field reaches: R and F held raise or lower it,
+          and Look ahead shows while it is turned. */}
+      <div className="pointer-events-auto flex gap-2">
         {lookTurned ? (
-          <button type="button" className="min-h-11 rounded-full border border-border bg-surface px-3 text-xs" onClick={lookAhead}>
-            Look ahead
+          <button type="button" aria-label="Look ahead" onClick={lookAhead}
+            className="grid size-11 place-items-center rounded-full border border-border bg-surface">
+            <LocateFixed className="size-5" />
           </button>
         ) : null}
+        <HoldButton label="Raise the view" lift={1}><ChevronUp className="size-5" /></HoldButton>
+        <HoldButton label="Lower the view" lift={-1}><ChevronDown className="size-5" /></HoldButton>
       </div>
       <div className="pointer-events-auto flex flex-col items-end gap-2">
         <button type="button" className="min-h-11 rounded-full border border-border bg-surface px-4 text-sm" onClick={toggleCircuit}>

@@ -24,7 +24,7 @@ const KEYS: [string, string][] = [
 const TOUCH: [string, string][] = [
   ["Stick, bottom left", "drive: up forward, down reverse, sideways to steer"],
   ["Drag anywhere else", "look around; the view stays where you leave it until you change views or ride the ring"],
-  ["Look ahead", "shown while the view is turned: back to straight ahead"],
+  ["Target button", "shown while the view is turned: back to straight ahead"],
   ["Up and down arrows", "held, raise or lower the view"],
   ["Add", "the nearest tree's class to your album, once you are close"],
   ["Guided tour", "the cart drives the ring and stops at each grove, the named families first, largest first"],
