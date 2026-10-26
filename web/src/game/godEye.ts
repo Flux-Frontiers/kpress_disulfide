@@ -19,10 +19,14 @@ export const FOLLOW_UP = 2.5;
 export type ChaseCamera = { back: number; up: number; pitch: number };
 /** Behind the cart, looking level down the road. */
 export const FOLLOW_CAMERA: ChaseCamera = { back: FOLLOW_BACK, up: FOLLOW_UP, pitch: 0 };
-/** The high view: back and well up, looking down at a point HIGH_AHEAD past the cart, HIGH_LOOK_UP above the ground. */
-export const HIGH_AHEAD = 2.6;
-export const HIGH_LOOK_UP = 1.4;
-export const HIGH_CAMERA: ChaseCamera = { back: 12, up: 10, pitch: Math.atan2(HIGH_LOOK_UP - 10, 12 + HIGH_AHEAD) };
+/**
+ * The view above the cart (`high`): a little behind it and well up, looking
+ * down into the bed at the collection (cartLoad), HIGH_AHEAD past the cart's
+ * center and HIGH_LOOK_UP above the ground, where the models stand.
+ */
+export const HIGH_AHEAD = 0;
+export const HIGH_LOOK_UP = 0.75;
+export const HIGH_CAMERA: ChaseCamera = { back: 1.0, up: 2.6, pitch: Math.atan2(HIGH_LOOK_UP - 2.6, 1.0 + HIGH_AHEAD) };
 
 /** Driving past a tall tree the behind-the-cart camera backs off at most this far, m; parked, up to CROWN_PARKED_MAX to fit the whole tree. It rises half as much. */
 const CROWN_BACK_MAX = 8;
@@ -174,12 +178,11 @@ export function groundPose(mode: GroundCamera, x: number, y: number, z: number, 
     return { cam: { x: x - v.x * 0.45, y: y + CART_EYE, z: z - v.z * 0.45 }, look: { x: x + v.x * 10, y: look, z: z + v.z * 10 } };
   }
   const high = mode === "high";
-  const back = high ? 12 : FOLLOW_BACK;
-  const up = high ? 10 : FOLLOW_UP;
-  const ahead = high ? 2.6 : 10;
+  const { back, up } = high ? HIGH_CAMERA : FOLLOW_CAMERA;
+  const ahead = high ? HIGH_AHEAD : 10;
   return {
     cam: { x: x - v.x * back, y: y + up, z: z - v.z * back },
-    look: { x: x + v.x * ahead, y: y + (high ? 1.4 : FOLLOW_UP), z: z + v.z * ahead },
+    look: { x: x + v.x * ahead, y: y + (high ? HIGH_LOOK_UP : FOLLOW_UP), z: z + v.z * ahead },
   };
 }
 

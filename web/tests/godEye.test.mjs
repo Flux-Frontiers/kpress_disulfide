@@ -115,15 +115,17 @@ test("parked beside a tall tree the chase camera backs off until the whole tree 
   assert.ok(parked.tilt - half < -Math.atan2(up - 0.8, FOLLOW_BACK + parked.back));
 });
 
-test("from the high view, parked by a tall tree, the camera fits its crown and keeps the cart", () => {
-  const { crownFrame, HIGH_CAMERA } = require(`${process.env.FOREST_TEST_BUILD}/godEye.js`);
-  const half = (58 * Math.PI) / 360, margin = (4 * Math.PI) / 180;
-  const f = crownFrame(8, 26, 58, 0, HIGH_CAMERA);
-  assert.ok(f.tilt > 0 && f.back > 0, JSON.stringify(f));
-  const up = HIGH_CAMERA.up + f.rise;
-  const pitch = HIGH_CAMERA.pitch + f.tilt;
-  assert.ok(Math.atan2(26 + 1 - up, 8 + HIGH_CAMERA.back + f.back) <= pitch + half - margin + 1e-9, "crown top in frame");
-  assert.ok(pitch - half < -Math.atan2(up - 0.8, HIGH_CAMERA.back + f.back), "cart in frame");
-  // A small tree leaves the high view as it is.
-  assert.deepEqual(crownFrame(8, 6, 58, 0, HIGH_CAMERA), { back: 0, rise: 0, tilt: 0 });
+test("the view above the cart looks down into the bed and holds the whole collection", () => {
+  const { groundPose } = require(`${process.env.FOREST_TEST_BUILD}/godEye.js`);
+  // Yaw 0 heads toward -z (sim.ts forwardOf); the bed runs from z -0.9 (tailboard) to 0.9 (front) in the cart's frame.
+  const { cam, look } = groundPose("high", 0, 0, 0, 0);
+  assert.ok(cam.y > 2.4 && cam.z > 0, "up and a little behind");
+  assert.deepEqual([look.x, look.z], [0, 0], "at the bed's middle");
+  // With the 60 degree lens the bed's ends, at model height, are in view.
+  const half = (60 * Math.PI) / 360;
+  const pitch = Math.atan2(look.y - cam.y, cam.z);
+  for (const z of [0.9, -0.9]) {
+    const a = Math.atan2(1.0 - cam.y, cam.z + z);
+    assert.ok(Math.abs(a - pitch) < half, `bed end ${z} in frame`);
+  }
 });

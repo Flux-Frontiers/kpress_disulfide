@@ -41,20 +41,20 @@ export function readPreferences(value?: Partial<Preferences>): Preferences {
     pace: value?.pace === "brisk" ? "brisk" : "gentle",
     sensitivity: typeof value?.sensitivity === "number" && Number.isFinite(value.sensitivity)
       ? Math.max(0.5, Math.min(1.5, value.sensitivity)) : 1,
-    // New visitors start in the high view, which shows a tree with the cart before it.
-    camera: value?.camera === "follow" || value?.camera === "cart" || value?.camera === "god" ? value.camera : "high",
+    // New visitors start behind the cart, which shows the road and the trees ahead.
+    camera: value?.camera === "high" || value?.camera === "cart" || value?.camera === "god" ? value.camera : "follow",
     motion: typeof value?.motion === "boolean" ? value.motion
       : !(typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches),
     detail: typeof value?.detail === "boolean" ? value.detail : true,
     stats: value?.stats === true,
     silent: value?.silent === true,
     fog: value?.fog && value.fog in FOG_SCALE ? value.fog : "normal",
-    weather: value?.weather === true,
+    // Defaults chosen by EGS (2026-10-26): random weather on, Medium bonds, sparse octants pruned.
+    weather: value?.weather !== false,
     narrate: value?.narrate === true,
     schematic: value?.schematic === true,
     names: typeof value?.names === "boolean" ? value.names : false,
-    bonds: value?.bonds && value.bonds in BOND_CAP ? value.bonds
-      : typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches ? "low" : "medium",
-    prune: value?.prune === true,
+    bonds: value?.bonds && value.bonds in BOND_CAP ? value.bonds : "medium",
+    prune: value?.prune !== false,
   };
 }

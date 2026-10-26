@@ -46,6 +46,11 @@ uses [Semantic Versioning](https://semver.org/).
   Research Assistant, Graduate Student, PhD Candidate and Doctor of
   Philosophy. Each class collected rides in the cart as a model of its
   disulfide on a stand in its grove's color.
+- Cameras in the order in the cart, behind it, above it, god's eye. The
+  view above the cart looks down on the collection, which fills the bed
+  from the front.
+- Defaults: behind the cart, Medium bonds, sparse octants pruned and
+  random weather on.
 - Schematic mode (V): binary and quadrant classes as cubes and octant
   classes as octahedra, colored by tier, bonds as spheres colored by
   energy, on straight brushed-aluminum limbs.

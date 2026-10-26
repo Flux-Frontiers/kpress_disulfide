@@ -143,7 +143,7 @@ export function cartBoxHalfExtents(b: Pick<CartBox, "w" | "h" | "d" | "yaw" | "l
 
 /**
  * Lay out the collected classes in the cart's bed, slot k for the k-th line
- * added, row by row from the tailboard. Past CART_SLOTS the extra lines are
+ * added, row by row from the front. Past CART_SLOTS the extra lines are
  * not drawn.
  *
  * :param slugs: the lines in the album, in the order they were added.
@@ -158,7 +158,8 @@ export function cartLoad(slugs: readonly string[], colorOf: (slug: string) => st
     const slug = slugs[k]!;
     const col = k % COLS, row = Math.floor(k / COLS);
     const x = (col - (COLS - 1) / 2) * COL_PITCH;
-    const z = ROW_Z0 + row * ROW_PITCH;
+    // From the front, by the lantern, back toward the tailboard.
+    const z = ROW_Z0 + (ROWS - 1 - row) * ROW_PITCH;
     const post = POST_H + ((col + row) % 2) * TIER_LIFT;
     const box = (y: number, w: number, h: number, color: string): CartBox => ({ x, y, z, w, h, d: w, yaw: 0, lean: 0, color });
     const top = BED_FLOOR + STAND_H + post;

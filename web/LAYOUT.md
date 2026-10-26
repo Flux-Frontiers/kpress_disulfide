@@ -347,6 +347,6 @@ FOREST=full`; the full export takes about 11 s and writes 52 MB.
 | `FOREST_MIN_MEMBERS` | `make forest` | 2 subset, 20 full | Bonds an octant class needs to be drawn; fewer fold into `-other`. Raising it gives fewer, smaller trees |
 | `FOREST_MEMBERS` | `make forest` | 12 | Bonds sampled per drawn octant class, lowest energy first |
 | `FOREST_HOME` | `make forest` | the lowest-energy bond | The monument's disulfide |
-| Bond complexity | the app's settings | Medium (3), Low on a touch screen | How many of each sample are drawn |
-| Prune sparse octants | the app's settings | off | Leaves the `-other` tips, and quadrants with only those, undrawn |
+| Bond complexity | the app's settings | Medium (3) | How many of each sample are drawn |
+| Prune sparse octants | the app's settings | on | Leaves the `-other` tips, and quadrants with only those, undrawn |
 | `?home=`, "Make this the home disulfide" | the URL, the reader | | The monument's disulfide for this visit or this device |
