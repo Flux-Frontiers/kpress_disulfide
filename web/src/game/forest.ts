@@ -607,14 +607,23 @@ function buildForest(catalog: ClassCatalog, homeKey: string): Forest {
       roads.push({ ax, az, bx, bz, kind: line.kind });
     }
   }
+  // A grove's representative stands on the hub side of its stop, or on the
+  // grove side where a spoke comes in there: a road's half width (1.7 m) and
+  // the cart's reach (1.05 m) clear of its plinth.
+  const representativeAt = (wp: Waypoint) => {
+    const g = groves.find((gr) => gr.genre === wp.genre)!;
+    const toward = Math.atan2(g.z - wp.z, g.x - wp.x);
+    const at = (side: number) => ({
+      x: wp.x - side * Math.cos(toward) * REPRESENTATIVE_OFFSET, z: wp.z - side * Math.sin(toward) * REPRESENTATIVE_OFFSET,
+    });
+    const hub = at(1);
+    const onSpoke = roadLines.some((l) => l.kind === "spoke" && l.pts.some(([x, z]) => Math.hypot(x - hub.x, z - hub.z) < 1.7 + 1.05 + REPRESENTATIVE_CLEAR));
+    return { ...(onSpoke ? at(-1) : hub), toward };
+  };
   const plazas = [
     { x: 0, z: 0, r: hubPlazaR },
     ...circuit.map((wp) => ({ x: wp.x, z: wp.z, r: STOP_R })),
-    ...circuit.map((wp) => {
-      const g = groves.find((gr) => gr.genre === wp.genre)!;
-      const a = Math.atan2(g.z - wp.z, g.x - wp.x);
-      return { x: wp.x - Math.cos(a) * REPRESENTATIVE_OFFSET, z: wp.z - Math.sin(a) * REPRESENTATIVE_OFFSET, r: REPRESENTATIVE_PAD };
-    }),
+    ...circuit.map((wp) => ({ ...representativeAt(wp), r: REPRESENTATIVE_PAD })),
     ...exhibits.map((e) => ({ x: e.x, z: e.z, r: e.plazaR })),
   ];
   const junctions: Junction[] = wheel.spokes.flatMap((a) => wheel.rings.map((R, t) => (
@@ -659,18 +668,17 @@ function buildForest(catalog: ClassCatalog, homeKey: string): Forest {
 
   const links: ForestLink[] = [];
 
-  // The grove's representative, on the hub side of its stop plaza: the
+  // The grove's representative beside its stop plaza (representativeAt): the
   // consensus model of its most populous binary class. And at each tree's
   // foot, toward its stop, the tree's own consensus model as its name plate.
   const molecules: MoleculeSite[] = [];
   for (const wp of circuit) {
-    const g = groves.find((gr) => gr.genre === wp.genre)!;
-    const toward = Math.atan2(g.z - wp.z, g.x - wp.x);
-    const model = index.line.get(byGenre.get(g.genre)!.lines[0]!)!.model;
+    const { x, z, toward } = representativeAt(wp);
+    const model = index.line.get(byGenre.get(wp.genre)!.lines[0]!)!.model;
     const lift = REPRESENTATIVE_PLINTH + moleculeExtent(model) * REPRESENTATIVE_SCALE;
     molecules.push({
-      kind: "representative", of: g.genre, model, scale: REPRESENTATIVE_SCALE, plinth: REPRESENTATIVE_PLINTH,
-      x: wp.x - Math.cos(toward) * REPRESENTATIVE_OFFSET, y: lift, z: wp.z - Math.sin(toward) * REPRESENTATIVE_OFFSET, yaw: toward,
+      kind: "representative", of: wp.genre, model, scale: REPRESENTATIVE_SCALE, plinth: REPRESENTATIVE_PLINTH,
+      x, y: lift, z, yaw: toward,
     });
   }
   for (const t of trees) {
