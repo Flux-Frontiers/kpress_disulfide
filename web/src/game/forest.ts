@@ -426,17 +426,20 @@ function roundTurns(path: [number, number][], r: number): [number, number][] {
 
 function buildForest(catalog: ClassCatalog, homeKey: string, bonds: number): Forest {
   const index = indexCatalog(catalog);
-  // One grove per class family, holding each of its binary classes. Groves
-  // are seated in order of occupancy, so the tour meets the most populous
-  // first: the named families, then the unnamed classes, each by bond count.
+  // One grove per class family, holding each of its binary classes. The
+  // unnamed classes take the inner tier and the named families, with the
+  // widest crowns, the outer, where there is room; each set by bond count.
+  // The tour still meets the named families first (the outer ring first),
+  // and their colors are the first in the palette.
   const byGenre = new Map(catalog.groves.filter((g) => g.lines.length).map((g) => [g.id, g]));
-  const genres = [...byGenre.values()]
-    .sort((a, b) => Number(b.named) - Number(a.named) || b.count - a.count || a.id.localeCompare(b.id))
-    .map((g) => g.id);
+  const byCount = [...byGenre.values()].sort((a, b) => b.count - a.count || a.id.localeCompare(b.id));
+  const palette = [...byCount.filter((g) => g.named), ...byCount.filter((g) => !g.named)].map((g) => g.id);
+  const genres = [...byCount.filter((g) => !g.named), ...byCount.filter((g) => g.named)].map((g) => g.id);
+  const innerCount = byCount.filter((g) => !g.named).length;
+  const paletteOf = (genre: string) => GENRE_PALETTE[Math.max(0, palette.indexOf(genre)) % GENRE_PALETTE.length]!;
   const booksBy = new Map(genres.map((g) => [g, byGenre.get(g)!.lines.map((id) => lineCard(index, index.line.get(id)!))]));
   // Trees packed as tight as their crowns allow (shyLayout); groves on a
-  // hub-and-spoke wheel around the database tree (wheelLayout), seated in
-  // occupancy order so the tour loop meets them most populous first.
+  // hub-and-spoke wheel around the database tree (wheelLayout).
   const bookInner = 6.5;
   const energy = (key: string) => index.energy.get(key);
   const grownBy = genres.map((g) => byGenre.get(g)!.lines.map((id) => lineGrown(lineTree(index, id, bonds, homeKey), id, energy)));
@@ -446,15 +449,17 @@ function buildForest(catalog: ClassCatalog, homeKey: string, bonds: number): For
 
   // The database tree, and a hub wide enough for its crown.
   const home = hubTree(index);
-  // A grove's color is its seat's in the occupancy order, as the groves below take it.
-  const colorOf = (line: string) => GENRE_PALETTE[genres.indexOf(index.line.get(line)?.grove ?? "") % GENRE_PALETTE.length] ?? GENRE_PALETTE[0]!;
+  // A limb takes its family's grove color, as the groves below do.
+  const colorOf = (line: string) => paletteOf(index.line.get(line)?.grove ?? "");
   const corpusTree = homeTree(home, homeKey, catalog.lines.length, `The ${catalog.meta.database.name} database`, colorOf);
   let crownReach = 0;
   for (const person of home.people) if (person.y > 0) crownReach = Math.max(crownReach, Math.hypot(person.x, person.z));
   const hubPlazaR = HUB_PLAZA_R;
   const hubClear = Math.max(HUB_CLEAR, hubPlazaR + 8, crownReach + 6);
+  // Seated by their trunks, spaced by their crowns, which also keep off the hub plaza and its tree.
   const wheel = wheelLayout(layouts.map((l) => groveRadius(l.trunks)), {
     hub: hubClear, setback: GROVE_SETBACK, gap: GROVE_GAP, lane: SPOKE_LANE, spokes: SPOKES,
+    spans: layouts.map((l) => l.extent), inner: innerCount, keep: Math.max(hubPlazaR, crownReach),
   });
   // Turn the wheel so a spoke runs out behind home: the drive starts on the road.
   const turn = HUB_PLAQUE_DIR - (wheel.spokes[0] ?? HUB_PLAQUE_DIR);
@@ -480,7 +485,7 @@ function buildForest(catalog: ClassCatalog, homeKey: string, bonds: number): For
     const turnBy = Math.atan2(-c.z, -c.x) - layouts[gi]!.front;
     const tc = Math.cos(turnBy), ts = Math.sin(turnBy);
     const spots = layouts[gi]!.pts.map((p) => ({ x: p.x * tc - p.z * ts, z: p.x * ts + p.z * tc }));
-    const color = GENRE_PALETTE[gi % GENRE_PALETTE.length]!;
+    const color = paletteOf(genre);
     const family = byGenre.get(genre)!;
     groves.push({
       genre,
@@ -591,18 +596,20 @@ function buildForest(catalog: ClassCatalog, homeKey: string, bonds: number): For
   const roadLines: RoadLine[] = wheel.spokes.map((a) => ({ kind: "spoke", pts: spokeLine(a, hubPlazaR - 1, lastRing), closed: false }));
   wheel.rings.forEach((_, t) => roadLines.push({ kind: "ring", pts: lap(t, tourSpoke), closed: true }));
 
-  // The tour loop: each ring in turn, joined by the first spoke, out and back.
+  // The tour loop: out along the first spoke to the outer ring, where the
+  // named families stand, round each ring from the outside in, and back.
   const loop: [number, number][] = [];
-  wheel.rings.forEach((R, t) => {
+  const last = wheel.rings.length - 1;
+  if (last > 0) loop.push(...spokeLine(tourSpoke, wheel.rings[0]!, wheel.rings[last]!).slice(0, -1));
+  for (let t = last; t >= 0; t--) {
     loop.push(...lap(t, tourSpoke));
-    if (t + 1 < wheel.rings.length) loop.push(...spokeLine(tourSpoke, R, wheel.rings[t + 1]!).slice(0, -1));
-  });
-  for (let t = wheel.rings.length - 1; t > 0; t--) loop.push(...spokeLine(tourSpoke, wheel.rings[t]!, wheel.rings[t - 1]!).slice(0, -1));
+    if (t > 0) loop.push(...spokeLine(tourSpoke, wheel.rings[t]!, wheel.rings[t - 1]!).slice(0, -1));
+  }
   const tourPts = roundTurns(loop, TOUR_TURN_R);
   // The stops in the order the loop reaches them, each landing on a loop sample.
   const stopIndex = new Map<Waypoint, number>();
   let from = 0;
-  for (const tierStops of stopsOf) {
+  for (const tierStops of [...stopsOf].reverse()) {
     for (const wp of [...tierStops].sort((a, b) => {
       const at = (w: Waypoint) => tourPts.findIndex((p, k) => k >= from && Math.hypot(p[0] - w.x, p[1] - w.z) < 1e-6);
       return at(a) - at(b);
