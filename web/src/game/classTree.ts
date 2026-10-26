@@ -60,8 +60,17 @@ const MAX_SIZE_SCALE = 2.0;
 const PIPE_EXPONENT = 2.2;
 const TIP_RADIUS = 0.03;
 
-/** A line tree's rise per tier, as a multiple of TIER_UP: its depth is fixed, so its height is too. */
+/** The database tree's rise per tier, as a multiple of TIER_UP. */
 const LINE_TIER_STRETCH = 1.5;
+/**
+ * A line tree's limbs climb at about this pitch, radians: each tier rises
+ * in proportion to how far its ring reaches past the one below, so a narrow
+ * tree is not a steep vase and a wide one not a flat disc.
+ */
+const LIMB_PITCH = (25 * Math.PI) / 180;
+/** The least and most a line tree's tier rises, m, whatever its reach. */
+const MIN_RISE = 1.5;
+const MAX_RISE = 8;
 /** The database tree's reach: the orchard's widest tree, whatever its population. */
 export const HUB_SCALE = 3.0;
 /**
@@ -159,8 +168,10 @@ type Shape = {
  * `fit`: widen each ring to fit its classes, MIN_LEAF_ARC apart or DOME_ARC
  * for one with members, and share wedges by that need (line trees).
  * `stack`: stack crowded rings into layers instead (the database tree).
+ * `pitch`: each tier rises at this pitch over its reach, clamped to
+ * MIN_RISE..MAX_RISE; 0 for a fixed `tierUp`.
  */
-type Frame = { scale: number; trunkHeight: number; tierUp: number; ring: number; fit: boolean; stack: boolean };
+type Frame = { scale: number; trunkHeight: number; tierUp: number; ring: number; fit: boolean; stack: boolean; pitch: number };
 
 /** One tier's ring: its radius, the height of its lowest layer, how many layers, and how many classes are placed so far. */
 type Ring = { radius: number; y: number; layers: number; placed: number };
@@ -215,19 +226,21 @@ function angleOf(shape: Shape, rings: Map<number, Ring>, id: string, tier: numbe
 }
 
 /**
- * Every tier's ring above the trunk. A tier rises `tierUp` above the top
- * layer of the tier below; a stacked tier has as many layers as it needs
- * for MIN_LEAF_ARC between classes on one layer, even on its innermost.
+ * Every tier's ring above the trunk. A tier rises above the top layer of
+ * the tier below, by `tierUp` or at the frame's pitch over its reach; a
+ * stacked tier has as many layers as it needs for MIN_LEAF_ARC between
+ * classes on one layer, even on its innermost.
  */
 function ringsOf(tiers: Map<number, { count: number; arc: number }>, f: Frame): Map<number, Ring> {
   const rings = new Map<number, Ring>();
-  let y = f.trunkHeight;
+  let y = f.trunkHeight, inner = 0;
   for (let tier = 1; tiers.has(tier); tier++) {
     const { count, arc: need } = tiers.get(tier)!;
     const radius = ringRadius(tier, need, f);
     const arc = (2 * Math.PI * radius * (1 - STACK_LEAN)) / count;
     const layers = f.stack ? Math.max(1, Math.ceil(MIN_LEAF_ARC / arc)) : 1;
-    y += f.tierUp;
+    y += f.pitch ? Math.min(MAX_RISE, Math.max(MIN_RISE, Math.tan(f.pitch) * (radius - inner))) : f.tierUp;
+    inner = radius;
     rings.set(tier, { radius, y, layers, placed: 0 });
     y += (layers - 1) * STACK_RISE;
   }
@@ -390,10 +403,10 @@ export function lineTree(index: ClassIndex, lineId: string): ClassTree {
   };
   const population = weightOf(shape, lineId, new Map());
   const scale = sizeScale(population);
-  // The reach shrinks with the population, as the Family's does, but not the
-  // height: every line tree has the same three tiers, and at the Family's
-  // scaling a populous class grew 4 m tall and 26 m across.
-  const f: Frame = { scale, trunkHeight: TRUNK_HEIGHT, tierUp: TIER_UP * LINE_TIER_STRETCH, ring: RING, fit: true, stack: false };
+  // The reach shrinks with the population, as the Family's does, until its
+  // rings must widen to fit their classes; each tier then rises at
+  // LIMB_PITCH over its reach (tierUp is unused).
+  const f: Frame = { scale, trunkHeight: TRUNK_HEIGHT, tierUp: TIER_UP, ring: RING, fit: true, stack: false, pitch: LIMB_PITCH };
   return grow(shape, lineId, `line:${lineId}`, f, TIP_RADIUS * scale);
 }
 
@@ -410,6 +423,6 @@ export function hubTree(index: ClassIndex): ClassTree {
     flow: flowOf(index),
   };
   // A line tree's trunk and rise per tier; its crowded rings stack into a tall crown.
-  const f: Frame = { scale: HUB_SCALE, trunkHeight: TRUNK_HEIGHT, tierUp: TIER_UP * LINE_TIER_STRETCH, ring: HUB_RING, fit: false, stack: true };
+  const f: Frame = { scale: HUB_SCALE, trunkHeight: TRUNK_HEIGHT, tierUp: TIER_UP * LINE_TIER_STRETCH, ring: HUB_RING, fit: false, stack: true, pitch: 0 };
   return grow(shape, HUB_ROOT, "hub", f, TIP_RADIUS);
 }
