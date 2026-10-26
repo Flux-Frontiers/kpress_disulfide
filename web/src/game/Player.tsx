@@ -6,7 +6,7 @@ import { cartLoad, NEUTRAL_COVER } from "./cartLoad";
 import { EXPOSURE } from "./Environment";
 import { atGroveStop, treesNear, type Forest } from "./forest";
 import { addDragLook, resetInput, sampleActions, setDragging } from "./input";
-import { crownFrame, flightPose, FOLLOW_BACK, FOLLOW_CAMERA, FOLLOW_UP, forestGodLimits, HIGH_AHEAD, HIGH_CAMERA, HIGH_LOOK_UP, godPose, groundPose, resetGodView, type Vec3 } from "./godEye";
+import { CART_EYE, CART_TILT, crownFrame, flightPose, FOLLOW_BACK, FOLLOW_CAMERA, FOLLOW_UP, forestGodLimits, HIGH_AHEAD, HIGH_CAMERA, HIGH_LOOK_UP, godPose, groundPose, resetGodView, type Vec3 } from "./godEye";
 import { clamp } from "./math";
 import { cruiseFactor, forwardOf, sim, stepVehicle, teleportSim } from "./sim";
 import { hush, speak, speaking } from "./speech";
@@ -363,12 +363,12 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
       cam.far = state.camera.position.length() + forest.worldRadius * 2;
       cam.near = GOD_NEAR;
     } else if (inCart) {
-      // A standing adult's eye level (1.65 m), gazing level over the lantern, so the
-      // horizon, plaques and plinths sit where they would on foot; tilt to look up.
+      // Standing on the bed (CART_EYE), gazing a little above level (CART_TILT, added
+      // below) so a grove's sign sits at the centre and the lantern below the view.
       // Rigid, no chase lag.
-      camPos.set(sim.x - v.x * 0.45, sim.y + 1.65 + lift.current, sim.z - v.z * 0.45);
+      camPos.set(sim.x - v.x * 0.45, sim.y + CART_EYE + lift.current, sim.z - v.z * 0.45);
       state.camera.position.copy(camPos);
-      lookAt.set(sim.x + v.x * 10, sim.y + 1.65 + lift.current, sim.z + v.z * 10);
+      lookAt.set(sim.x + v.x * 10, sim.y + CART_EYE + lift.current, sim.z + v.z * 10);
     } else {
       // Beside a tall tree, the home tree too, the chase camera backs off and tilts up to its crown.
       const high = preferences.camera === "high";
@@ -435,7 +435,8 @@ export function Player({ forest, playing }: { forest: Forest; playing: boolean }
     wasGod.current = playing && godEye && !flying;
     if (playing && !godEye && !flying) {
       // On a portrait screen the level chase view is half road and cart; rest it tilted up a little.
-      const rest = (preferences.camera === "follow" && cam.aspect < 1 ? PORTRAIT_TILT : 0) + (preferences.camera === "follow" ? crown.current.tilt : 0);
+      const rest = (preferences.camera === "follow" && cam.aspect < 1 ? PORTRAIT_TILT : 0) + (preferences.camera === "follow" ? crown.current.tilt : 0)
+        + (inCart ? CART_TILT : 0);
       lookAt.y += Math.hypot(lookAt.x - state.camera.position.x, lookAt.z - state.camera.position.z) * Math.tan(clamp(pitch.current + rest, -PITCH_MAX, PITCH_MAX));
       cam.far = GROUND_FAR;
       cam.near = GROUND_NEAR;

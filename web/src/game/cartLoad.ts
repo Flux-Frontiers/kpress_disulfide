@@ -15,7 +15,7 @@
  * bed runs 1.04 m between the side rails and from the tailboard to the front
  * board. Albums stand in three columns across it and six rows along it, clear
  * of the lantern's hook at the front left, and stack no higher than LOAD_CAP,
- * below the lamp (bottom about 1.13 m) and the seat camera (1.65 m).
+ * below the lamp (bottom about 1.13 m) and the rider's eye (CART_EYE, 2.2 m).
  */
 
 /** One box of the load, placed in the cart's local frame. */

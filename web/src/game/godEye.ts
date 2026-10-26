@@ -152,13 +152,26 @@ export function godPose(): { cam: Vec3; look: Vec3 } {
 }
 
 /**
+ * The cart view's eye, m: a rider standing on the bed (0.53 m) at an adult's
+ * 1.65 m, so the lantern hanging at the front falls below the view.
+ */
+export const CART_EYE = 2.2;
+/**
+ * The cart view's gaze, radians above level: a grove's sign board (about
+ * 2.35 m) sits at or just below the centre, and the lantern's hook (1.5 m,
+ * 1.3 m ahead) just under the view's lower edge.
+ */
+export const CART_TILT = 0.045;
+
+/**
  * Where a ground camera sits for a cart at (x, y, z) heading `yaw`, looking
  * straight ahead: the same poses Player.tsx chases, before any pan or tilt.
  */
 export function groundPose(mode: GroundCamera, x: number, y: number, z: number, yaw: number): { cam: Vec3; look: Vec3 } {
   const v = forwardOf(yaw);
   if (mode === "cart") {
-    return { cam: { x: x - v.x * 0.45, y: y + 1.65, z: z - v.z * 0.45 }, look: { x: x + v.x * 10, y: y + 1.65, z: z + v.z * 10 } };
+    const look = y + CART_EYE + 10.45 * Math.tan(CART_TILT);
+    return { cam: { x: x - v.x * 0.45, y: y + CART_EYE, z: z - v.z * 0.45 }, look: { x: x + v.x * 10, y: look, z: z + v.z * 10 } };
   }
   const high = mode === "high";
   const back = high ? 12 : FOLLOW_BACK;
