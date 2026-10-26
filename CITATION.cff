@@ -16,6 +16,7 @@ authors:
     email: suchanek@flux-frontiers.com
     affiliation: "Flux-Frontiers"
 version: "0.1.0"
+date-released: "2026-10-26"
 license-url: "https://www.elastic.co/licensing/elastic-license"
 repository-code: "https://github.com/Flux-Frontiers/kpress_disulfide"
 url: "https://github.com/Flux-Frontiers/kpress_disulfide"
