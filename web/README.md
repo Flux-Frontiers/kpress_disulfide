@@ -42,7 +42,7 @@ builds.
 | `growTree.ts` | Pipe-model radii, the bark sweep and the leaves |
 
 The world itself (sky, stars, planets, weather, seasons, roads, the cart, the
-guided tour, and the Cosmographium, Double Helix and sundial exhibits) comes
+guided tour, and the Double Helix exhibit) comes
 from The Knowledge Press: The Forest by way of The Family; see
 `../PROVENANCE.md`.
 

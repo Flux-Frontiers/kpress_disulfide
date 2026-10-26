@@ -29,12 +29,11 @@ export type Exhibit = ExhibitSpec & {
   spur: [number, number][];
 };
 
+// The Double Helix alone: a molecule, at home in this orchard. The Forest's
+// Mysterium Cosmographicum and armillary sundial were dropped (EGS, 2026-10-26).
 export const EXHIBITS: ExhibitSpec[] = [
-  { id: "mysterium", label: "Mysterium Cosmographicum", obstacle: 2.6, treeClearance: 10 },
   // The Double Helix (WindSculptures.tsx): a narrow plinth, but a spinning helix that needs open air.
   { id: "dna", label: "Double Helix", obstacle: 1.8, treeClearance: 8 },
-  // The armillary sundial (Sundial.tsx): rings up to 4 m across, over a plinth.
-  { id: "sundial", label: "Armillary Sundial", obstacle: 2.4, treeClearance: 8 },
 ];
 
 /** Keep exhibits out from under the redwood's crown and apart from one another. */

@@ -65,5 +65,7 @@ uses [Semantic Versioning](https://semver.org/).
 ### Changed
 
 - Started as a copy of The Knowledge Press: The Family at `22699d8`; see
-  `PROVENANCE.md`. The sky, weather, roads, cart, exhibits and tour come
-  from there unchanged.
+  `PROVENANCE.md`. The sky, weather, roads, cart, Double Helix and tour
+  come from there unchanged; the Mysterium Cosmographicum and the
+  armillary sundial were not kept.
+- The start screen offers the full database first.
