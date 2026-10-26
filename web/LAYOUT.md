@@ -54,9 +54,11 @@ ring's radius is the larger of two values (`ringRadius`):
 - the tier's own reach, 1 m per tier times the tree's scale;
 - the sum of its classes' arcs, around the circle.
 
-A crowded ring splits into two rows 2.4 m apart when that saves at least
-2 m of reach: its classes take turns, outer row then inner, so neighbors
-stand in different rows and the ring needs half the circumference.
+A crowded ring splits into rows 2.4 m apart, up to four, as long as each
+row saves at least 2 m of reach and the innermost stays a meter outside
+the ring below: its classes take turns round the rows, so neighbors
+stand in different rows and the ring needs a fraction of the
+circumference.
 
 Going up a tier, a class's wedge is split among its children by what
 each needs: the larger of its own arc on its ring and the wedges of its
@@ -125,10 +127,13 @@ above the cart, may reach past it and over the road, so each grove's
 largest tree stands by the ring road.
 
 Groves stand on a hub-and-spoke wheel of ring roads around the hub
-(`wheelLayout`), seated in occupancy order: the named families first,
-then the unnamed classes, each set largest first. The groves beside a
-spoke keep the whole spoke clear, not only where it meets the ring. The guided tour visits
-them in that order. Each grove's signpost gives the family's name, its
+(`wheelLayout`). The twelve unnamed classes take the inner ring and the
+six named families, with the widest crowns, the outer, each set largest
+first. A grove is seated by its trunks but spaced by its crowns: no two
+groves' crowns overlap seen from above, no crown reaches the hub plaza or
+the database tree, and the groves beside a spoke keep the whole spoke
+clear. The guided tour rides out to the outer ring first, so it visits
+the named families first, then the unnamed classes. Each grove's signpost gives the family's name, its
 bond count and share, and a function plate (Allosteric for -RHStaple,
 Catalytic for both RHHook variants, blank otherwise).
 
@@ -178,14 +183,15 @@ Measured from the exports in `public/forests/` with the current code.
 | Bonds | 5,000 in 1,038 PDB entries | 175,277 in 36,968 PDB entries |
 | `min_members` | 2 | 20 |
 | Sampled bonds (leaves) | 2,413 | 11,196 |
-| Largest tree | `00000b`, 1,158 bonds, 582 nodes, 12.6 m tall, reach 19.5 m | `00000b`, 40,943 bonds, 1,677 nodes, 14.8 m tall, reach 29.7 m |
+| Largest tree | `00000b`, 1,158 bonds, 582 nodes, 12.6 m tall, reach 19.5 m | `00000b`, 40,943 bonds, 1,677 nodes, 14.7 m tall, reach 24.0 m |
 | Smallest tree | `20202b`, 12 bonds, 16 nodes, 6.7 m tall, reach 4.0 m | `20202b`, 538 bonds, 120 nodes, 7.7 m tall, reach 7.6 m |
-| Line tree height | 6.7 to 12.6 m | 7.5 to 14.8 m |
+| Line tree height | 6.7 to 12.6 m | 7.5 to 14.7 m |
 | Database tree | 33 nodes, 9.8 m tall, reach 8.0 m | 33 nodes, 9.8 m tall, reach 8.0 m |
-| LHSpiral grove radius | 19.7 m | 31.8 m |
-| Largest tree of each grove to nearest road | 5 to 6 m | 5 to 28 m |
-| Any trunk to nearest road | median 6 m, at most 22 m | median 6 m, at most 32 m |
-| Orchard radius (outermost grove edge) | 77 m | 107 m |
+| Ring roads | 37 m and 75 m | 55 m and 102 m |
+| LHSpiral grove radius | 21.1 m | 25.4 m |
+| Largest tree of each grove to nearest road | 5 to 6 m | 5 to 40 m |
+| Any trunk to nearest road | median 6 m, at most 40 m | median 6 m, at most 45 m |
+| Orchard radius (outermost grove edge) | 118 m | 173 m |
 | Home disulfide | `1xr9_203A_259A`, 0.49 kcal/mol | `2q7q_75D_140D`, 0.49 kcal/mol |
 
 Build either with `make forest FOREST=subset` or `make forest

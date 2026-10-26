@@ -39,7 +39,7 @@ proteusPy writes the orchard's data; this repo only reads it.
   under `web/tests/fixtures/subset/`.
 - A grove is a class family: the six named families (LHSpiral, RHSpiral,
   LHHook, RHHook, LHStaple, RHStaple) plus one grove per unnamed binary
-  class, 18 in all, seated by occupancy. A line is a binary class (32). A
+  class, 18 in all: unnamed inner, named outer (EGS, #4). A line is a binary class (32). A
   tree is a line: the class at the trunk top, its quadrant classes as the
   first tier, its octant classes as the second, sampled members as leaves
   tinted by torsional energy. The wood is binary > quadrant > octant >

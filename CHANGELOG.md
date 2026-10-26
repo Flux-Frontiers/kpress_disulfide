@@ -15,12 +15,14 @@ uses [Semantic Versioning](https://semver.org/).
 - One tree per binary class (32): its quadrant classes the first ring of
   limbs, its octant classes and folded `-other` tips the second, and up to
   12 sampled bonds per octant class on a dome above it. Every class gets
-  the arc it needs on its ring, crowded rings split into two rows, and
+  the arc it needs on its ring, crowded rings split into up to four rows, and
   limbs climb at one pitch.
 - Leaves and bond beads colored by torsional energy on a fixed ramp, blue
   for relaxed to red for strained.
 - One grove per class family: the six named families and each unnamed
-  binary class, 18 in all, seated by occupancy, with a species per family.
+  binary class, 18 in all: the unnamed classes on the inner ring, the
+  named families on the outer, each spaced by its crowns, with a species
+  per family.
   A grove is sized by its trunks, with its largest tree by the ring road
   and its crowns reaching over the road.
 - Model disulfides drawn ball-and-stick with proteusPy's colors and radii:
