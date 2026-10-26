@@ -36,7 +36,10 @@ Each of the 32 binary classes is one tree (`classTree.ts`, `lineTree`):
 - **First ring of limbs:** its quadrant classes.
 - **Second ring:** its octant classes and its `-other` tips.
 - **Terminal spheres:** the sampled bonds of each octant class, up to 12
-  (`--members-per-class`), lowest torsional energy first. They sit on a
+  (`--members-per-class`), lowest torsional energy first. The Bond
+  complexity setting shows 1, 3, 6 or all of them per octant class; the
+  classes stand in the same place at every setting, and the home
+  disulfide always shows. They sit on a
   dome of radius 1 m above their octant class, spiralling down from the
   top at the golden angle. In the wood view each bond is a tuft of 7
   leaves. In the schematic it is a small sphere. Either way it opens that
@@ -87,7 +90,8 @@ parent's direction and then reaches out, with a little seeded jitter.
   gold for the binary class, orange for its quadrant classes, red for its
   octant classes. On the database tree each binary class takes its
   family's grove color. Classes are cubes, bonds spheres, and the
-  database tree's trunk is a gold diamond (`schematic.ts`).
+  database tree's trunk is a gold diamond (`schematic.ts`). The
+  schematic's straight limbs are brushed aluminum.
 - **Bark** takes the season's wood color.
 - **Species** is set by class family (`classForest.speciesForGrove`):
   LHSpiral oak, RHSpiral horse chestnut, LHHook London plane, RHHook stone
@@ -102,14 +106,21 @@ hold their 3 or 4 sign variants: -LHSpiral `00000b`, +LHSpiral and so on.
 Each of the 12 unnamed binary classes is a grove of its own, for 18
 groves.
 
-Within a grove, trees are seated largest crown first (`shyLayout`). Each
-takes the innermost spot on a sunflower spiral where its trunk stands at
-least 7.5 m from every other trunk, and its crown keeps 3 m of clear
-ground, seen from above, from every crown already standing.
+Within a grove, trees are seated largest crown first (`shyLayout`): the
+largest at the grove's center, then each takes the innermost spot on a
+sunflower spiral where its trunk stands at least 7.5 m from every other
+trunk, and its crown keeps 3 m of clear ground, seen from above, from
+every crown already standing.
+
+A grove is as wide as its trunks need, plus 3 m (`TRUNK_CLEAR`). Its
+crowns, which start well above the cart, may reach past it and over the
+road, so a trunk stands near the road rather than a crown's reach from
+it.
 
 Groves stand on a hub-and-spoke wheel of ring roads around the hub
 (`wheelLayout`), seated in occupancy order: the named families first,
-then the unnamed classes, each set largest first. The guided tour visits
+then the unnamed classes, each set largest first. The groves beside a
+spoke keep the whole spoke clear, not only where it meets the ring. The guided tour visits
 them in that order. Each grove's signpost gives the family's name, its
 bond count and share, and a function plate (Allosteric for -RHStaple,
 Catalytic for both RHHook variants, blank otherwise).
@@ -134,7 +145,8 @@ every bond; its one ring of limbs is the 32 binary classes, each as thick
 as its bonds and leafed in its family's grove color, the minimap's. It
 stops there: at the hub the quadrant and octant tiers were thousands of
 classes no one could read, and each binary class grows as its own tree in
-the groves. It stands about 10 m tall. Bark is redwood.
+the groves. It stands about 10 m tall. Bark is redwood. A click on one of
+its limbs, in either view, takes the cart to that class's tree.
 
 The home disulfide is the export's lowest-energy bond unless the reader
 or `?home=<key>` names another sampled bond: `1xr9_203A_259A` on the
@@ -163,8 +175,9 @@ Measured from the exports in `public/forests/` with the current code.
 | Smallest tree | `20202b`, 12 bonds, 16 nodes, 6.9 m tall, reach 4.1 m | `20202b`, 538 bonds, 120 nodes, 7.9 m tall, reach 7.6 m |
 | Line tree height | 6.8 to 14.6 m | 7.7 to 14.8 m |
 | Database tree | 33 nodes, 9.8 m tall, reach 8.0 m | 33 nodes, 9.8 m tall, reach 8.0 m |
-| LHSpiral grove radius | 55.4 m | 91.3 m |
-| Orchard radius (outermost grove edge) | 188 m | 312 m |
+| LHSpiral grove radius | 49.6 m | 77.4 m |
+| Trunk to nearest road | median 14 m, at most 49 m | median 10 m, at most 79 m |
+| Orchard radius (outermost grove edge) | 147 m | 220 m |
 | Home disulfide | `1xr9_203A_259A`, 0.49 kcal/mol | `2q7q_75D_140D`, 0.49 kcal/mol |
 
 Build either with `make forest FOREST=subset` or `make forest
