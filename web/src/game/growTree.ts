@@ -27,7 +27,7 @@ export type GrownTree = {
 };
 
 /** Bump when the geometry changes so the forest cache rebuilds. */
-export const GROW_VERSION = 18;
+export const GROW_VERSION = 19;
 
 // The orchard's trees are laid out, not grown: classTree.ts places every
 // class and member and uses the class hierarchy as the wood. This file keeps what turns

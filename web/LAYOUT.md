@@ -212,8 +212,9 @@ every bond; its one ring of limbs is the 32 binary classes, each as thick
 as its bonds and leafed in its family's grove color, the minimap's. The
 limbs go round family by family, in the catalog's order, so each color
 holds one arc of the ring, and they run straight out from the fork without
-the line trees' wander, which made 32 limbs from one point cross. It
-stops there: at the hub the quadrant and octant tiers were thousands of
+the line trees' wander, which made 32 limbs from one point cross. Its
+wood is drawn at 0.6 of the pipe model's girth (`HUB_GIRTH`): at full
+girth the trunk was 3.6 m across. It stops there: at the hub the quadrant and octant tiers were thousands of
 classes no one could read, and each binary class grows as its own tree in
 the groves. It stands about 10 m tall. Bark is redwood. A click on one of
 its limbs, in either view, takes the cart to that class's tree.
