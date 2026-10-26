@@ -100,7 +100,13 @@ test("input reset clears held keyboard, touch axes, look and interaction edges",
   assert.deepEqual([input.sampleActions().dragX, input.sampleActions().dragY], [0, 0], "and is used once");
   input.addDragLook(5, 5);
   input.resetInput();
-  assert.deepEqual(input.sampleActions(), { throttle: 0, steer: 0, boost: false, brake: false, interact: false, interactDown: false, pitch: 0, look: 0, dragX: 0, dragY: 0, dragging: false });
+  assert.deepEqual(input.sampleActions(), { throttle: 0, steer: 0, boost: false, brake: false, interact: false, interactDown: false, pitch: 0, look: 0, lift: 0, dragX: 0, dragY: 0, dragging: false });
+  // R raises the view, F lowers it.
+  input.setInjectedKeys(["KeyR"]);
+  assert.equal(input.sampleActions().lift, 1);
+  input.setInjectedKeys(["KeyF"]);
+  assert.equal(input.sampleActions().lift, -1);
+  input.setInjectedKeys(null);
   // Up/Down look; only W/S drive.
   input.setInjectedKeys(["ArrowUp"]);
   let look = input.sampleActions();

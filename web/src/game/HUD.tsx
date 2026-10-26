@@ -455,7 +455,7 @@ export function HUD({ forest, index }: { forest: Forest; index: ClassIndex | nul
         </div>
 
         <p className="key-hints absolute bottom-3 left-1/2 hidden -translate-x-1/2 text-xs text-faint sm:block">
-          WASD drive · Drag or arrows look · Space brake · E album · B classes · C camera · V schematic · N names · Esc settings · ? about
+          WASD drive · Drag or arrows look · Space brake · R/F raise/lower · E album · B classes · C camera · V schematic · N names · Esc settings · ? about
         </p>
       </>)}
 

@@ -10,6 +10,8 @@ const GAME_KEYS = new Set([
   "Space",
   "ShiftLeft",
   "ShiftRight",
+  "KeyR",
+  "KeyF",
 ]);
 
 export type Actions = {
@@ -23,6 +25,8 @@ export type Actions = {
   pitch: number;
   /** Camera pan, -1 (right) to 1 (left), like steer; the view eases back to ahead on release. */
   look: number;
+  /** Raise (1, R) or lower (-1, F) the view. */
+  lift: number;
   /** Pixels dragged across the forest since the last frame, x right and y down. */
   dragX: number;
   dragY: number;
@@ -171,6 +175,7 @@ export function sampleActions(): Actions {
     interactDown: false,
     pitch: 0,
     look: 0,
+    lift: 0,
     dragX,
     dragY,
     dragging,
@@ -188,6 +193,8 @@ export function sampleActions(): Actions {
   if (held("KeyD")) actions.steer -= 1;
   if (held("ShiftLeft") || held("ShiftRight")) actions.boost = true;
   if (held("KeyE")) actions.interactDown = true;
+  if (held("KeyR")) actions.lift += 1;
+  if (held("KeyF")) actions.lift -= 1;
   if (held("Space")) actions.brake = true;
 
   actions.throttle += touchThrottle;
