@@ -71,6 +71,12 @@ const MAX_RISE = 8;
 const HUB_RING = 8.1;
 /** The database tree's trunk, from the ground to its one fork, m: taller than a line tree's, as the orchard's centre. */
 const HUB_TRUNK = 6.0;
+/**
+ * The database tree's wood, as a fraction of the pipe model's: carrying every
+ * bond, its trunk came out 3.6 m across and overbearing at the hub. Limbs thin
+ * with it, so their proportions to the trunk and each other hold.
+ */
+const HUB_GIRTH = 0.6;
 /** The database tree's trunk node id. */
 export const HUB_ROOT = "database";
 
@@ -465,5 +471,7 @@ export function hubTree(index: ClassIndex): ClassTree {
     flow: flowOf(index),
   };
   const f: Frame = { scale: 1, trunkHeight: HUB_TRUNK, ring: HUB_RING, jitter: 0 };
-  return grow(shape, HUB_ROOT, "hub", f, TIP_RADIUS);
+  const tree = grow(shape, HUB_ROOT, "hub", f, TIP_RADIUS);
+  for (let i = 0; i < tree.skeleton.n; i++) tree.skeleton.radii[i] = Math.max(TIP_RADIUS, tree.skeleton.radii[i]! * HUB_GIRTH);
+  return tree;
 }
