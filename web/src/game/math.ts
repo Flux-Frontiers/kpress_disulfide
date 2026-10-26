@@ -85,10 +85,21 @@ export function wheelLayout(
     const ca = R + setback + a, cb = R + setback + b, d = a + b + gap;
     return Math.acos(clamp((ca * ca + cb * cb - d * d) / (2 * ca * cb), -1, 1));
   };
+  // Angle from a grove to its neighbour. Beside a lane it is the angle that
+  // keeps the whole spoke, a ray from the hub, `lane` clear of the grove's
+  // edge, not only the phantom's circle at the ring: a wide grove bulges
+  // toward the spoke farther out.
+  const sepOf = (R: number, a: number, b: number) => {
+    if (a !== LANE && b !== LANE) return sep(R, rad(a), rad(b));
+    const g = a === LANE ? b : a;
+    if (g === LANE) return 0;
+    const c = R + setback + radii[g]!;
+    return Math.max(sep(R, rad(a), rad(b)), Math.asin(clamp((radii[g]! + lane) / c, -1, 1)));
+  };
   const place = (order: number[], R: number): number[] | null => {
     const k = order.length;
     if (k === 1) return [0];
-    const gaps = order.map((g, i) => sep(R, rad(g), rad(order[(i + 1) % k]!)));
+    const gaps = order.map((g, i) => sepOf(R, g, order[(i + 1) % k]!));
     const slack = 2 * Math.PI - gaps.reduce((a, b) => a + b, 0);
     if (slack < 0) return null;
     const ang: number[] = [0];
