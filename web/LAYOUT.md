@@ -28,6 +28,40 @@ limb of its own. It is folded, with its count kept, into its quadrant's
 The sextant tier is not drawn. It does not nest under the quadrant tier
 (proteusPy issue, fleet sweep item 95).
 
+### Which bonds go in
+
+The export takes the bonds exactly as `Load_PDB_SS` returns them
+(`subset=True` for the subset): 5,000 bonds in 1,038 PDB entries, or
+175,277 in 36,968. It applies no Cα or Sγ distance cutoff and no
+resolution filter of its own, so the full export is not the Springer
+chapter's filtered set of 158,965.
+
+### How a bond gets its classes
+
+Each torsion is reduced to one digit per tier
+(`disulfide_tree.classify_angles`, angles modulo 360°), and the five
+digits, χ1 first, plus the tier's suffix make the class id:
+
+| Tier | Digit rule | Example |
+|---|---|---|
+| Binary | 2 for 0° to 180°, 0 for negative | `00000b`: all five negative, -LHSpiral |
+| Quadrant | 4 for 0° to 90°, 3 for 90° to 180°, 2 for -180° to -90°, 1 for -90° to 0° | `11111q`: all five in -90° to 0° |
+| Octant | 8 for 0° to 45°, down to 1 for -45° to 0° | `22222o`: all five in -90° to -45° |
+
+Every octant sector lies inside one quadrant sector, which lies inside
+one sign, so the tiers nest exactly.
+
+### What each class records
+
+Computed over all the class's bonds, not the sample: its count and share
+of the database; its consensus torsions, the circular mean of each χ
+with its circular standard deviation, sqrt(-2 ln R); its torsional
+energy (proteusPy's, kcal/mol) and Cα-Cα distance (Å), each as mean and
+standard deviation; and, for a binary class, its name and function from
+`PDB_SS_class_definitions.csv`. These are what a class card in the
+reader shows, so a card describes the whole class even when only a few
+of its bonds are drawn.
+
 ## One tree per binary class
 
 Each of the 32 binary classes is one tree (`classTree.ts`, `lineTree`):
@@ -150,6 +184,14 @@ with proteusPy's own colors and radii (`atoms.json`, `molecule.ts`):
 - **Monument** on the hub plaza: the home disulfide, drawn from its real
   coordinates (12 to 16 atoms), at 0.35 m per angstrom, with its plaque.
 
+Where each model comes from: a binary class's is proteusPy's binary
+consensus disulfide. An octant class's is proteusPy's octant consensus
+disulfide; if there is none, it is built from the octant metrics' mean
+torsions, and if those are missing, from its members' circular mean
+(`model_source` in the export). A quadrant class has no model, since
+proteusPy has none at that tier. A bond card draws the real bond: 12
+atoms, or 16 when the flanking residues exist.
+
 ## The hub
 
 The database tree stands at the hub (`hubTree`). Its trunk, 6 m tall, is
@@ -174,6 +216,83 @@ cover one already placed is left out, so a dense crown shows its coarse
 classes first and opens up as the cart draws closer (`NamePlates.tsx`,
 `schematic.declutter`).
 
+## What you are really showing
+
+### A sample of the bonds
+
+Only a sample of real bonds is drawn: for each drawn octant class, its
+members sorted by torsional energy, lowest first (ties by key), up to
+`--members-per-class` (12). A folded octant class gets no sample. Every
+sampled bond has a bond card. The Bond complexity setting then keeps the
+first 1, 3 (the default), 6 or all of each sample, so it always keeps
+the most relaxed.
+
+| | Subset | Full |
+|---|---|---|
+| Sampled bonds | 2,413 (48.3% of the database) | 11,196 (6.4%) |
+| Drawn at Low, 1 per octant class | 530 | 933 |
+| Drawn at Medium, 3 | 1,349 | 2,799 (1.6%) |
+| Drawn at High, 6 | 1,863 | 5,598 |
+| Drawn at Ultra, all sampled | 2,413 | 11,196 |
+
+Every bond still counts in its classes' statistics and in the thickness
+of the wood that carries it.
+
+### The leaves lean relaxed
+
+Because each sample is the lowest-energy end of its class, the leaf and
+bond-sphere colors are not the database's energy distribution. On the
+full export:
+
+| | Median energy, kcal/mol | Below 1.5 | Above 4 |
+|---|---|---|---|
+| Whole database | 3.19 | 14.3% | 33.6% |
+| Ultra, all 11,196 sampled | 2.68 | 20.0% | 24.5% |
+| Medium, 3 per octant class | 2.26 | 27.3% | 18.1% |
+| Low, 1 per octant class | 2.09 | 30.7% | 15.8% |
+
+So a leaf's color reads as "the most relaxed members of this octant
+class look like this", not "this class's bonds are this relaxed"; the
+class's own mean energy is on its card. On the subset the bias is small
+(median 3.26 for the database, 2.97 sampled), because half its octant
+classes have 3 or fewer bonds and are sampled whole. A drawn octant class
+holds a median of 3 bonds on the subset and 46 on the full export, up to
+12,323 (`22222o`).
+
+### What the layout encodes, and what it doesn't
+
+Encodes data: which tree and grove a bond is in (its binary class and
+family); the ring and height (its tier); a limb's thickness (the bonds it
+carries); a leaf's or bond sphere's color (that bond's energy); the order
+round a ring (most populous first, each class in its parent's wedge, so
+related classes sit together); and the grove order (by bond count, the
+unnamed classes inside, the named families outside).
+
+Does not encode data: the distance between two classes, in a tree or
+across the orchard. Positions on a ring are spacing for legibility:
+wedges sized by the room each class and its children need, crowded rings
+in up to four rows, rings widened until everything fits. Two octant
+classes side by side are no closer in torsion space than two on opposite
+sides. Nor do a tree's height and reach (each tier rises at a fixed 25°
+pitch, and a tree is wide because it has many classes), the way a grove
+faces (its largest tree turns to the hub), the species (one per family,
+for recognition), or the angle round a bond dome (only the order down it,
+lowest energy on top).
+
+### What is left out
+
+- Most bonds as individuals: on the full export 6.4% are sampled and
+  1.6% drawn at the default setting.
+- Sparse octant classes: below `min_members` they appear only as counts
+  in `-other` tips, with no model and no sample. On the full export that
+  is 8,764 octant classes in 968 tips, holding 16.6% of the bonds (941
+  classes in 507 tips, 18.8%, on the subset).
+- The sextant tier, which does not nest, and a quadrant model, which
+  proteusPy does not have.
+- Any filter beyond what `Load_PDB_SS` applies.
+- Hydrogens, and side chains beyond the two cysteines and their flanking
+  atoms.
+
 ## Worked examples
 
 Measured from the exports in `public/forests/` with the current code.
@@ -196,3 +315,14 @@ Measured from the exports in `public/forests/` with the current code.
 
 Build either with `make forest FOREST=subset` or `make forest
 FOREST=full`; the full export takes about 11 s and writes 57 MB.
+
+## The settings
+
+| Setting | Where | Default | Effect |
+|---|---|---|---|
+| `FOREST` | `make forest` | subset | Which database to export |
+| `FOREST_MIN_MEMBERS` | `make forest` | 2 subset, 20 full | Bonds an octant class needs to be drawn; fewer fold into `-other`. Raising it gives fewer, smaller trees |
+| `FOREST_MEMBERS` | `make forest` | 12 | Bonds sampled per drawn octant class, lowest energy first |
+| `FOREST_HOME` | `make forest` | the lowest-energy bond | The monument's disulfide |
+| Bond complexity | the app's settings | Medium (3), Low on a touch screen | How many of each sample are drawn |
+| `?home=`, "Make this the home disulfide" | the URL, the reader | | The monument's disulfide for this visit or this device |
