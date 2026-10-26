@@ -60,4 +60,7 @@ from art_techno's `web/src/spirits.ts`. Art Techno's art is licensed
 [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) (art_techno's
 `LICENSE-ART`), not under this repository's Elastic License 2.0. The models are
 not committed here: `make art` copies them from `ART_TECHNO_DIR` (default
-`../art_techno`), and without one its glade shows only its plaque.
+`../art_techno`), and without one its glade shows only its plaque. `make
+art` also writes a simplified copy of each, `web/public/models/far/`, with
+art_techno's own gltf-transform; those are derived from the same models,
+under the same license, and are not committed either.

@@ -3,10 +3,12 @@
 // holding the double helix as a staff, and the Spirit of Innovation, Eureka,
 // springing forward as the idea ignites. Their models are Art Techno's, CC
 // BY-NC 4.0 (see PROVENANCE.md), copied into public/models by `make art` and
-// never committed; without one its glade shows only its plaque.
+// never committed; without one its glade shows only its plaque. `make art`
+// also writes a simplified copy of each (public/models/far), drawn until the
+// rider comes near: the full models run to a million triangles apiece.
 
-import { useEffect, useMemo, useState } from "react";
-import { Box3, Mesh, MeshStandardMaterial, type Object3D, Vector3 } from "three";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Box3, LOD, Mesh, MeshStandardMaterial, type Object3D, Vector3 } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { ASSET_ROOT } from "./ClassReader";
@@ -28,6 +30,8 @@ const SPIRIT_GLOW = { strength: 0.35, falloff: 5 };
  * reflect and renders nearly black (as WindSculptures.tsx notes).
  */
 const SPIRIT_METALNESS = 0.45;
+/** Within this far, m, the full model replaces the simplified one. */
+const SPIRIT_NEAR = 30;
 
 const ART_TECHNO =
   "She is one of the nine Spirits of Art Techno, which does for the computer age what Art Deco did " +
@@ -84,16 +88,17 @@ function fitSpirit(scene: Object3D): Fit {
   return { scene, scale, offset: [-centre.x * scale, -box.min.y * scale, -centre.z * scale], materials };
 }
 
-/** Each model, fetched and fitted once: Art Techno's lighter export on a touch screen. */
+/** Each model, fetched and fitted once. */
 const models = new Map<string, Promise<Fit>>();
 
+/** :param file: Its path under public/models. */
 function useSpiritModel(file: string): Fit | null {
   const [fit, setFit] = useState<Fit | null>(null);
   useEffect(() => {
     let live = true;
     let model = models.get(file);
     if (!model) {
-      model = loader.loadAsync(`${ASSET_ROOT}models/${COARSE_POINTER ? "mobile/" : ""}${file}`).then((g) => fitSpirit(g.scene));
+      model = loader.loadAsync(`${ASSET_ROOT}models/${file}`).then((g) => fitSpirit(g.scene));
       models.set(file, model);
     }
     // Not there without `make art`: the glade keeps its plaque and no statue.
@@ -103,20 +108,38 @@ function useSpiritModel(file: string): Fit | null {
   return fit;
 }
 
-/** A statue, fitted from her own bounds to SPIRIT_HEIGHT, standing on the ground, facing the road. */
+/**
+ * A statue, fitted from her own bounds to SPIRIT_HEIGHT, standing on the
+ * ground, facing the road: the simplified model from afar, the full one
+ * (Art Techno's lighter export on a touch screen) within SPIRIT_NEAR.
+ */
 function Spirit({ exhibit, spec }: { exhibit: Exhibit; spec: SpiritSpec }) {
-  const fit = useSpiritModel(spec.model);
-  const none = useMemo<MeshStandardMaterial[]>(() => [], []);
-  useUplitMaterials(fit?.materials ?? none, "#ffe2b0", SPIRIT_GLOW.strength, SPIRIT_GLOW.falloff);
+  const near = useSpiritModel(`${COARSE_POINTER ? "mobile/" : ""}${spec.model}`);
+  const far = useSpiritModel(`far/${spec.model}`);
+  const fits = useMemo(() => [near, far].filter((f): f is Fit => f !== null), [near, far]);
+  const materials = useMemo(() => fits.flatMap((f) => f.materials), [fits]);
+  useUplitMaterials(materials, "#ffe2b0", SPIRIT_GLOW.strength, SPIRIT_GLOW.falloff);
+  // React places the models; the LOD is only told which child shows from how far.
+  // The first to load shows at every distance until the other arrives.
+  const lod = useRef<LOD>(null);
+  useLayoutEffect(() => {
+    if (!lod.current) return;
+    const levels = lod.current.children.map((object, i) => ({ object, distance: i === 0 ? 0 : SPIRIT_NEAR, hysteresis: 0 }));
+    lod.current.levels.splice(0, Infinity, ...levels);
+  }, [fits]);
   const facing = Math.atan2(exhibit.roadX - exhibit.x, exhibit.roadZ - exhibit.z);
   return (
     <group position={[exhibit.x, 0, exhibit.z]}>
       <ExhibitPlaque exhibit={exhibit} title={spec.title} byline={spec.byline} body={spec.body} />
-      {fit ? (
+      {fits.length ? (
         <group rotation={[0, facing, 0]}>
-          <group position={fit.offset} scale={fit.scale}>
-            <primitive object={fit.scene} />
-          </group>
+          <lOD ref={lod}>
+            {fits.map((f) => (
+              <group key={f.scene.uuid} position={f.offset} scale={f.scale}>
+                <primitive object={f.scene} />
+              </group>
+            ))}
+          </lOD>
           <UplightFixtures radius={exhibit.obstacle} count={4} pool={3} />
         </group>
       ) : null}
