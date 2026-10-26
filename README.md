@@ -4,6 +4,7 @@
 [![Data: proteusPy](https://img.shields.io/badge/data-proteusPy-blue.svg)](https://github.com/suchanek/proteusPy)
 [![CI](https://github.com/Flux-Frontiers/kpress_disulfide/actions/workflows/ci.yml/badge.svg)](https://github.com/Flux-Frontiers/kpress_disulfide/actions/workflows/ci.yml)
 [![Web](https://github.com/Flux-Frontiers/kpress_disulfide/actions/workflows/web.yml/badge.svg)](https://github.com/Flux-Frontiers/kpress_disulfide/actions/workflows/web.yml)
+[![DOI](https://img.shields.io/badge/DOI-pending%20first%20release-lightgrey.svg)](https://zenodo.org/search?q=kpress_disulfide)
 
 # The Knowledge Press: The Disulfides
 
