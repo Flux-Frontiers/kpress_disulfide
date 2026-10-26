@@ -83,8 +83,9 @@ Open in [#2](https://github.com/Flux-Frontiers/kpress_disulfide/pull/2)
   order; sampled bonds on a 1 m dome over their octant class; rings keep
   1.2 m of arc per class at every scale; crowns in a grove keep 3 m of
   clear ground; leaves and bond beads on a fixed energy ramp, blue to red;
-  the database tree with every tier, its crowded rings stacked into a
-  tall crown without overlap (about 30 m on the subset, 42 m on the full).
+  every tree's rings fit their classes and its limbs climb at one pitch
+  (line trees 7 to 15 m tall); the database tree is the 32 binary classes
+  in their families' colors, about 10 m tall.
 - `web/LAYOUT.md`: the representation, with both exports as worked
   examples. 162 web tests.
 
@@ -95,16 +96,16 @@ Not done, in order of value:
 2. Optional: neighbor arcs in god's eye between binary classes one sign
    flip apart.
 
-Decided by EGS: the database tree stays at the hub with all its tiers,
-as a tall crown (#2).
+Decided by EGS (#2): the database tree stays at the hub as the 32 binary
+classes only, colored by family (a crown of every tier was unreadable);
+limbs climb at one pitch, 25 degrees, each tier rising 1.5 to 8 m.
 
 Open with EGS, decided from stills, not by an agent:
 
-- **Tree heights.** Every line tree rises 3 m per tier, so the widest
-  (`00000b`, 30 m reach on the full export) read flat, with long low
-  limbs over the road. Letting the rise grow with the ring's radius would
-  change tree heights: his call. Also whether the database tree keeps its
-  redwood bark or takes a species.
+- **Size.** Fitting every class has made the big trees wide: `00000b`
+  reaches 51 m on the full export and the orchard 312 m to its outermost
+  grove. Also whether the database tree keeps its redwood bark or takes a
+  species.
 - Grove count (18 is the default), which database ships, whether the
   exhibits beyond the Double Helix stay, an app, and publishing.
 
