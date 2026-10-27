@@ -58,7 +58,8 @@ export function SegmentMesh({ segments, radius, material, sides }: {
 
 const SHAPES: Record<BeadShape, () => SphereGeometry | BoxGeometry | OctahedronGeometry> = {
   // A member's bead is half a class's: they cluster on a dome over their class.
-  round: () => new SphereGeometry(BEAD_R * 0.5, 16, 12),
+  // 10x8 (140 triangles) still reads as round; on Ultra every sampled bond has one.
+  round: () => new SphereGeometry(BEAD_R * 0.5, 10, 8),
   square: () => new BoxGeometry(BEAD_R * 1.6, BEAD_R * 1.6, BEAD_R * 1.6),
   octa: () => new OctahedronGeometry(BEAD_R * 1.15),
   diamond: () => new OctahedronGeometry(BEAD_R * 1.6),

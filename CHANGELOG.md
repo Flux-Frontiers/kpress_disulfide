@@ -15,6 +15,12 @@ uses [Semantic Versioning](https://semver.org/).
   them and redeploys.
 - Badges for the disulfide and structure counts, 158,965 and 35,367.
 
+### Changed
+
+- Schematic mode's member spheres at 10x8 segments, 140 triangles in
+  place of 352: on Ultra, beside the largest tree with shadows on, 5.05M
+  triangles a frame in place of 9.29M, with no visible difference.
+
 ### Removed
 
 - The subset database from the app and the site: `make forest` and
