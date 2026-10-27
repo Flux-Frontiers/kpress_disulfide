@@ -13,6 +13,13 @@ uses [Semantic Versioning](https://semver.org/).
   built and deployed from `main`. Its databases and the Spirits' models
   come from the draft `web-data` release; `make web-data-publish` uploads
   them and redeploys.
+- Badges for the disulfide and structure counts, 158,965 and 35,367.
+
+### Removed
+
+- The subset database from the app and the site: `make forest` and
+  `make demos` export only the full database. The subset stays as the
+  test fixture.
 
 ## [0.1.0] - 2026-10-26
 

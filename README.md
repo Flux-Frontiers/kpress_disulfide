@@ -45,13 +45,12 @@ database. The repository started as a copy of
 ## Databases to show
 
 proteusPy writes the orchard's data (`proteusPy.export_web`) into
-`web/public/forests/<slug>/`, with an index the start screen offers a choice
-from. The exports are not committed. `make forest` drives the export from a
-sibling proteusPy checkout (`PROTEUSPY_DIR`, default `../proteusPy`):
+`web/public/forests/full/`, with an index the app reads. The exports are
+not committed. `make forest` exports the full database from a sibling
+proteusPy checkout (`PROTEUSPY_DIR`, default `../proteusPy`):
 
 ```bash
-make demos                    # the subset that ships with proteusPy: 4,575 bonds, and make art
-make forest FOREST=full       # the full database: 158,965 bonds, about 11 s and 52 MB
+make demos                    # make forest (158,965 bonds, about 11 s and 52 MB) and make art
 make web-dev
 ```
 
@@ -72,9 +71,7 @@ it also writes simplified copies drawn from afar, with art_techno's
 gltf-transform (`npm install` in `../art_techno/web` first). Their models
 are CC BY-NC 4.0 and not committed here (see [PROVENANCE.md](PROVENANCE.md)).
 
-`?forest=<slug>` opens that database; otherwise the one chosen last on this
-device, or the first. Each database keeps its own album and home
-disulfide. `?home=<key>` opens on that bond's monument; otherwise it is the
+`?home=<key>` opens on that bond's monument; otherwise it is the
 bond chosen with "Make this the home disulfide" in the reader. `?tree=<id>`
 opens beside a binary class's tree, for example `?tree=00000b`.
 
@@ -90,8 +87,9 @@ make web-dev       # dev server on port 5173
 make gallery       # a portrait of each class tree into renders/lines (needs web-dev)
 ```
 
-The tests run against a trimmed subset export committed under
-`web/tests/fixtures/subset/`.
+The tests run against a trimmed export of the subset that ships with
+proteusPy, committed under `web/tests/fixtures/subset/`; the app itself
+offers only the full database.
 
 ## Citation
 

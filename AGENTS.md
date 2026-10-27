@@ -33,10 +33,11 @@ proteusPy writes the orchard's data; this repo only reads it.
   [proteusPy#62](https://github.com/suchanek/proteusPy/pull/62)) writes
   `web/public/forests/<slug>/`: `catalog.json` (`meta`, `groves`, `lines`,
   `classes`, `home`), `classes/<id>.json`, `bonds/<key>.json`,
-  `atoms.json`, `about.json`. `make forest FOREST=subset|full` drives it
-  from `PROTEUSPY_DIR ?= ../proteusPy`; `make demos` is the subset. The
-  exports are gitignored; the test fixture is a trimmed subset export
-  under `web/tests/fixtures/subset/`.
+  `atoms.json`, `about.json`. `make forest` drives it for the full
+  database from `PROTEUSPY_DIR ?= ../proteusPy`; `make demos` is that and
+  `make art`. The exports are gitignored. The app offers only the full
+  database; the subset survives only as the test fixture, a trimmed subset
+  export under `web/tests/fixtures/subset/`.
 - A grove is a class family: the six named families (LHSpiral, RHSpiral,
   LHHook, RHHook, LHStaple, RHStaple) plus one grove per unnamed binary
   class, 18 in all: unnamed inner, named outer (EGS, #4). A line is a binary class (32). A
@@ -134,8 +135,7 @@ Decided by EGS:
 - No neighbor arcs for now (2026-10-26).
 - The orchard shows the published set, within proteusPy's cutoffs
   (2026-10-26; proteusPy#63).
-- The database tree keeps its redwood bark; the 18 groves stand; both
-  databases are offered, the full one first; of the Forest's exhibits only
+- The database tree keeps its redwood bark; the 18 groves stand; of the Forest's exhibits only
   the Double Helix stays, and Art Techno's Spirit of Life stands in a glade
   of her own, 10 m tall (2026-10-26; her models via `make art`, CC BY-NC
   4.0, never committed). Her Spirit of Innovation, Eureka, joined her in a
@@ -146,6 +146,8 @@ Decided by EGS:
   changes or the ring is ridden, and Look ahead brings it back (#7, #13).
 - Ultra is the setting to optimize against. Shadows stay, leaves
   included; the leaves were simplified instead (#12).
+- Only the full database is offered; the subset was dropped from the app
+  and the site and kept only as the test fixture (2026-10-26, #26).
 - The ranks run Undergraduate, Research Assistant, Graduate Student, PhD
   Candidate, Doctor of Philosophy; the cart carries models of the classes
   collected, in place of albums (#14).

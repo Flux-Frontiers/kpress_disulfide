@@ -20,13 +20,12 @@
 #                         (needs make web-dev running and puppeteer-core)
 #
 # Databases (web/public/forests/<slug>, never committed):
-#   make forest FOREST=subset|full [FOREST_TITLE="..."] [FOREST_HOME=<key>]
-#                      -- proteusPy.export_web from $(PROTEUSPY_DIR), then
-#                         refresh the index. Only bonds within proteusPy's
-#                         Ca and Sg cutoffs: the subset that ships with
-#                         proteusPy is 4,575 of its 5,000; full is the
+#   make forest [FOREST_TITLE="..."] [FOREST_HOME=<key>]
+#                      -- proteusPy.export_web of the full database from
+#                         $(PROTEUSPY_DIR), then refresh the index. Only
+#                         bonds within proteusPy's Ca and Sg cutoffs: the
 #                         published set, 158,965 (about 11 s and 52 MB)
-#   make demos         -- the subset, and `make art`
+#   make demos         -- `make forest` and `make art`
 #   make web-data-publish
 #                      -- upload web/public/forests and web/public/models for
 #                         the Pages build, then redeploy
@@ -36,12 +35,11 @@
 PROTEUSPY_DIR ?= ../proteusPy
 # Art Techno, whose Spirit of Life stands in an exhibit glade (`make art`).
 ART_TECHNO_DIR ?= ../art_techno
-FOREST ?= subset
-FOREST_TITLE ?= $(if $(filter full,$(FOREST)),The full database,The subset)
+FOREST_TITLE ?= The full database
 # The disulfide the monument opens on; empty lets the export pick the lowest-energy bond.
 FOREST_HOME ?=
 # Members sampled per octant class, and the least members an octant class
-# needs for its own tip (empty: the export's default, 2 on the subset, 20 on the full database).
+# needs for its own tip (empty: the export's default, 20).
 FOREST_MEMBERS ?= 12
 FOREST_MIN_MEMBERS ?=
 
@@ -71,15 +69,13 @@ web-kill:
 	kill $$pids && echo "stopped: $$(echo $$pids)"
 
 forest:
-	@case "$(FOREST)" in subset|full) ;; *) echo "set FOREST to subset or full"; exit 1 ;; esac
 	cd $(PROTEUSPY_DIR) && env -u VIRTUAL_ENV -u POETRY_ACTIVE poetry run proteusPy.export_web \
-		--database $(FOREST) --out $(abspath web/public/forests/$(FOREST)) --members-per-class $(FOREST_MEMBERS) \
+		--database full --out $(abspath web/public/forests/full) --members-per-class $(FOREST_MEMBERS) \
 		$(if $(FOREST_MIN_MEMBERS),--min-members $(FOREST_MIN_MEMBERS)) $(if $(FOREST_HOME),--home $(FOREST_HOME)) --force
-	printf '{"title": "%s", "home": "%s"}\n' "$(FOREST_TITLE)" "$(FOREST_HOME)" > web/public/forests/$(FOREST)/about.json
+	printf '{"title": "%s", "home": "%s"}\n' "$(FOREST_TITLE)" "$(FOREST_HOME)" > web/public/forests/full/about.json
 	cd web && node scripts/forests.mjs
 
-demos: art
-	$(MAKE) forest FOREST=subset
+demos: art forest
 
 # The Spirits of Life and Innovation from Art Techno (CC BY-NC 4.0; see
 # PROVENANCE.md), into web/public/models, which is never committed, and a
@@ -110,8 +106,8 @@ gallery:
 # The Pages site (web.yml) is built from git, and the databases and models are
 # not in git: web-data-publish packs web/public/forests and web/public/models
 # into web-data.tar.gz on the WEB_DATA_TAG release, which web.yml unpacks into
-# the build, and redeploys Pages. Run it after `make forest FOREST=full`,
-# `make demos` and `make art` change what should be live. The release stays a
+# the build, and redeploys Pages. Run it after `make forest` and `make art`
+# change what should be live. The release stays a
 # draft because Zenodo archives every published release; web.yml needs
 # contents: write to read a draft.
 WEB_DATA_TAG ?= web-data
@@ -119,7 +115,7 @@ WEB_DATA_TARBALL := $(patsubst %/,%,$(or $(TMPDIR),/tmp))/web-data.tar.gz
 
 web-data-publish:
 	@test -f web/public/forests/index.json \
-	  || { echo "No databases in web/public/forests -- run 'make forest FOREST=full' and 'make demos' first."; exit 1; }
+	  || { echo "No databases in web/public/forests -- run 'make forest' first."; exit 1; }
 	@test -n "$$(ls web/public/models 2>/dev/null)" \
 	  || { echo "No models in web/public/models -- run 'make art' first."; exit 1; }
 	COPYFILE_DISABLE=1 tar -czf "$(WEB_DATA_TARBALL)" -C web/public forests models

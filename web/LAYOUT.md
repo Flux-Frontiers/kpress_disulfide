@@ -1,8 +1,8 @@
 # How the orchard represents the disulfide database
 
 This page describes what each thing in the orchard stands for, how its
-position and size are computed, and what the numbers come to for the two
-exports. The data is proteusPy's (`proteusPy.export_web`, run by
+position and size are computed, and what the numbers come to for the full
+database. The data is proteusPy's (`proteusPy.export_web`, run by
 `make forest`); this repo only reads it. The code is in `src/game/`; the
 file named in each section is where that rule lives.
 
@@ -12,18 +12,17 @@ proteusPy classifies every disulfide bond by its five side-chain torsions,
 χ1 through χ5, at three resolutions. Each resolution is one tier of the
 orchard, and each tier partitions the one above it exactly:
 
-| Tier | Class id | What it records | Classes (subset / full) |
+| Tier | Class id | What it records | Classes |
 |---|---|---|---|
-| Binary | `00000b` | the sign of each torsion | 32 / 32 |
-| Quadrant | `11111q` | which 90-degree sector each torsion falls in | 562 / 949 |
-| Octant | `22222o` | which 45-degree sector each torsion falls in | 487 / 833 drawn |
-| Bond | `1xr9_203A_259A` | one disulfide in one PDB entry | 4,575 / 158,965 |
+| Binary | `00000b` | the sign of each torsion | 32 |
+| Quadrant | `11111q` | which 90-degree sector each torsion falls in | 949 |
+| Octant | `22222o` | which 45-degree sector each torsion falls in | 833 drawn |
+| Bond | `2q7q_75D_140D` | one disulfide in one PDB entry | 158,965 |
 
 Every class id carries its tier's suffix. Octant `22222o` and binary
 `22222b` are different classes. An octant class with fewer bonds than the
-export's `min_members` (2 on the subset, 20 on the full database) gets no
-limb of its own. It is folded, with its count kept, into its quadrant's
-`<quadrant id>-other` tip (465 tips on the subset, 948 on the full).
+export's `min_members` (20) gets no limb of its own. It is folded, with
+its count kept, into its quadrant's `<quadrant id>-other` tip (948 tips).
 The Prune setting leaves those tips undrawn, and any quadrant class with
 nothing else above it. Every class keeps its place, so the sparse octants
 show as gaps in the rings. No tree or grove moves: the groves are laid out
@@ -34,13 +33,11 @@ The sextant tier is not drawn. It does not nest under the quadrant tier
 
 ### Which bonds go in
 
-The export reads `Load_PDB_SS` (`subset=True` for the subset), which is
-distributed unfiltered: 5,000 bonds in 1,038 PDB entries, or 175,277 in
-36,968. It keeps only the bonds within proteusPy's distance cutoffs, by
+The export reads `Load_PDB_SS`, which is distributed unfiltered: 175,277
+bonds in 36,968 PDB entries. It keeps only the bonds within proteusPy's distance cutoffs, by
 `filter_by_distance`'s rule: 0 < Cα-Cα < 6.71 Å (`CA_CUTOFF`) and
-0 < Sγ-Sγ < 2.12 Å (`SG_CUTOFF`). On the full database that is the
-Springer chapter's published set exactly, 158,965 bonds in 35,367
-structures; on the subset, 4,575 bonds in 992. The catalog records the
+0 < Sγ-Sγ < 2.12 Å (`SG_CUTOFF`). That is the Springer chapter's
+published set exactly, 158,965 bonds in 35,367 structures. The catalog records the
 cutoffs and the unfiltered count (`meta.database`), and
 `--ca-cutoff`/`--sg-cutoff` -1 turns them off. Everything below is
 measured on the filtered set.
@@ -224,8 +221,7 @@ the groves. It stands about 10 m tall. Bark is redwood. A click on one of
 its limbs, in either view, takes the cart to that class's tree.
 
 The home disulfide is the export's lowest-energy bond unless the reader
-or `?home=<key>` names another sampled bond: `1xr9_203A_259A` on the
-subset, `2q7q_75D_140D` on the full database. Its own tree's wood is
+or `?home=<key>` names another sampled bond: `2q7q_75D_140D`. Its own tree's wood is
 gilded from the ground to its leaf, and the minimap marks its grove.
 
 ## Labels
@@ -248,13 +244,13 @@ sampled bond has a bond card. The Bond complexity setting then keeps the
 first 1, 3 (the default), 6 or all of each sample, so it always keeps
 the most relaxed.
 
-| | Subset | Full |
-|---|---|---|
-| Sampled bonds | 2,213 (48.4% of the database) | 9,996 (6.3%) |
-| Drawn at Low, 1 per octant class | 487 | 833 |
-| Drawn at Medium, 3 | 1,235 | 2,499 (1.6%) |
-| Drawn at High, 6 | 1,709 | 4,998 |
-| Drawn at Ultra, all sampled | 2,213 | 9,996 |
+| | Bonds |
+|---|---|
+| Sampled | 9,996 (6.3% of the database) |
+| Drawn at Low, 1 per octant class | 833 |
+| Drawn at Medium, 3 | 2,499 (1.6%) |
+| Drawn at High, 6 | 4,998 |
+| Drawn at Ultra, all sampled | 9,996 |
 
 Every bond still counts in its classes' statistics and in the thickness
 of the wood that carries it.
@@ -262,8 +258,7 @@ of the wood that carries it.
 ### The leaves lean relaxed
 
 Because each sample is the lowest-energy end of its class, the leaf and
-bond-sphere colors are not the database's energy distribution. On the
-full export:
+bond-sphere colors are not the database's energy distribution:
 
 | | Median energy, kcal/mol | Below 1.5 | Above 4 |
 |---|---|---|---|
@@ -274,11 +269,8 @@ full export:
 
 So a leaf's color reads as "the most relaxed members of this octant
 class look like this", not "this class's bonds are this relaxed"; the
-class's own mean energy is on its card. On the subset the bias is small
-(median 3.18 for the database, 2.89 sampled), because half its octant
-classes have 3 or fewer bonds and are sampled whole. A drawn octant class
-holds a median of 3 bonds on the subset and 47 on the full export, up to
-12,043 (`22222o`).
+class's own mean energy is on its card. A drawn octant class holds a
+median of 47 bonds, up to 12,043 (`22222o`).
 
 ### What the layout encodes, and what it doesn't
 
@@ -302,49 +294,45 @@ lowest energy on top).
 
 ### What is left out
 
-- Most bonds as individuals: on the full export 6.3% are sampled and
-  1.6% drawn at the default setting.
+- Most bonds as individuals: 6.3% are sampled and 1.6% drawn at the
+  default setting.
 - Sparse octant classes: below `min_members` they appear only as counts
-  in `-other` tips, with no model and no sample. On the full export that
-  is 7,701 octant classes in 948 tips, holding 15.8% of the bonds (831
-  classes in 465 tips, 18.2%, on the subset).
+  in `-other` tips, with no model and no sample: 7,701 octant classes in
+  948 tips, holding 15.8% of the bonds.
 - The sextant tier, which does not nest, and a quadrant model, which
   proteusPy does not have.
-- Bonds outside proteusPy's Cα and Sγ cutoffs: 16,312 on the full
-  database, 425 on the subset. No other filter (resolution, for one) is
+- Bonds outside proteusPy's Cα and Sγ cutoffs: 16,312. No other filter (resolution, for one) is
   applied.
 - Hydrogens, and side chains beyond the two cysteines and their flanking
   atoms.
 
 ## Worked examples
 
-Measured from the exports in `public/forests/` with the current code.
+Measured from the export in `public/forests/full/` with the current code.
 
-| | Subset | Full |
-|---|---|---|
-| Bonds | 4,575 in 992 PDB entries (of 5,000) | 158,965 in 35,367 PDB entries (of 175,277) |
-| `min_members` | 2 | 20 |
-| Sampled bonds (leaves) | 2,213 | 9,996 |
-| Largest tree | `00000b`, 1,112 bonds, 559 nodes, 12.3 m tall, reach 19.0 m | `00000b`, 39,111 bonds, 1,573 nodes, 14.2 m tall, reach 23.0 m |
-| Smallest tree | `20202b`, 7 bonds, 7 nodes, 6.0 m tall, reach 3.3 m | `20202b`, 319 bonds, 62 nodes, 7.2 m tall, reach 4.9 m |
-| Line tree height | 6.0 to 12.3 m | 7.2 to 14.2 m |
-| Database tree | 33 nodes, 9.8 m tall, reach 8.0 m | 33 nodes, 9.8 m tall, reach 8.0 m |
-| Ring roads | 37 m and 73 m | 51 m and 96 m |
-| LHSpiral grove radius | 21.4 m | 24.0 m |
-| Largest tree of each grove to nearest road | 5 to 6 m | 5 to 38 m |
-| Any trunk to nearest road | median 6 m, at most 37 m | median 6 m, at most 43 m |
-| Orchard radius (outermost grove edge) | 117 m | 163 m |
-| Home disulfide | `1xr9_203A_259A`, 0.49 kcal/mol | `2q7q_75D_140D`, 0.49 kcal/mol |
+| | Full database |
+|---|---|
+| Bonds | 158,965 in 35,367 PDB entries (of 175,277) |
+| `min_members` | 20 |
+| Sampled bonds (leaves) | 9,996 |
+| Largest tree | `00000b`, 39,111 bonds, 1,573 nodes, 14.2 m tall, reach 23.0 m |
+| Smallest tree | `20202b`, 319 bonds, 62 nodes, 7.2 m tall, reach 4.9 m |
+| Line tree height | 7.2 to 14.2 m |
+| Database tree | 33 nodes, 9.8 m tall, reach 8.0 m |
+| Ring roads | 51 m and 96 m |
+| LHSpiral grove radius | 24.0 m |
+| Largest tree of each grove to nearest road | 5 to 38 m |
+| Any trunk to nearest road | median 6 m, at most 43 m |
+| Orchard radius (outermost grove edge) | 163 m |
+| Home disulfide | `2q7q_75D_140D`, 0.49 kcal/mol |
 
-Build either with `make forest FOREST=subset` or `make forest
-FOREST=full`; the full export takes about 11 s and writes 52 MB.
+Build it with `make forest`; the export takes about 11 s and writes 52 MB.
 
 ## The settings
 
 | Setting | Where | Default | Effect |
 |---|---|---|---|
-| `FOREST` | `make forest` | subset | Which database to export |
-| `FOREST_MIN_MEMBERS` | `make forest` | 2 subset, 20 full | Bonds an octant class needs to be drawn; fewer fold into `-other`. Raising it gives fewer, smaller trees |
+| `FOREST_MIN_MEMBERS` | `make forest` | 20 | Bonds an octant class needs to be drawn; fewer fold into `-other`. Raising it gives fewer, smaller trees |
 | `FOREST_MEMBERS` | `make forest` | 12 | Bonds sampled per drawn octant class, lowest energy first |
 | `FOREST_HOME` | `make forest` | the lowest-energy bond | The monument's disulfide |
 | Bond complexity | the app's settings | Medium (3) | How many of each sample are drawn |
