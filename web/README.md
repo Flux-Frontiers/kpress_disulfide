@@ -10,16 +10,15 @@ monument. [LAYOUT.md](LAYOUT.md) describes the representation in full.
 
 ```bash
 make web-install                         # once
-make demos                               # the subset, through proteusPy.export_web, and make art
+make demos                               # the full database, through proteusPy.export_web, and make art
 make web-dev                             # http://localhost:5173
 ```
 
 The orchard reads databases from `public/forests/<slug>/`, written by
 `proteusPy.export_web` (`make forest`), and `public/forests/index.json`
-(`scripts/forests.mjs`). The exports are not committed. `?forest=<slug>`
-picks the database, `?home=<key>` the home disulfide, and `?tree=<id>` opens
-beside a binary class's tree; see the top-level README for the order of
-choice.
+(`scripts/forests.mjs`). The exports are not committed. `?home=<key>` picks
+the home disulfide, and `?tree=<id>` opens beside a binary class's tree; see
+the top-level README for the order of choice.
 
 `make web-test` runs the node tests, and `make web-build` typechecks and
 builds.
