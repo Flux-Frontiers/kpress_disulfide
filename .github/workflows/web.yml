@@ -1,9 +1,15 @@
 name: Web
 
 # The web orchard: typecheck, node tests and a production build. Path-filtered
-# to web/ so a change elsewhere does not spend a runner here. Nothing is
-# published: there is no Pages deploy until the repository's visibility and
-# hosting are decided (plan Phase 3).
+# to web/ so a change elsewhere does not spend a runner here. A push or manual
+# run on main also publishes web/dist to GitHub Pages at
+# https://flux-frontiers.github.io/kpress_disulfide/ (EGS, 2026-10-26), as the
+# Forest's web.yml does.
+#
+# The databases and the Spirits' models are not in git: `make web-data-publish`
+# uploads them as web-data.tar.gz on the draft `web-data` release, and every
+# build unpacks it into web/public, so a pull request proves the download works
+# too. The release stays a draft because Zenodo archives every published one.
 
 on:
   push:
@@ -28,8 +34,9 @@ jobs:
   web:
     name: Web Build
     runs-on: ubuntu-latest
+    # Write, because a draft release is invisible to a read-only token.
     permissions:
-      contents: read
+      contents: write
     defaults:
       run:
         working-directory: web
@@ -42,4 +49,35 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
       - run: npm test
+      - name: Fetch the databases and models
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download web-data --repo "$GITHUB_REPOSITORY" --pattern web-data.tar.gz --dir "$RUNNER_TEMP"
+          tar -xzf "$RUNNER_TEMP/web-data.tar.gz" -C public
+          node -e 'const i = require("./public/forests/index.json"); for (const f of i.forests) console.log(f.slug, f.bonds, "bonds")'
+          ls public/models
       - run: npm run build
+      - uses: actions/upload-pages-artifact@v4
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        with:
+          path: web/dist
+
+  deploy:
+    name: Deploy to Pages
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: web
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # A newer push queues behind a deploy in progress rather than cutting it off.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -4,10 +4,10 @@
 # Author: Eric G. Suchanek, PhD -- Flux-Frontiers, Liberty TWP, OH
 # Copyright (c) 2026 Eric G. Suchanek, PhD. Elastic License 2.0; see LICENSE.
 #
-# Started as a copy of kpress_family; see PROVENANCE.md. Nothing here
-# publishes, uploads or deploys. proteusPy writes the databases
-# (proteusPy.export_web, from the sibling checkout); `make forest` only
-# drives it.
+# Started as a copy of kpress_family; see PROVENANCE.md. proteusPy writes
+# the databases (proteusPy.export_web, from the sibling checkout); `make
+# forest` only drives it. Only `make web-data-publish` uploads anything: the
+# databases and models for the Pages site.
 #
 # The web orchard (web/):
 #   make web-install   -- npm install
@@ -27,6 +27,9 @@
 #                         proteusPy is 4,575 of its 5,000; full is the
 #                         published set, 158,965 (about 11 s and 52 MB)
 #   make demos         -- the subset, and `make art`
+#   make web-data-publish
+#                      -- upload web/public/forests and web/public/models for
+#                         the Pages build, then redeploy
 #   make art           -- copy the Spirit of Life's models from
 #                         $(ART_TECHNO_DIR) (Art Techno, CC BY-NC 4.0)
 
@@ -42,7 +45,7 @@ FOREST_HOME ?=
 FOREST_MEMBERS ?= 12
 FOREST_MIN_MEMBERS ?=
 
-.PHONY: web-install web-dev web-test web-build web-preview web-kill forest demos art gallery
+.PHONY: web-install web-dev web-test web-build web-preview web-kill forest demos art gallery web-data-publish
 
 web-install:
 	cd web && npm install
@@ -103,3 +106,26 @@ art:
 
 gallery:
 	cd web && node scripts/gallery.mjs
+
+# The Pages site (web.yml) is built from git, and the databases and models are
+# not in git: web-data-publish packs web/public/forests and web/public/models
+# into web-data.tar.gz on the WEB_DATA_TAG release, which web.yml unpacks into
+# the build, and redeploys Pages. Run it after `make forest FOREST=full`,
+# `make demos` and `make art` change what should be live. The release stays a
+# draft because Zenodo archives every published release; web.yml needs
+# contents: write to read a draft.
+WEB_DATA_TAG ?= web-data
+WEB_DATA_TARBALL := $(patsubst %/,%,$(or $(TMPDIR),/tmp))/web-data.tar.gz
+
+web-data-publish:
+	@test -f web/public/forests/index.json \
+	  || { echo "No databases in web/public/forests -- run 'make forest FOREST=full' and 'make demos' first."; exit 1; }
+	@test -n "$$(ls web/public/models 2>/dev/null)" \
+	  || { echo "No models in web/public/models -- run 'make art' first."; exit 1; }
+	COPYFILE_DISABLE=1 tar -czf "$(WEB_DATA_TARBALL)" -C web/public forests models
+	gh release view $(WEB_DATA_TAG) >/dev/null 2>&1 \
+	  || gh release create $(WEB_DATA_TAG) --draft --title "Databases and models for the web orchard" \
+	       --notes "web-data.tar.gz: web/public/forests (proteusPy.export_web, make forest) and web/public/models (make art) for the Pages build. Kept a draft so Zenodo does not archive it; do not publish."
+	gh release upload $(WEB_DATA_TAG) "$(WEB_DATA_TARBALL)" --clobber
+	rm -f "$(WEB_DATA_TARBALL)"
+	gh workflow run web.yml --ref main
