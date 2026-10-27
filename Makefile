@@ -109,7 +109,9 @@ gallery:
 # the build, and redeploys Pages. Run it after `make forest` and `make art`
 # change what should be live. The release stays a
 # draft because Zenodo archives every published release; web.yml needs
-# contents: write to read a draft.
+# contents: write to read a draft. The draft is created only when the release
+# list has none under WEB_DATA_TAG; a failed lookup stops the publish instead
+# of creating a second draft.
 WEB_DATA_TAG ?= web-data
 WEB_DATA_TARBALL := $(patsubst %/,%,$(or $(TMPDIR),/tmp))/web-data.tar.gz
 
@@ -119,8 +121,9 @@ web-data-publish:
 	@test -n "$$(ls web/public/models 2>/dev/null)" \
 	  || { echo "No models in web/public/models -- run 'make art' first."; exit 1; }
 	COPYFILE_DISABLE=1 tar -czf "$(WEB_DATA_TARBALL)" -C web/public forests models
-	gh release view $(WEB_DATA_TAG) >/dev/null 2>&1 \
-	  || gh release create $(WEB_DATA_TAG) --draft --title "Databases and models for the web orchard" \
+	ids=$$(gh api 'repos/{owner}/{repo}/releases' --paginate --jq '.[] | select(.tag_name == "$(WEB_DATA_TAG)") | .id') \
+	  || exit 1; \
+	[ -n "$$ids" ] || gh release create $(WEB_DATA_TAG) --draft --title "Databases and models for the web orchard" \
 	       --notes "web-data.tar.gz: web/public/forests (proteusPy.export_web, make forest) and web/public/models (make art) for the Pages build. Kept a draft so Zenodo does not archive it; do not publish."
 	gh release upload $(WEB_DATA_TAG) "$(WEB_DATA_TARBALL)" --clobber
 	rm -f "$(WEB_DATA_TARBALL)"
