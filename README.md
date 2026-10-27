@@ -10,7 +10,7 @@
 
 # The Knowledge Press: The Disulfides
 
-The third edition of The Knowledge Press. It reads the
+The work represents the third volume of The Knowledge Press. It reads the
 [proteusPy](https://github.com/suchanek/proteusPy) disulfide database as a
 web orchard you drive through in 3-D: every disulfide bond in the Protein
 Data Bank, classified by its five side-chain torsions, grown as trees.
