@@ -52,7 +52,7 @@ export function generationColor(g: number): string {
 
 /**
  * A binary or quadrant class is a cube, an octant class or folded tip an
- * octahedron, a member a sphere, and the database tree's trunk a large diamond.
+ * octahedron, a member a dodecahedron, and the database tree's trunk a large diamond.
  */
 function shapeOf(id: string, member: boolean): BeadShape {
   if (member) return "round";

@@ -1,11 +1,11 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, type RefObject } from "react";
 import {
-  BoxGeometry, Color, CylinderGeometry, InstancedMesh, MeshStandardMaterial, Object3D,
-  OctahedronGeometry, Quaternion, SphereGeometry, Vector3, type Ray,
+  BoxGeometry, Color, CylinderGeometry, DodecahedronGeometry, InstancedMesh, MeshStandardMaterial, Object3D,
+  OctahedronGeometry, Quaternion, Vector3, type Ray,
 } from "three";
 import { pickBead, type BeadShape, type Schematic, type SchematicBead, type SchematicSegment } from "./schematic";
 
-/** Bead size, m: a class's cube and the trunk's octahedron match a sphere this wide; a member's sphere is half. */
+/** Bead size, m: a class's cube and the trunk's octahedron match a sphere this wide; a member's dodecahedron is half. */
 const BEAD_R = 0.36;
 const LIMB_R = 0.07;
 const TRUNK_R = 0.16;
@@ -56,10 +56,10 @@ export function SegmentMesh({ segments, radius, material, sides }: {
   return <instancedMesh ref={ref} args={[geometry, material, Math.max(1, segments.length)]} castShadow receiveShadow />;
 }
 
-const SHAPES: Record<BeadShape, () => SphereGeometry | BoxGeometry | OctahedronGeometry> = {
+const SHAPES: Record<BeadShape, () => DodecahedronGeometry | BoxGeometry | OctahedronGeometry> = {
   // A member's bead is half a class's: they cluster on a dome over their class.
-  // 10x8 (140 triangles) still reads as round; on Ultra every sampled bond has one.
-  round: () => new SphereGeometry(BEAD_R * 0.5, 10, 8),
+  // A dodecahedron, 36 triangles: on Ultra every sampled bond has one.
+  round: () => new DodecahedronGeometry(BEAD_R * 0.5),
   square: () => new BoxGeometry(BEAD_R * 1.6, BEAD_R * 1.6, BEAD_R * 1.6),
   octa: () => new OctahedronGeometry(BEAD_R * 1.15),
   diamond: () => new OctahedronGeometry(BEAD_R * 1.6),

@@ -17,9 +17,9 @@ uses [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- Schematic mode's member spheres at 10x8 segments, 140 triangles in
-  place of 352: on Ultra, beside the largest tree with shadows on, 5.05M
-  triangles a frame in place of 9.29M, with no visible difference.
+- Schematic mode's member beads are dodecahedra, 36 triangles in place of
+  a 352-triangle sphere: on Ultra, with shadows on, the frame peaks
+  around 1M triangles in place of 9.8M.
 
 ### Removed
 
