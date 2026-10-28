@@ -186,11 +186,11 @@ Decided by EGS:
 - The ranks run Undergraduate, Research Assistant, Graduate Student, PhD
   Candidate, Doctor of Philosophy; the cart carries models of the classes
   collected, in place of albums (#14).
-- The dataset is static: the published set does not change, so the live
-  `web-data` release and the count badges are not expected to move
+- The disulfide database is static, so in general the `web-data` release
+  needs no republishing and the count badges stay as they are
   (2026-10-28).
 
-Nothing else is planned. Open with EGS: an app.
+Nothing else is planned. Open with EGS: an app, and publishing.
 
 Stills for review go in `renders/` (gitignored). The Family's approach
 works: a puppeteer-core script against `make web-dev` on a port of its
