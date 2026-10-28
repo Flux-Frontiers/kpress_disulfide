@@ -7,6 +7,8 @@ uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-28
+
 ### Added
 
 - The orchard on GitHub Pages, https://flux-frontiers.github.io/kpress_disulfide/,

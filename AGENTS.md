@@ -59,7 +59,7 @@ proteusPy writes the orchard's data; this repo only reads it.
   about 11 s and writes 52 MB. `2q7q_75D_140D`, the lowest-energy bond,
   is the full export's default home; the subset's is `1xr9_203A_259A`.
 
-## Where it stands (2026-10-26)
+## Where it stands (2026-10-28)
 
 Merged on `main`:
 
@@ -124,6 +124,41 @@ Merged on `main`:
   album's ranks from Undergraduate to Doctor of Philosophy; the cart
   carries a model of each class collected, on stands in two tiers. 159
   web tests.
+- [#15](https://github.com/Flux-Frontiers/kpress_disulfide/pull/15): this
+  file brought up to date through #14.
+- [#16](https://github.com/Flux-Frontiers/kpress_disulfide/pull/16): the
+  view above the cart looks down on the collection; C cycles in the cart,
+  behind it, above it, god's eye; new defaults.
+- [#17](https://github.com/Flux-Frontiers/kpress_disulfide/pull/17): the
+  home disulfide seated on its plinth, held by a brass pin and lit.
+- [#18](https://github.com/Flux-Frontiers/kpress_disulfide/pull/18): Home,
+  and every jump, resets the look, tilt and height.
+- [#19](https://github.com/Flux-Frontiers/kpress_disulfide/pull/19): the
+  cart's models on brass pins over flat stands.
+- [#20](https://github.com/Flux-Frontiers/kpress_disulfide/pull/20): full
+  statues held only within 60 to 90 m of their glades, small far maps
+  (Safari had reloaded the tab for its memory).
+- [#21](https://github.com/Flux-Frontiers/kpress_disulfide/pull/21): the
+  README and `CITATION.cff` to the fleet standard.
+- [#23](https://github.com/Flux-Frontiers/kpress_disulfide/pull/23):
+  **v0.1.0 released 2026-10-26**, with `release.yml` (a `v*` tag builds
+  the orchard and publishes the GitHub Release; Zenodo archives it).
+- [#24](https://github.com/Flux-Frontiers/kpress_disulfide/pull/24): the
+  Zenodo concept DOI, 10.5281/zenodo.23679104.
+- [#25](https://github.com/Flux-Frontiers/kpress_disulfide/pull/25): the
+  orchard on GitHub Pages, its data from the draft `web-data` release.
+- [#26](https://github.com/Flux-Frontiers/kpress_disulfide/pull/26): the
+  disulfide and structure count badges; only the full database offered.
+- [#27](https://github.com/Flux-Frontiers/kpress_disulfide/pull/27):
+  `make web-data-publish` creates no second draft.
+- [#28](https://github.com/Flux-Frontiers/kpress_disulfide/pull/28):
+  schematic member beads as dodecahedra; on Ultra a frame peaks around 1M
+  triangles in place of 9.8M.
+- [#29](https://github.com/Flux-Frontiers/kpress_disulfide/pull/29): the
+  user guide (`docs/`, `mkdocs.yml`), built by web.yml into
+  `/docs/` beside the orchard; Eureka's plaque.
+- v0.2.0: this release (the Pages site, the guide, the full database
+  only, dodecahedron beads).
 
 Decided by EGS:
 
@@ -151,8 +186,11 @@ Decided by EGS:
 - The ranks run Undergraduate, Research Assistant, Graduate Student, PhD
   Candidate, Doctor of Philosophy; the cart carries models of the classes
   collected, in place of albums (#14).
+- The dataset is static: the published set does not change, so the live
+  `web-data` release and the count badges are not expected to move
+  (2026-10-28).
 
-Nothing else is planned. Open with EGS: an app, and publishing.
+Nothing else is planned. Open with EGS: an app.
 
 Stills for review go in `renders/` (gitignored). The Family's approach
 works: a puppeteer-core script against `make web-dev` on a port of its
