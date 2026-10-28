@@ -1,0 +1,62 @@
+# The Knowledge Press: The Disulfides -- the orchard's user guide.
+# Built into web/dist/docs by the Web workflow, so it is published beside the
+# orchard at https://flux-frontiers.github.io/kpress_disulfide/docs/. The
+# orchard itself is the Pages root, which is why this is not the fleet's
+# docs.yml: that would replace the orchard with the guide.
+
+site_name: "The Knowledge Press: The Disulfides"
+site_description: The user guide for The Disulfides, a web orchard over the proteusPy disulfide database.
+site_url: https://flux-frontiers.github.io/kpress_disulfide/docs/
+repo_url: https://github.com/Flux-Frontiers/kpress_disulfide
+repo_name: Flux-Frontiers/kpress_disulfide
+edit_uri: edit/main/docs/
+copyright: "&copy; 2026 Eric G. Suchanek, PhD, Flux-Frontiers"
+exclude_docs: requirements.txt
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: green
+      accent: green
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: green
+      accent: green
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.top
+    - content.code.copy
+    - content.action.edit
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.keys
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Getting started: guide/getting-started.md
+  - The orchard: guide/the-orchard.md
+  - Driving and the tour: guide/driving.md
+  - Reading a class or bond: guide/reading.md
+  - Finding and linking: guide/finding.md
+  - The exhibits: guide/exhibits.md
+  - Settings: guide/settings.md
+  - Troubleshooting: guide/troubleshooting.md

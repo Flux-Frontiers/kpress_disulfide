@@ -62,9 +62,9 @@ const INNOVATION: SpiritSpec = {
   title: "Spirit of Innovation",
   byline: "Art Techno · Invention",
   body:
-    "Eureka. She has just pressed two halves of a chip together at her heart, and the idea ignites: a " +
-    "sunburst breaks out across her chest, and gold traces carry it down her arms and legs. She springs " +
-    `forward with the joy of it, the only Spirit in motion. ${ART_TECHNO}.`,
+    "Eureka. She is pulling the idea from her mind and her heart, and the joy of it carries her forward, " +
+    "the only Spirit in motion. Joining the two halves of a chip at her heart is the symbolic act: a " +
+    `sunburst breaks out across her chest, and gold traces carry it down her arms and legs. ${ART_TECHNO}.`,
 };
 
 const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);

@@ -31,6 +31,11 @@
 #                         the Pages build, then redeploy
 #   make art           -- copy the Spirit of Life's models from
 #                         $(ART_TECHNO_DIR) (Art Techno, CC BY-NC 4.0)
+#
+# The user guide (docs/, published at .../kpress_disulfide/docs/):
+#   make docs-install  -- mkdocs-material into $(DOCS_VENV)
+#   make docs          -- build it into site/, --strict
+#   make docs-serve    -- serve it with live reload
 
 PROTEUSPY_DIR ?= ../proteusPy
 # Art Techno, whose Spirit of Life stands in an exhibit glade (`make art`).
@@ -128,3 +133,19 @@ web-data-publish:
 	gh release upload $(WEB_DATA_TAG) "$(WEB_DATA_TARBALL)" --clobber
 	rm -f "$(WEB_DATA_TARBALL)"
 	gh workflow run web.yml --ref main
+
+# The user guide: docs/*.md rendered by mkdocs-material into site/, as the Web
+# workflow renders it into web/dist/docs beside the orchard. --strict fails on
+# a broken link, so a bad link stops here rather than on the published site.
+DOCS_VENV ?= .venv-docs
+
+.PHONY: docs docs-install docs-serve
+
+docs-install:
+	python3 -m venv $(DOCS_VENV) && $(DOCS_VENV)/bin/pip install -q -r docs/requirements.txt
+
+docs:
+	$(DOCS_VENV)/bin/mkdocs build --strict
+
+docs-serve:
+	$(DOCS_VENV)/bin/mkdocs serve

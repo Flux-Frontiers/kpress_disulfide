@@ -19,6 +19,8 @@ Data Bank, classified by its five side-chain torsions, grown as trees.
 
 **Open the orchard:** https://flux-frontiers.github.io/kpress_disulfide/
 
+**User guide:** https://flux-frontiers.github.io/kpress_disulfide/docs/
+
 - Each of the 32 binary classes is a tree. Its quadrant classes are the
   first ring of limbs and its octant classes the second, and a sample of
   each octant class's real bonds hang above it, tinted from blue (relaxed)

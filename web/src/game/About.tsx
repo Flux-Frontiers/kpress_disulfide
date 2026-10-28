@@ -103,6 +103,8 @@ export function About() {
         {!COARSE_POINTER && (
           <p className="text-faint">On a phone: the stick at bottom left drives, a drag anywhere else looks. A gamepad works too.</p>
         )}
+        {/* Published beside the orchard by the Web workflow (mkdocs.yml); relative, as the base is "./". */}
+        <p>Every key, setting and link is in the <a href="./docs/" target="_blank" rel="noreferrer" className="text-primary underline">user guide</a>.</p>
 
         <h3>How it was made</h3>
         <p>

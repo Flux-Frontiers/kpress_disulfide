@@ -14,9 +14,16 @@ uses [Semantic Versioning](https://semver.org/).
   come from the draft `web-data` release; `make web-data-publish` uploads
   them and redeploys.
 - Badges for the disulfide and structure counts, 158,965 and 35,367.
+- A user guide, https://flux-frontiers.github.io/kpress_disulfide/docs/:
+  `docs/` and `mkdocs.yml`, rendered by mkdocs-material into `web/dist/docs`
+  by the Web workflow and published beside the orchard; `make docs-install`,
+  `make docs` and `make docs-serve` build it locally. The About dialog links
+  to it.
 
 ### Changed
 
+- Eureka's plaque: she is pulling the idea from her mind and her heart,
+  and joining the two halves of the chip is the symbolic act.
 - Schematic mode's member beads are dodecahedra, 36 triangles in place of
   a 352-triangle sphere: on Ultra, with shadows on, the frame peaks
   around 1M triangles in place of 9.8M.
