@@ -4,7 +4,9 @@ name: Web
 # to web/ so a change elsewhere does not spend a runner here. A push or manual
 # run on main also publishes web/dist to GitHub Pages at
 # https://flux-frontiers.github.io/kpress_disulfide/ (EGS, 2026-10-26), as the
-# Forest's web.yml does.
+# Forest's web.yml does, with the user guide (docs/, mkdocs.yml) rendered into
+# web/dist/docs beside it: the orchard is the Pages root, so the guide rides
+# along rather than having a docs workflow of its own.
 #
 # The databases and the Spirits' models are not in git: `make web-data-publish`
 # uploads them as web-data.tar.gz on the draft `web-data` release, and every
@@ -17,12 +19,16 @@ on:
     paths:
       - "web/**"
       - "!web/**.md"
+      - "docs/**"
+      - "mkdocs.yml"
       - ".github/workflows/web.yml"
   pull_request:
     branches: [main]
     paths:
       - "web/**"
       - "!web/**.md"
+      - "docs/**"
+      - "mkdocs.yml"
       - ".github/workflows/web.yml"
   workflow_dispatch:
 
@@ -58,6 +64,17 @@ jobs:
           node -e 'const i = require("./public/forests/index.json"); for (const f of i.forests) console.log(f.slug, f.bonds, "bonds")'
           ls public/models
       - run: npm run build
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: docs/requirements.txt
+      # --strict fails the build on a broken link or a page missing from the nav.
+      - name: Build the user guide
+        working-directory: ${{ github.workspace }}
+        run: |
+          pip install -q -r docs/requirements.txt
+          mkdocs build --strict --site-dir web/dist/docs
       - uses: actions/upload-pages-artifact@v4
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         with:
