@@ -34,7 +34,7 @@ builds.
 | `forest.ts` | The orchard: groves by class family, the hub, roads, the tour loop, representatives |
 | `molecule.ts`, `Molecules.tsx` | Ball-and-stick disulfides: representatives, foot plates, the monument |
 | `classCards.ts`, `ClassReader.tsx` | The reader: class cards from the catalog, bond cards from `bonds/<key>.json` |
-| `schematic.ts`, `SchematicOrchard.tsx` | Schematic mode (V): classes as cubes colored by tier, bonds as spheres colored by energy |
+| `schematic.ts`, `SchematicOrchard.tsx` | Schematic mode (V): classes as cubes colored by tier, bonds as dodecahedra colored by energy |
 | `HomeMarks.tsx`, `homePath.ts` | The home disulfide on its own class tree: the wood up to it gilded, and a lantern |
 | `NamePlates.tsx` | Class ids and bond keys over the nearest tree, decluttered; the "Name plates" setting (N) |
 | `narration.ts`, `tourScript.ts` | What the guided tour says at each grove and on the way |

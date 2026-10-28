@@ -89,7 +89,7 @@ Each of the 32 binary classes is one tree (`classTree.ts`, `lineTree`):
   classes stand in the same place at every setting, and the home
   disulfide always shows. They sit on a dome of radius 0.8 m above their
   octant class, spiralling down from the top at the golden angle. In the wood view each bond is a tuft of 7
-  leaves. In the schematic it is a small sphere. Either way it opens that
+  leaves. In the schematic it is a small dodecahedron. Either way it opens that
   bond's card in the reader.
 
 ### Where a class stands on its ring

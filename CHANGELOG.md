@@ -15,6 +15,12 @@ uses [Semantic Versioning](https://semver.org/).
   them and redeploys.
 - Badges for the disulfide and structure counts, 158,965 and 35,367.
 
+### Changed
+
+- Schematic mode's member beads are dodecahedra, 36 triangles in place of
+  a 352-triangle sphere: on Ultra, with shadows on, the frame peaks
+  around 1M triangles in place of 9.8M.
+
 ### Removed
 
 - The subset database from the app and the site: `make forest` and
