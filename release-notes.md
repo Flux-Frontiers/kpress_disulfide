@@ -1,48 +1,45 @@
-# Release Notes -- v0.1.0
+# Release Notes -- v0.2.0
 
-> Released: 2026-10-26
+> Released: 2026-10-28
 
-The first release of The Knowledge Press: The Disulfides, the third edition of
-The Knowledge Press. It draws the proteusPy disulfide database as an orchard you
-drive through in the browser: every disulfide bond in the Protein Data Bank,
-classified by its five side-chain torsions, grown as trees. The full database
-shows the published set of the Springer chapter, 158,965 bonds in 35,367
-structures within proteusPy's Ca and Sg cutoffs.
+The orchard is now on the web. The Disulfides is published on GitHub Pages,
+https://flux-frontiers.github.io/kpress_disulfide/, built and deployed from
+`main`, with a user guide beside it. The orchard shows one database, the full
+published set of 158,965 bonds in 35,367 structures, and its schematic view
+draws far fewer triangles.
 
 ## What changed
 
-**An orchard of structural classes.** Each of the 32 binary classes is a tree:
-its quadrant classes form the first ring of limbs, its octant classes the
-second, and a sample of each octant class's real bonds hang above it, tinted
-from blue to red by torsional energy. Trees stand in groves by class family,
-the six named spirals, hooks and staples on the outer ring and the unnamed
-classes on the inner. At the hub the database tree carries every bond in its
-trunk, and the lowest-energy disulfide in the PDB, 2q7q 75D-140D at 0.49
-kcal/mol, stands on its monument.
+**Published on GitHub Pages.** The Web workflow builds the orchard and deploys
+it on every push to `main`. The databases and the Spirits' models are not in
+the repository; the workflow takes them from the draft `web-data` release,
+which `make web-data-publish` uploads. Publishing no longer leaves a second,
+empty draft behind when GitHub answers slowly.
 
-**Reading the classes and bonds.** A class card gives a class's consensus
-torsions, energy, Ca distance, model, parent and children and sampled bonds; a
-bond card links the PDB entry at the RCSB and draws the bond from its own
-coordinates. The lantern searches PDB ids, class ids and family names, and the
-guided tour speaks each family's classes as it drives the ring.
+**A user guide.** https://flux-frontiers.github.io/kpress_disulfide/docs/
+covers getting started, what the trees and groves show, driving and the
+guided tour, reading a class or bond, finding and linking, the exhibits, the
+settings and troubleshooting. It is written in `docs/`, built with
+mkdocs-material by the same workflow, and linked from the About dialog.
 
-**A collection to earn.** Each class added to the album rides in the cart as a
-model of its disulfide on a brass pin, and the album's ranks run from
-Undergraduate to Doctor of Philosophy. A view above the cart looks down on the
-collection.
+**The full database only.** The app and the site offer only the full
+database. The subset that ships with proteusPy is kept as the test fixture.
+The README's badges give the disulfide and structure counts.
 
-**Settings for the view and the load.** Bond complexity, pruning of sparse
-octants, schematic mode, a free look with Look ahead, raising and lowering the
-view, and touch controls. Art Techno's Spirits of Life and Innovation stand in
-glades of their own beside the Double Helix.
+**A lighter schematic view.** Each sampled bond in schematic mode is a
+dodecahedron, 36 triangles in place of a 352-triangle sphere. On Ultra with
+shadows on, a frame peaks around 1M triangles in place of 9.8M.
+
+**Eureka's plaque.** The Spirit of Innovation's plaque now says what she
+does: she pulls the idea from her mind and her heart, and joining the two
+halves of the chip is the symbolic act.
 
 ## Upgrading
 
-This is the first release. The orchard reads databases written by
-`proteusPy.export_web` (`make forest FOREST=full`, or `make demos` for the
-subset) and the Spirits' models copied by `make art`; neither is in the
-repository. The attached build is the web orchard alone, to serve with those
-beside it.
+Nothing to do to use it: open the site. To run it locally, `make forest` now
+exports only the full database (the `FOREST` variable is gone), and
+`make demos` is `make art` and `make forest`. `make docs-install` and
+`make docs` build the guide; `make docs-serve` previews it.
 
 ---
 
