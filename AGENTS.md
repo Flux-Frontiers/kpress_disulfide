@@ -201,6 +201,38 @@ works: a puppeteer-core script against `make web-dev` on a port of its
 own. Do not run `make web-kill`: it stops every Vite server on the
 machine, including the ones EGS keeps running for other editions.
 
+## Before this edition becomes an App Store app
+
+Read this before building an iPhone or Mac app for this edition, or before
+submitting one. None of it applies to the web orchard on Pages.
+
+The Forest (`knowledge_press`) is in review on the App Store as of 2026-10-29,
+and its Mac App Store build is the only channel it ships through. Fielding
+this edition as an app means fixing the following first:
+
+- **Start from the Forest's current shells.** Copy `app/ios` and `app/macos`
+  from `knowledge_press` at or after commit `4c47a6e`. That commit retired
+  the notarized Developer ID Mac build (`mac-build`, `mac-notarize`,
+  `mac-dmg`, `mac-release`). Do not bring it back: Apple's Developer ID
+  profile cannot carry Private Cloud Compute, so that build was a weaker app
+  than the store build. Ship only through the App Store, with
+  `mac-archive`/`mac-upload` and `ios-archive`/`ios-upload`.
+- **Its own identity.** It needs a new explicit bundle ID (never
+  `com.fluxfrontiers.knowledgepress`, which belongs to the Forest's record),
+  its own App Store Connect record, its own display name, and its own icon.
+  The name and the press-seal icon are covered by `TRADEMARK.md`, not by a
+  code license.
+- **Its own store pages.** A privacy policy URL, a support URL, a privacy
+  manifest (`PrivacyInfo.xcprivacy`) that matches what this edition
+  collects, and listing text. The Forest's are for the Forest only.
+- **Its own build numbers and versions.** A new record starts its build
+  numbers fresh, so drop the Forest's `APP_BUILD_OFFSET`. Every version site
+  has to agree.
+- **This repo's state.** It has no Swift app code: The Family's kit was
+  not copied (see `PROVENANCE.md`). An app here starts from the Forest's
+  shells and kit, with `app/LICENSE` from `knowledge_press` so the app
+  source carries the proprietary license, not this repo's.
+
 ## Rules
 
 - No release, no version bump and no tag until EGS says so. The repo is
