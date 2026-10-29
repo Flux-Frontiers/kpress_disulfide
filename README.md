@@ -8,6 +8,8 @@
 [![Web](https://github.com/Flux-Frontiers/kpress_disulfide/actions/workflows/web.yml/badge.svg)](https://github.com/Flux-Frontiers/kpress_disulfide/actions/workflows/web.yml)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.23679104-blue.svg)](https://doi.org/10.5281/zenodo.23679104)
 
+![The Disulfides logo](./logo.svg)
+
 # The Knowledge Press: The Disulfides
 
 The work represents the third volume of The Knowledge Press. It reads the

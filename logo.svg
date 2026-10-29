@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" role="img" aria-labelledby="title desc">
+  <title id="title">The Knowledge Press: The Disulfides</title>
+  <desc id="desc">A class tree of the orchard inside its two ring roads, its leaves tinted from blue (relaxed) to red (strained) by torsional energy; a disulfide bond, alpha carbon to alpha carbon with the two sulfurs at the top, on an arch of the same energy ramp; and the title.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="0%">
+      <stop offset="0%" stop-color="#102d28"/>
+      <stop offset="50%" stop-color="#163d34"/>
+      <stop offset="100%" stop-color="#0d241f"/>
+    </linearGradient>
+    <!-- In user space: a vertical trunk has no bounding-box width to map a gradient onto. -->
+    <linearGradient id="wood" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="312" y2="150">
+      <stop offset="0%" stop-color="#b89a62"/>
+      <stop offset="60%" stop-color="#d4c088"/>
+      <stop offset="100%" stop-color="#e7d7ad"/>
+    </linearGradient>
+    <!-- ENERGY_COLORS from the orchard (classForest.ts): relaxed to strained. -->
+    <linearGradient id="energy" x1="0%" x2="100%" y1="0%" y2="0%">
+      <stop offset="0%" stop-color="#2c7bb6"/>
+      <stop offset="25%" stop-color="#00ccbc"/>
+      <stop offset="50%" stop-color="#90eb9d"/>
+      <stop offset="65%" stop-color="#ffff8c"/>
+      <stop offset="85%" stop-color="#f29e2e"/>
+      <stop offset="100%" stop-color="#d7191c"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="14" stdDeviation="12" flood-color="#081a17" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="380" rx="42" fill="url(#bg)"/>
+
+  <!-- The medallion: a class tree inside the orchard's inner and outer ring roads. -->
+  <g transform="translate(54 -2)" filter="url(#shadow)">
+    <circle cx="166" cy="192" r="150" fill="#0f2d2a" opacity="0.96"/>
+    <circle cx="166" cy="192" r="126" fill="none" stroke="#e8dcc3" stroke-width="4" opacity="0.75"/>
+    <circle cx="166" cy="192" r="80" fill="none" stroke="#e8dcc3" stroke-width="2" opacity="0.28"/>
+
+    <!-- The foot plate, the trunk, two quadrant limbs and two octant limbs climbing at one pitch. -->
+    <ellipse cx="166" cy="310" rx="34" ry="7" fill="#d4c088" opacity="0.4"/>
+    <g fill="none" stroke="url(#wood)" stroke-linecap="round">
+      <path d="M166 310 L166 156" stroke-width="12"/>
+      <path d="M166 244 Q126 206 94 196" stroke-width="7"/>
+      <path d="M166 244 Q206 206 238 196" stroke-width="7"/>
+      <path d="M166 200 Q138 170 120 156" stroke-width="5"/>
+      <path d="M166 200 Q194 170 212 156" stroke-width="5"/>
+    </g>
+
+    <!-- A tuft of sampled members at each tip, tinted by energy: cold left, warm right. -->
+    <g>
+      <circle cx="94" cy="194" r="8" fill="#00a6ca"/>
+      <circle cx="82" cy="184" r="7" fill="#2c7bb6"/>
+      <circle cx="106" cy="184" r="7" fill="#00ccbc"/>
+      <circle cx="94" cy="173" r="7" fill="#2c7bb6"/>
+
+      <circle cx="120" cy="154" r="8" fill="#00ccbc"/>
+      <circle cx="108" cy="144" r="7" fill="#00ccbc"/>
+      <circle cx="132" cy="144" r="7" fill="#90eb9d"/>
+      <circle cx="120" cy="133" r="7" fill="#90eb9d"/>
+
+      <circle cx="166" cy="150" r="8" fill="#ffff8c"/>
+      <circle cx="154" cy="140" r="7" fill="#90eb9d"/>
+      <circle cx="178" cy="140" r="7" fill="#f9d057"/>
+      <circle cx="166" cy="129" r="7" fill="#ffff8c"/>
+
+      <circle cx="212" cy="154" r="8" fill="#f9d057"/>
+      <circle cx="200" cy="144" r="7" fill="#f9d057"/>
+      <circle cx="224" cy="144" r="7" fill="#f29e2e"/>
+      <circle cx="212" cy="133" r="7" fill="#f29e2e"/>
+
+      <circle cx="238" cy="194" r="8" fill="#f29e2e"/>
+      <circle cx="226" cy="184" r="7" fill="#f29e2e"/>
+      <circle cx="250" cy="184" r="7" fill="#d7191c"/>
+      <circle cx="238" cy="173" r="7" fill="#d7191c"/>
+    </g>
+  </g>
+
+  <!-- The bond, underlining the title: Ca, Cb, Sg, Sg', Cb', Ca' on an arch of the energy ramp. -->
+  <g transform="translate(521 200) scale(0.7)" filter="url(#shadow)">
+    <path d="M0 80 L107 36 L241 8 L429 8 L563 36 L670 80" fill="none" stroke="#d4c088" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+    <path d="M0 80 L107 36 L241 8 L429 8 L563 36 L670 80" fill="none" stroke="url(#energy)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <circle cx="0" cy="80" r="13" fill="#c9d6d0" stroke="#f4f0dc" stroke-width="3"/>
+    <circle cx="670" cy="80" r="13" fill="#c9d6d0" stroke="#f4f0dc" stroke-width="3"/>
+    <circle cx="107" cy="36" r="11" fill="#dfe6c8" stroke="#f4f0dc" stroke-width="3"/>
+    <circle cx="563" cy="36" r="11" fill="#dfe6c8" stroke="#f4f0dc" stroke-width="3"/>
+
+    <circle cx="241" cy="8" r="21" fill="#f0d884" stroke="#f7f0d2" stroke-width="5"/>
+    <circle cx="429" cy="8" r="21" fill="#f0d884" stroke="#f7f0d2" stroke-width="5"/>
+    <g fill="#102d28" font-size="22" font-weight="700" font-family="Georgia, 'Times New Roman', serif" text-anchor="middle">
+      <text x="241" y="16">S</text>
+      <text x="429" y="16">S</text>
+    </g>
+  </g>
+
+  <!-- The title. -->
+  <g transform="translate(424 0)" fill="#f4f0dc">
+    <text x="2" y="64" font-size="22" font-family="Arial, Helvetica, sans-serif" letter-spacing="6" fill="#dfe6c8">THE KNOWLEDGE PRESS</text>
+    <text x="0" y="156" font-size="88" font-weight="700" font-family="Georgia, 'Times New Roman', serif" letter-spacing="1">The Disulfides</text>
+    <text x="2" y="334" font-size="28" font-family="Arial, Helvetica, sans-serif" fill="#e7d7ad">families  &#8226;  classes  &#8226;  bonds</text>
+  </g>
+</svg>
