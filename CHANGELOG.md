@@ -7,6 +7,8 @@ uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-29
+
 ### Added
 
 - A logo, `logo.svg`, in the README: a class tree inside the orchard's
