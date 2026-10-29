@@ -7,6 +7,12 @@ uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- A logo, `logo.svg`, in the README: a class tree inside the orchard's
+  ring roads, its leaves tinted by energy, and a disulfide under the
+  title.
+
 ## [0.2.0] - 2026-10-28
 
 ### Added
