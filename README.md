@@ -1,4 +1,4 @@
-[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/Flux-Frontiers/kpress_disulfide/releases)
+[![Version](https://img.shields.io/badge/version-0.2.1-blue.svg)](https://github.com/Flux-Frontiers/kpress_disulfide/releases)
 [![License: Elastic-2.0](https://img.shields.io/badge/License-Elastic%202.0-blue.svg)](https://www.elastic.co/licensing/elastic-license)
 [![Node](https://img.shields.io/badge/node-22-blue.svg)](https://nodejs.org/)
 [![Data: proteusPy](https://img.shields.io/badge/data-proteusPy-blue.svg)](https://github.com/suchanek/proteusPy)
@@ -99,13 +99,13 @@ offers only the full database.
 
 If you use The Disulfides in your research or project, please cite it:
 
-> Suchanek, E. G. (2026). *The Knowledge Press: The Disulfides* (Version 0.2.0) [Software]. Flux-Frontiers. https://doi.org/10.5281/zenodo.23679104
+> Suchanek, E. G. (2026). *The Knowledge Press: The Disulfides* (Version 0.2.1) [Software]. Flux-Frontiers. https://doi.org/10.5281/zenodo.23679104
 
 ```bibtex
 @software{suchanek_kpress_disulfide,
   author    = {Suchanek, Eric G.},
   title     = {The {Knowledge Press}: The Disulfides},
-  version   = {0.2.0},
+  version   = {0.2.1},
   year      = {2026},
   publisher = {Flux-Frontiers},
   doi       = {10.5281/zenodo.23679104},

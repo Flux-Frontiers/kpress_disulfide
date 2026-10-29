@@ -59,7 +59,7 @@ proteusPy writes the orchard's data; this repo only reads it.
   about 11 s and writes 52 MB. `2q7q_75D_140D`, the lowest-energy bond,
   is the full export's default home; the subset's is `1xr9_203A_259A`.
 
-## Where it stands (2026-10-28)
+## Where it stands (2026-10-29)
 
 Merged on `main`:
 
@@ -157,8 +157,12 @@ Merged on `main`:
 - [#29](https://github.com/Flux-Frontiers/kpress_disulfide/pull/29): the
   user guide (`docs/`, `mkdocs.yml`), built by web.yml into
   `/docs/` beside the orchard; Eureka's plaque.
-- v0.2.0: this release (the Pages site, the guide, the full database
-  only, dodecahedron beads).
+- v0.2.0, released 2026-10-28 (the Pages site, the guide, the full
+  database only, dodecahedron beads).
+- [#32](https://github.com/Flux-Frontiers/kpress_disulfide/pull/32): the
+  logo, `logo.svg`, in the README. The Family and The Forest have logos
+  in the same style.
+- v0.2.1: this release (the logo).
 
 Decided by EGS:
 
