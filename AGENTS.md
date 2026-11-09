@@ -162,7 +162,12 @@ Merged on `main`:
 - [#32](https://github.com/Flux-Frontiers/kpress_disulfide/pull/32): the
   logo, `logo.svg`, in the README. The Family and The Forest have logos
   in the same style.
-- v0.2.1: this release (the logo).
+- v0.2.1, released 2026-10-29 (the logo).
+- [#34](https://github.com/Flux-Frontiers/kpress_disulfide/pull/34): what
+  an App Store build of this edition needs.
+- [#35](https://github.com/Flux-Frontiers/kpress_disulfide/pull/35): the
+  ring tour drives out of a grove instead of crawling.
+- v0.2.2: this release (the tour fix, a lock refresh).
 
 Decided by EGS:
 
