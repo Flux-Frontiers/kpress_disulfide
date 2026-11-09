@@ -7,6 +7,14 @@ uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-11-08
+
+### Changed
+
+- The web lock is refreshed to the newest versions the existing ranges
+  allow (React 19.2.9, three 0.186.1, Vite 8.3.6, zustand 5.1.0, Tailwind
+  4.3.5). No floor changed.
+
 ### Fixed
 
 - **The ring tour leaves a grove at a drive.** Started from a tree, the
