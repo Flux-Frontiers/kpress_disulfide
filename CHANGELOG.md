@@ -7,6 +7,15 @@ uses [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **A Flux-Frontiers fleet mark.** The arch from The Disulfides' own logo,
+  Ca-Cb-S-S-Cb-Ca on one arc with the two sulfurs lettered S, redrawn in
+  the fleet's Art Techno style, with the tagline FAMILIES . CLASSES .
+  BONDS. It names the project wherever the fleet's other marks appear; the
+  logo and favicon are unchanged. `scripts/build_logo.py` draws the mark, a
+  64 px icon and a banner as SVG under `assets/` and writes the PNGs.
+
 ## [0.2.2] - 2026-11-08
 
 ### Changed
